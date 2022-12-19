@@ -15,9 +15,9 @@ class SecurityDatabase
 
 	public function initReentrant(string $email): ?string
 	{
-		if ($this->db->queryValue('@table-exists', 'props'))
+		if ($this->db->queryValue('table-exists', 'props'))
 		{
-			$db_version = $this->db->queryValue('@get-prop', 'version');
+			$db_version = $this->db->queryValue('get-prop', 'version');
 			$db_consumer = new Semver(0,1,0); // this is server
 
 			if (!$db_version)
@@ -32,10 +32,10 @@ class SecurityDatabase
 			return null; // this means the DB is set up and can support us
 		}
 
-		if (!$this->db->exec('@init-security'))
+		if (!$this->db->exec('init-security'))
 			return 'failed to initialize database';
 
-		if (!$this->db->query('@add-user', [
+		if (!$this->db->query('add-user', [
 			':id' => 0,
 			':username' => 'admin'
 		]))
@@ -43,7 +43,7 @@ class SecurityDatabase
 			return 'failed to add admin user';
 		}
 
-		if (!$this->db->query('@add-gmail', [
+		if (!$this->db->query('add-gmail', [
 			':id' => 0,
 			':email' => $email
 		]))
@@ -58,7 +58,7 @@ class SecurityDatabase
 	public function getLoggedInUser(string $token): ?array
 	{
 		$raw_token = base64_decode($token);
-		return $this->db->queryRow('@get-login-user', $raw_token);
+		return $this->db->queryRow('get-login-user', $raw_token);
 	}
 
 	// handle a "sign in with google" request
@@ -143,7 +143,7 @@ class SecurityDatabase
 			return null;
 		}
 
-		$google_user = $this->db->queryRow('@get-google-user', $email);
+		$google_user = $this->db->queryRow('get-google-user', $email);
 		if (!$google_user)
 		{
 			$err = 'The user is not registered on the system.';
@@ -158,7 +158,7 @@ class SecurityDatabase
 				return null;
 			}
 		}
-		else if (!$this->db->query('@update-google-user-id', [
+		else if (!$this->db->query('update-google-user-id', [
 			':email' => $email,
 			':id' => $google_id
 		]))
@@ -178,13 +178,13 @@ class SecurityDatabase
 		// Log the user in and clean up current login session
 		$token = random_bytes(256);
 
-		$result = $this->db->query('@add-login', [
+		$result = $this->db->query('add-login', [
 			':id' => $user,
 			':token' => $token
 		]);
 
 		// after this step, the user will only have 10 most recent logins on system
-		$this->db->query('@limit-login', [
+		$this->db->query('limit-login', [
 			':id' => $user,
 			':limit' => 10
 		]);
@@ -194,6 +194,6 @@ class SecurityDatabase
 
 	public function logout(string $token): void
 	{
-		$this->db->query('@logout', base64_decode($token));
+		$this->db->query('logout', base64_decode($token));
 	}
 }

@@ -22,16 +22,7 @@ class Database
 
 	private function loadSql(string $sql): string
 	{
-		if (substr($sql, 0, 1) === '@')
-		{
-			if (!$this->query_dir)
-				throw new \Exception('Cannot run named query w/o specifying query_dir');
-
-			$fname = substr($sql, 1);
-			return file_get_contents("{$this->query_dir}/$fname.sql");
-		}
-
-		return $sql;
+		return file_get_contents("{$this->query_dir}/$sql.sql");
 	}
 
 	public function exec(string $sql): bool
