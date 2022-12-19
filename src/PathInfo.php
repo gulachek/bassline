@@ -60,7 +60,7 @@ class PathInfo
 		return count($this->components);
 	}
 
-	public function is_root()
+	public function isRoot()
 	{
 		return !$this->count();
 	}
@@ -80,7 +80,7 @@ class PathInfo
 
 	public function child()
 	{
-		if ($this->is_root())
+		if ($this->isRoot())
 		{
 			return null;
 		}

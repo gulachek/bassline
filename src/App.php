@@ -51,7 +51,7 @@ class App
 	public function mapStaticPath(PathInfo $info): ?string
 	{
 		// this should always be a page for any reasonable web application (come at me :))
-		if ($info->is_root())
+		if ($info->isRoot())
 			return null;
 
 		$static = $this->staticDirs();

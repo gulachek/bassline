@@ -33,7 +33,7 @@ class ShellApp extends App
 
 	public function isShell($info)
 	{
-		if ($info->is_root())
+		if ($info->isRoot())
 			return true;
 
 		$dirs = $this->staticDirs();

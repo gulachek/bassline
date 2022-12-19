@@ -43,7 +43,7 @@ class Server
 		$config = $this->config;
 		$path = $this->path;
 
-		if ($path->is_root())
+		if ($path->isRoot())
 			return false;
 
 		$shell = new ShellApp($this->config);
@@ -144,7 +144,7 @@ class Server
 			$path = $path->child();
 		}
 
-		if ($path->is_root())
+		if ($path->isRoot())
 			return $app->landingPage();
 
 		$routee = $app->route($path);
@@ -156,7 +156,7 @@ class Server
 
 	private function recursiveRoute($routes, $path)
 	{
-		if ($path->is_root())
+		if ($path->isRoot())
 		{
 			return $routes['.'] ?? null;
 		}
