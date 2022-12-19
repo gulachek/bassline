@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title> <?= $SHELL->title() ?> </title>
+
+<?php foreach ($SHELL->stylesheets() as $style): ?>
+	<link rel="stylesheet" type="text/css" href="<?= $style ?>" />
+<?php endforeach; ?>
+
+</head>
+
+<body>
+
+<nav class="nav-bar">
+
+<a href="/"> <?= $SITE_NAME ?> </a>
+
+<?php foreach ($APPS as $appHref => $app): ?>
+	<a href="/<?= $appHref ?>/"> <?= $app->title() ?> </a>
+<?php endforeach; ?>
+
+<?php if (isset($USER)): ?>
+	<!-- <div onclick="void(0);" class="menu"> -->
+	<div class="menu login">
+	<span><?= $USERNAME ?></span>
+	<div class="items">
+	<a href="/logout"> Log out </a>
+	</div>
+	</div>
+<?php else: ?>
+	<a href="/login" class="login"> Log in </a>
+<?php endif; ?>
+
+</nav>
+
+<main class="main">
+<?= $SHELL->mainBody() ?>
+</main>
+
+</body>
+</html>

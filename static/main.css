@@ -1,0 +1,79 @@
+html {
+	--colA-dark: #000;
+	--colA-med: #aaa;
+	--colA-light: #ccc;
+
+	--colB-dark: #bbb;
+	--colB-med: #eee;
+	--colB-light: #fff;
+
+	--colC-dark: #1f3d0d;
+	--colC-med: #366b16;
+	--colC-light: #58aa25;
+
+	--colD-dark: #142e59;
+	--colD-med: #1a3e77;
+	--colD-light: #2558aa;
+
+	color: var(--colA-dark);
+	background-color: var(--colB-light);
+}
+
+body {
+	margin: 0;
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.nav-bar {
+	background-color: var(--colC-med);
+	color: var(--colB-light);
+	text-align: right;
+}
+
+.nav-bar a {
+	color: var(--colB-light);
+	text-decoration: none;
+}
+
+.nav-bar > * {
+	padding: 0.5em;
+	display: inline-block;
+}
+
+.nav-bar > *:hover {
+	background-color: var(--colC-dark);
+}
+
+.nav-bar .menu {
+	position: relative;
+}
+
+.nav-bar .menu .items {
+	background-color: var(--colC-med);
+	visibility: hidden;
+	position: absolute;
+	top: 100%;
+	left: 0;
+	width: 100%;
+}
+
+.nav-bar .menu .items > * {
+	padding: 0.5em;
+	display: inline-block;
+}
+
+.nav-bar .menu .items > *:hover {
+	background-color: var(--colC-dark);
+}
+
+.nav-bar .menu:hover > .items {
+	visibility: visible;
+}
+
+.main {
+	overflow: auto;
+	padding: 0.5em;
+}

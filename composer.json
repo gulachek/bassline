@@ -1,0 +1,12 @@
+{
+	"name": "gulachek/gulachek-dot-com-webshell",
+	"version": "0.1.0",
+	"autoload": {
+		"psr-4": {
+			"Shell\\": "src/"
+		}
+	},
+	"require": {
+		"google/apiclient": "^2.12"
+	}
+}
