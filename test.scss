@@ -1,0 +1,22 @@
+@use "sass:color";
+
+@mixin define-base-color($name, $base) {
+	@for $i from 0 through 10 {
+		$prop: --theme-#{$name}-#{$i * 10};
+		$value: color.scale($base, $lightness: ($i - 5)*10%);
+		#{$prop}: $value;
+	}
+}
+
+:root {
+	@include define-base-color(primary, #497222);
+	@include define-base-color(secondary, #224972);
+	@include define-base-color(tertiary, #722249);
+
+	--theme-on-primary: #fff;
+	--theme-on-secondary: #fff;
+	--theme-on-tertiary: #fff;
+
+	background-color: var(--theme-primary-500);
+	color: var(--theme-on-primary);
+}

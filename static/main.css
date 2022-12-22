@@ -1,24 +1,3 @@
-html {
-	--colA-dark: #000;
-	--colA-med: #aaa;
-	--colA-light: #ccc;
-
-	--colB-dark: #bbb;
-	--colB-med: #eee;
-	--colB-light: #fff;
-
-	--colC-dark: #1f3d0d;
-	--colC-med: #366b16;
-	--colC-light: #58aa25;
-
-	--colD-dark: #142e59;
-	--colD-med: #1a3e77;
-	--colD-light: #2558aa;
-
-	color: var(--colA-dark);
-	background-color: var(--colB-light);
-}
-
 body {
 	margin: 0;
 	width: 100vw;
@@ -28,13 +7,13 @@ body {
 }
 
 .nav-bar {
-	background-color: var(--colC-med);
-	color: var(--colB-light);
+	/*background-color: var(--theme-banner);*/
+	/*color: var(--theme-on-banner);*/
 	text-align: right;
 }
 
 .nav-bar a {
-	color: var(--colB-light);
+	/*color: var(--theme-on-banner);*/
 	text-decoration: none;
 }
 
@@ -44,7 +23,7 @@ body {
 }
 
 .nav-bar > *:hover {
-	background-color: var(--colC-dark);
+	/*background-color: var(--theme-banner-dark);*/
 }
 
 .nav-bar .menu {
@@ -52,7 +31,7 @@ body {
 }
 
 .nav-bar .menu .items {
-	background-color: var(--colC-med);
+	/*background-color: var(--theme-banner);*/
 	visibility: hidden;
 	position: absolute;
 	top: 100%;
@@ -66,7 +45,7 @@ body {
 }
 
 .nav-bar .menu .items > *:hover {
-	background-color: var(--colC-dark);
+	/*background-color: var(--theme-banner-dark);*/
 }
 
 .nav-bar .menu:hover > .items {

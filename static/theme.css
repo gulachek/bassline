@@ -1,0 +1,38 @@
+:root {
+	--theme-primary: #fff;
+	--theme-primary-dark: #ddd;
+	--theme-on-primary: #000;
+
+	--theme-secondary: #2A4C0B;
+	--theme-secondary-dark: #182B06;
+	--theme-on-secondary: #fff;
+
+	--theme-banner: var(--theme-secondary);
+	--theme-banner-dark: var(--theme-secondary-dark);
+	--theme-on-banner: var(--theme-on-secondary);
+
+	--theme-text: var(--theme-primary);
+	--theme-text-dark: var(--theme-primary-dark);
+	--theme-on-text: var(--theme-on-primary);
+
+	--theme-widget-hover: var(--theme-secondary-dark);
+	--theme-widget-dark: var(--theme-secondary-dark);
+	--theme-widget: var(--theme-secondary);
+	--theme-on-widget: var(--theme-on-secondary);
+
+	--theme-inactive: var(--theme-text);
+	--theme-inactive-hover: var(--theme-text-dark);
+	--theme-on-inactive: var(--theme-widget);
+	--theme-active: var(--theme-widget);
+	--theme-on-active: var(--theme-on-widget);
+
+	color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--theme-secondary: #00dd44;
+		--theme-secondary-dark: #00cc44;
+		--theme-on-secondary: #333;
+	}
+}

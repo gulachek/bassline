@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title> <?= $SHELL->title() ?> </title>
 
+<script src="/static/loading_overlay.js"></script>
+
+<link rel="stylesheet" type="text/css" href="/static/theme.css" />
+
 <?php foreach ($SHELL->stylesheets() as $style): ?>
 	<link rel="stylesheet" type="text/css" href="<?= $style ?>" />
 <?php endforeach; ?>
@@ -36,7 +40,9 @@
 </nav>
 
 <main class="main">
-<?= $SHELL->mainBody() ?>
+	<loading-overlay>
+		<?= $SHELL->mainBody() ?>
+	</loading-overlay>
 </main>
 
 </body>

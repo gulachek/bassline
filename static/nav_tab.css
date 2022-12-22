@@ -1,0 +1,35 @@
+.fixture {
+	display: flex;
+	flex-direction: column;
+}
+
+.tab-list {
+	align-self: start;
+	display: flex;
+}
+
+.tab {
+	display: block;
+	padding: 1em;
+	margin: 0;
+}
+
+.tab.selected {
+	background-color: SelectedItem;
+	color: SelectedItemText;
+}
+
+.tab-panel-container {
+	border-style: solid;
+	display: grid;
+}
+
+.tab-panel {
+	padding: 1em;
+	grid-area: 1 / 1 / 2 / 2;
+	visibility: hidden;
+}
+
+.tab-panel.selected {
+	visibility: visible;
+}

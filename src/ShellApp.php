@@ -17,6 +17,24 @@ class LandingPage extends Page
 	}
 }
 
+class ThemePage extends Page
+{
+	public function title()
+	{
+		return 'Theme';
+	}
+
+	public function stylesheets()
+	{
+		return ['/static/theme_page.css'];
+	}
+
+	public function body()
+	{
+		require __DIR__ . '/../template/theme_page.php';
+	}
+}
+
 class ShellApp extends App
 {
 	public function __construct(
@@ -44,7 +62,7 @@ class ShellApp extends App
 			return true;
 		}
 
-		return !!array_search($top, ['shell', 'login', 'logout']);
+		return array_search($top, ['shell', 'login', 'logout']) !== false;
 	}
 
 	public function route(PathInfo $path): array
@@ -54,7 +72,10 @@ class ShellApp extends App
 				'.' => new LoginPage($this->config->googleClientId()),
 				'sign_in_with_google' => $this->handler('attemptLoginWithGoogle')
 			],
-			'logout' => $this->handler('logout')
+			'logout' => $this->handler('logout'),
+			'shell' => [
+				'theme' => new ThemePage()
+			]
 		];
 	}
 
