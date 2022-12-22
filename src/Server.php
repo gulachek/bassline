@@ -17,8 +17,7 @@ class Server
 
 	public function initializeSystem(): bool
 	{
-		$db_path = $this->config->loginDatabase();
-		$db = new SecurityDatabase(new Database(new \Sqlite3($db_path)));
+		$db = SecurityDatabase::fromConfig($this->config);
 
 		if ($err = $db->initReentrant(
 			$this->config->adminEmail()
@@ -182,7 +181,7 @@ class Server
 
 		if (isset($_COOKIE['login']))
 		{
-			$db = new SecurityDatabase(new Database(new \Sqlite3($this->config->loginDatabase())));
+			$db = SecurityDatabase::fromConfig($this->config);
 			if ($user = $db->getLoggedInUser($_COOKIE['login']))
 			{
 				$USER = $user['id'];

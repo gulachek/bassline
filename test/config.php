@@ -11,7 +11,7 @@ class Config extends \Shell\Config
 	{
 		$this->json = json_decode(file_get_contents(__DIR__ . '/versionless-config.json'));
 
-		$path_props = ['login-database'];
+		$path_props = ['data-directory'];
 		foreach ($path_props as $prop)
 		{
 			$path = $this->json->$prop;
@@ -34,9 +34,9 @@ class Config extends \Shell\Config
 		return $this->json->{'site-name'};
 	}
 
-	public function loginDatabase(): string
+	public function dataDir(): string
 	{
-		return $this->json->{'login-database'};
+		return $this->json->{'data-directory'};
 	}
 
 	public function adminEmail(): string

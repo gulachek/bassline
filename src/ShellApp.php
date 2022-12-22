@@ -102,7 +102,7 @@ class ShellApp extends App
 			exit;
 		}
 
-		$db = new SecurityDatabase(new Database(new \Sqlite3($this->config->loginDatabase())));
+		$db = SecurityDatabase::fromConfig($this->config);
 
 		$payload = $db->signInWithGoogle($this->config->googleClientId(), $err);
 
@@ -143,7 +143,7 @@ class ShellApp extends App
 
 		if (isset($_COOKIE['login']))
 		{
-			$db = new SecurityDatabase(new Database(new \Sqlite3($this->config->loginDatabase())));
+			$db = SecurityDatabase::fromConfig($this->config);
 			$db->logout($_COOKIE['login']);
 		}
 

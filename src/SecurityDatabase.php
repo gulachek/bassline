@@ -13,6 +13,12 @@ class SecurityDatabase
 		$this->db->mountNamedQueries(__DIR__ . '/../sql');
 	}
 
+	static function fromConfig(Config $config): SecurityDatabase
+	{
+		$path = "{$config->dataDir()}/security.db";
+		return new SecurityDatabase(new Database( new \Sqlite3($path)));
+	}
+
 	public function initReentrant(string $email): ?string
 	{
 		if ($this->db->queryValue('table-exists', 'props'))

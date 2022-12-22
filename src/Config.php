@@ -8,7 +8,7 @@ abstract class Config
 
 	abstract public function adminEmail(): string;
 	abstract public function googleClientId(): string;
-	abstract public function loginDatabase(): string;
+	abstract public function dataDir(): string;
 	abstract public function siteName(): string;
 
 	static public function load(?string $path = null)
