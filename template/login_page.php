@@ -25,4 +25,7 @@
 	<tab-item title="Some other auth method">
 		Nice try, kid.
 	</tab-item>
+	<tab-item title="Yet another">
+		You still don't get it.
+	</tab-item>
 </nav-tab>

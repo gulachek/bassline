@@ -29,6 +29,7 @@ class NavigationTab extends HTMLElement
 	itemCounter;
 	selectedItemId;
 	tabPanelContainer;
+	dropdown;
 
 	constructor()
 	{
@@ -55,9 +56,18 @@ class NavigationTab extends HTMLElement
 		fixture.classList.add('fixture');
 		shadow.appendChild(fixture);
 
+		const tabListContainer = document.createElement('div');
+		tabListContainer.classList.add('tab-list-container');
+		fixture.appendChild(tabListContainer);
+
 		const tabList = this.tabList = document.createElement('div');
 		tabList.classList.add('tab-list');
-		fixture.appendChild(tabList);
+		tabListContainer.appendChild(tabList);
+
+		const dropdown = this.dropdown = document.createElement('select');
+		dropdown.classList.add('dropdown');
+		this.dropdown.addEventListener('change', this.onSelect.bind(this));
+		tabListContainer.appendChild(dropdown);
 
 		// contains <slot />
 		this.tabPanelContainer = document.createElement('div');
@@ -70,6 +80,13 @@ class NavigationTab extends HTMLElement
 	disconnectedCallback()
 	{
 		this.mut.disconnect();
+	}
+
+	onSelect()
+	{
+		const index = this.dropdown.selectedIndex;
+		const option = this.dropdown.item(index);
+		this.selectTabItem(parseInt(option.value));
 	}
 
 	onMutation(records)
@@ -93,6 +110,11 @@ class NavigationTab extends HTMLElement
 			throw new Error('nav-tab only supports tab-item children');
 
 		const itemId = this.itemCounter++;
+
+		const option = document.createElement('option');
+		option.value = itemId;
+		option.innerText = tabItem.title;
+		this.dropdown.appendChild(option);
 
 		const tab = document.createElement('button');
 		tab.classList.add('tab');
@@ -140,6 +162,7 @@ class NavigationTab extends HTMLElement
 			this.selectedMenu.classList.remove('selected');
 		}
 
+		this.dropdown.selectedIndex = itemId;
 		this.panels.get(itemId).classList.add('selected');
 		this.tabs.get(itemId).classList.add('selected');
 		this.selectedItemId = itemId;

@@ -3,14 +3,25 @@
 	flex-direction: column;
 }
 
-.tab-list {
+.tab-list-container {
 	align-self: start;
+	display: grid;
+}
+
+.tab-list {
+	grid-area: 1/1/2/2;
 	display: flex;
 }
 
+.dropdown {
+	grid-area: 1/1/2/2;
+	justify-self: start;
+	padding 1em;
+	margin: 0;
+}
+
 .tab {
-	display: block;
-	padding: 1em;
+	visibility: hidden;
 	margin: 0;
 }
 
@@ -32,4 +43,14 @@
 
 .tab-panel.selected {
 	visibility: visible;
+}
+
+@media (min-width: 8in) {
+	.dropdown {
+		visibility: hidden;
+	}
+
+	.tab {
+		visibility: visible;
+	}
 }
