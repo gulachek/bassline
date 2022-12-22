@@ -24,22 +24,20 @@ class NavigationTab extends HTMLElement
 {
 	mut;
 	tabList;
-	panels;
-	tabs;
-	itemCounter;
-	selectedItemId;
 	tabPanelContainer;
 	dropdown;
+
+	panels;
+	tabs;
+	cachedSelection;
 
 	constructor()
 	{
 		super();
 
 		this.mut = new MutationObserver(this.onMutation.bind(this));
-		this.itemCounter = 0;
-		this.panels = new Map();
-		this.tabs = new Map();
-		this.selectedItemId = -1;
+		this.panels = [];
+		this.tabs = [];
 	}
 
 	connectedCallback()
@@ -82,13 +80,6 @@ class NavigationTab extends HTMLElement
 		this.mut.disconnect();
 	}
 
-	onSelect()
-	{
-		const index = this.dropdown.selectedIndex;
-		const option = this.dropdown.item(index);
-		this.selectTabItem(parseInt(option.value));
-	}
-
 	onMutation(records)
 	{
 		for (const record of records)
@@ -109,63 +100,81 @@ class NavigationTab extends HTMLElement
 		if (!(tabItem instanceof TabItem))
 			throw new Error('nav-tab only supports tab-item children');
 
-		const itemId = this.itemCounter++;
+		const index = this.tabs.length;
 
 		const option = document.createElement('option');
-		option.value = itemId;
+		option.value = index;
 		option.innerText = tabItem.title;
 		this.dropdown.appendChild(option);
 
 		const tab = document.createElement('button');
 		tab.classList.add('tab');
 		tab.innerText = tabItem.title;
-		tab.addEventListener('click', this.selectTabItem.bind(this, itemId));
+		tab.addEventListener('click', this.onClick.bind(this, index));
 		this.tabList.appendChild(tab);
 
 		const tabPanel = document.createElement('div');
 		tabPanel.classList.add('tab-panel');
 		const slot = document.createElement('slot');
+		const slotName = `tab-${index}`;
 		tabPanel.appendChild(slot);
-		slot.setAttribute('name', tabItem.title);
-		tabItem.setAttribute('slot', tabItem.title);
+		slot.setAttribute('name', slotName);
+		tabItem.setAttribute('slot', slotName);
 		this.tabPanelContainer.appendChild(tabPanel);
 
-		this.panels.set(itemId, tabPanel);
-		this.tabs.set(itemId, tab);
+		this.panels.push(tabPanel);
+		this.tabs.push(tab);
 
-		if (!this.selected)
-			this.selectTabItem(itemId);
+		this.redraw();
+	}
+
+	onSelect()
+	{
+		this.redraw();
+	}
+
+	onClick(index)
+	{
+		this.dropdown.selectedIndex = index;
+		this.redraw();
+	}
+
+	get selectedIndex()
+	{
+		return this.dropdown.selectedIndex;
 	}
 
 	get selected()
 	{
-		if (this.selectedItemId === -1)
+		const index = this.selectedIndex;
+
+		if (index === -1)
 			return null;
 
-		return this.panels.get(this.selectedItemId);
+		return {
+			tab: this.tabs[index],
+			panel: this.panels[index]
+		};
 	}
 
-	get selectedMenu()
+	// source of truth is 1) new state is dropdown selection 2) old state is cachedSelection
+	redraw()
 	{
-		if (this.selectedItemId === -1)
-			return null;
+		if (this.cachedSelection)
+		{
+			const { tab, panel } = this.cachedSelection;
+			delete this.cachedSelection;
+			tab.classList.remove('selected');
+			panel.classList.remove('selected');
+		}
 
-		return this.tabs.get(this.selectedItemId);
-	}
-
-	selectTabItem(itemId)
-	{
 		const current = this.selected;
 		if (current)
 		{
-			current.classList.remove('selected');
-			this.selectedMenu.classList.remove('selected');
+			const { tab, panel } = this.cachedSelection = current;
+			tab.classList.add('selected');
+			panel.classList.add('selected');
 		}
-
-		this.dropdown.selectedIndex = itemId;
-		this.panels.get(itemId).classList.add('selected');
-		this.tabs.get(itemId).classList.add('selected');
-		this.selectedItemId = itemId;
 	}
 }
 
