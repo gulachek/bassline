@@ -61,6 +61,7 @@ class NavigationTab extends HTMLElement
 		const tabList = this.tabList = document.createElement('div');
 		tabList.classList.add('tab-list');
 		tabListContainer.appendChild(tabList);
+		tabList.addEventListener('keydown', this.onTabListKeyDown.bind(this));
 
 		const dropdown = this.dropdown = document.createElement('select');
 		dropdown.classList.add('dropdown');
@@ -108,6 +109,7 @@ class NavigationTab extends HTMLElement
 		this.dropdown.appendChild(option);
 
 		const tab = document.createElement('button');
+		tab.tabIndex = -1;
 		tab.classList.add('tab');
 		tab.innerText = tabItem.title;
 		tab.addEventListener('click', this.onClick.bind(this, index));
@@ -126,6 +128,27 @@ class NavigationTab extends HTMLElement
 		this.tabs.push(tab);
 
 		this.redraw();
+	}
+
+	onTabListKeyDown(e)
+	{
+		const t = e.target;
+		const p = t.parentElement;
+
+		if (e.key === 'ArrowLeft')
+		{
+			if (t.previousElementSibling)
+				t.previousElementSibling.focus();
+			else if (p.lastElementChild !== t)
+				p.lastElementChild.focus();
+		}
+		else if (e.key === 'ArrowRight')
+		{
+			if (t.nextElementSibling)
+				t.nextElementSibling.focus();
+			else if (p.firstElementChild !== t)
+				p.firstElementChild.focus();
+		}
 	}
 
 	onSelect()
@@ -165,6 +188,7 @@ class NavigationTab extends HTMLElement
 			const { tab, panel } = this.cachedSelection;
 			delete this.cachedSelection;
 			tab.classList.remove('selected');
+			tab.tabIndex = -1;
 			panel.classList.remove('selected');
 		}
 
@@ -173,6 +197,7 @@ class NavigationTab extends HTMLElement
 		{
 			const { tab, panel } = this.cachedSelection = current;
 			tab.classList.add('selected');
+			tab.tabIndex = 0;
 			panel.classList.add('selected');
 		}
 	}
