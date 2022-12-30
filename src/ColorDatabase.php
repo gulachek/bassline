@@ -92,24 +92,18 @@ class ColorDatabase
 
 	public function savePalette(array $palette): bool
 	{
-		$result = $this->db->query('save-palette', [
+		$this->db->query('save-palette', [
 			':id' => $palette['id'],
 			':name' => $palette['name']
 		]);
 
-		if (!$result)
-			return false;
-
 		foreach ($palette['colors'] as $color)
 		{
-			$result = $this->db->query('save-palette-color', [
+			$this->db->query('save-palette-color', [
 				':id' => $color['id'],
 				':name' => $color['name'],
 				':hex' => $color['hex']
 			]);
-
-			if (!$result)
-				return false;
 		}
 
 		return true;
@@ -117,18 +111,9 @@ class ColorDatabase
 
 	public function createTheme(): array
 	{
-		if (!$this->db->query('create-theme'))
-		{
-			throw new \Exception('Error creating theme');
-		}
-
+		$this->db->query('create-theme');
 		$id = $this->db->lastInsertRowID();
-
-		if (!$this->db->query('init-theme-color-map', $id))
-		{
-			throw new \Exception('Error creating theme color map');
-		}
-
+		$this->db->query('init-theme-color-map', $id);
 		return $this->loadTheme($id);
 	}
 
@@ -145,7 +130,10 @@ class ColorDatabase
 		];
 
 		if (is_int($row['palette']))
-			$theme['palette'] = $this->loadPalette($row['palette']);
+		{
+			if (!$theme['palette'] = $this->loadPalette($row['palette']))
+				throw new \Exception("theme $theme_id has a corrupt palette id {$row['palette']}");
+		}
 
 		// load theme colors
 		$result = $this->db->query('load-theme-colors', $theme_id);
