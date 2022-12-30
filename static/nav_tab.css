@@ -22,7 +22,9 @@
 
 .tab {
 	visibility: hidden;
+	width: max-content;
 	margin: 0;
+	cursor: pointer;
 }
 
 .tab.selected {
@@ -52,5 +54,6 @@
 
 	.tab {
 		visibility: visible;
+		width: initial;
 	}
 }

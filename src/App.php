@@ -18,6 +18,21 @@ class App
 		return '[Title]';
 	}
 
+	public function version(): Semver
+	{
+		throw new \Exception('not implemented');
+	}
+
+	public function install(): ?string
+	{
+		throw new \Exception('not implemented');
+	}
+
+	public function upgradeFromVersion(Semver $version): ?string
+	{
+		throw new \Exception('not implemented');
+	}
+
 	protected function handler(string $method): Handler
 	{
 		return new MethodHandler($this, $method);
@@ -35,6 +50,11 @@ class App
 			'static' => "{$this->docroot}/static",
 			'assets' => "{$this->docroot}/assets"
 		];
+	}
+
+	public function colors(): array
+	{
+		return [];
 	}
 
 	public function landingPage(): ?Page

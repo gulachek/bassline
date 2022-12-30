@@ -52,6 +52,35 @@ class Semver implements \Stringable
 		return $consumer->canUse($this);
 	}
 
+	public function compareTo(Semver $other): int
+	{
+		if ($this->major !== $other->major)
+			return $this->major - $other->major;
+
+		if ($this->minor !== $other->minor)
+			return $this->minor - $other->minor;
+
+		if ($this->patch !== $other->patch)
+			return $this->patch - $other->patch;
+
+		return 0;
+	}
+
+	public function isEqualTo(Semver $other): bool
+	{
+		return $this->compareTo($other) === 0;
+	}
+
+	public function isGreaterThan(Semver $other): bool
+	{
+		return $this->compareTo($other) > 0;
+	}
+
+	public function isLessThan(Semver $other): bool
+	{
+		return $this->compareTo($other) < 0;
+	}
+
 	public function __toString(): string
 	{
 		return "{$this->major}.{$this->minor}.{$this->patch}";

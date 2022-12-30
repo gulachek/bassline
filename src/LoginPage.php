@@ -59,4 +59,9 @@ class LoginPage extends Page
 
 		include __DIR__ . '/../template/login_page.php';
 	}
+
+	public function stylesheets(): array
+	{
+		return ['/static/login_page.css'];
+	}
 }

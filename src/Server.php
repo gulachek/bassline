@@ -9,26 +9,104 @@ class Server
 	private Config $config;
 	private ?PathInfo $path;
 
+	public static function version(): Semver
+	{
+		return new Semver(0, 1, 0);
+	}
+
 	public function __construct(?string $config_path = null)
 	{
 		$this->config = Config::load($config_path);
 		$this->path = PathInfo::parseRequestURI();
 	}
 
+	private function allApps(): array
+	{
+		$apps = ['shell' => new ShellApp($this->config)];
+		foreach ($this->config->apps() as $key => $app)
+			$apps[$key] = $app;
+
+		return $apps;
+	}
+
 	public function initializeSystem(): bool
 	{
-		$db = SecurityDatabase::fromConfig($this->config);
-
-		if ($err = $db->initReentrant(
-			$this->config->adminEmail()
-		))
+		// load all currently installed apps
+		$installation = InstallDatabase::fromConfig($this->config);
+		if ($err = $installation->initReentrant())
 		{
-			echo "Failed to initialize security database:\n";
-			echo "\t$err\n";
+			echo "Failed to initialize installation database: $err\n";
 			return false;
 		}
 
-		return true;
+		$prev_apps = $installation->installedApps();
+		$current_apps = $this->allApps();
+		$has_err = false;
+
+		foreach ($current_apps as $key => $app)
+		{
+			$err = null;
+			$version = $app->version();
+			$change = false;
+
+			if (array_key_exists($key, $prev_apps))
+			{
+				$prev_version = $prev_apps[$key];
+
+				if ($prev_version->isGreaterThan($version))
+				{
+					$err = "Cannot downgrade app '$key' from $prev_version to $version";
+				}
+				else if ($prev_version->isLessThan($version))
+				{
+					echo "Upgrading $key from $prev_version to $version\n";
+					$err = $app->upgradeFromVersion($version);
+					$change = true;
+				}
+			}
+			else
+			{
+				echo "Installing $key $version\n";
+				$err = $app->install();
+				$change = true;
+			}
+
+			if ($err)
+			{
+				echo "Error setting up app $key:\n";
+				echo "\t$err\n";
+				$has_err = true;
+			}
+			else if ($change)
+			{
+				$current_apps['shell']->installApp($key, $app);
+				$installation->setVersion($key, $version);
+			}
+		}
+
+		$missing = "";
+		$delim = "";
+
+		// check for installed apps that no longer exist and report
+		foreach ($prev_apps as $key => $version)
+		{
+			if (!array_key_exists($key, $current_apps))
+			{
+				$missing .= "{$delim}{$key}";
+				$delim = ", ";
+			}
+
+		}
+
+		if ($missing)
+		{
+			echo "The following apps were previously installed but "
+				. "are no longer listed in the site config. Either "
+				. "delete or rename them: $missing";
+			$has_err = true;
+		}
+
+		return $has_err;;
 	}
 
 	// return true if static content was served, false otherwise

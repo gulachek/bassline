@@ -49,9 +49,24 @@ class App extends \Shell\App
 		return 'Hello';
 	}
 
+	public function version(): \Shell\Semver
+	{
+		return new \Shell\Semver(0,1,0);
+	}
+
+	public function install(): ?string
+	{
+		return null;
+	}
+
 	public function landingPage(): \Shell\Page
 	{
 		return new LandingPage();
+	}
+
+	public function colors(): array
+	{
+		return [];
 	}
 
 	public function route($path): ?\Shell\Page

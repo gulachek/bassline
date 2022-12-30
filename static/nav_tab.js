@@ -8,16 +8,6 @@
  * 	More content for item 2
  * </tab-item>
  * </nav-tab>
-
-/* Element structure
- * <flex-row>
- * 	<menu>
- * 		<li><button> Item 1 </button></li> <!-- selected -->
- * 		<li><button> Item 2 </button></li>
- * 	</menu>
- * 	<tab-item title="Item 1" display="block"> ... </tab-item>
- * 	<tab-item title="Item 2" display="none"> ... </tab-item>
- * </flex-row>
  */
 
 class NavigationTab extends HTMLElement
@@ -65,7 +55,8 @@ class NavigationTab extends HTMLElement
 
 		const dropdown = this.dropdown = document.createElement('select');
 		dropdown.classList.add('dropdown');
-		this.dropdown.addEventListener('change', this.onSelect.bind(this));
+		dropdown.part.add('dropdown');
+		dropdown.addEventListener('change', this.onSelect.bind(this));
 		tabListContainer.appendChild(dropdown);
 
 		// contains <slot />
@@ -113,6 +104,7 @@ class NavigationTab extends HTMLElement
 		tab.classList.add('tab');
 		tab.innerText = tabItem.title;
 		tab.addEventListener('click', this.onClick.bind(this, index));
+		tab.part.add('tab');
 		this.tabList.appendChild(tab);
 
 		const tabPanel = document.createElement('div');
@@ -189,6 +181,7 @@ class NavigationTab extends HTMLElement
 			delete this.cachedSelection;
 			tab.classList.remove('selected');
 			tab.tabIndex = -1;
+			tab.part.remove('selected-tab');
 			panel.classList.remove('selected');
 		}
 
@@ -198,6 +191,7 @@ class NavigationTab extends HTMLElement
 			const { tab, panel } = this.cachedSelection = current;
 			tab.classList.add('selected');
 			tab.tabIndex = 0;
+			tab.part.add('selected-tab');
 			panel.classList.add('selected');
 		}
 	}

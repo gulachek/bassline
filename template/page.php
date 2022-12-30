@@ -7,7 +7,7 @@
 
 <script src="/static/loading_overlay.js"></script>
 
-<link rel="stylesheet" type="text/css" href="/static/theme.css" />
+<link rel="stylesheet" type="text/css" href="/shell/theme.css?app=shell" />
 
 <?php foreach ($SHELL->stylesheets() as $style): ?>
 	<link rel="stylesheet" type="text/css" href="<?= $style ?>" />

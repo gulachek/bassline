@@ -20,6 +20,17 @@ class Database
 		$this->query_dir = $query_dir;
 	}
 
+	public function lastInsertRowID(): int
+	{
+		return $this->db->lastInsertRowID();
+	}
+
+	// MAKE SURE YOU DON'T LET THE USER SPECIFY THE PARAMETERS
+	public function loadRowUnsafe(string $table, int $rowid): array
+	{
+		return $this->db->querySingle("SELECT * FROM $table WHERE rowid=$rowid;", true);
+	}
+
 	private function loadSql(string $sql): string
 	{
 		return file_get_contents("{$this->query_dir}/$sql.sql");
@@ -32,12 +43,14 @@ class Database
 
 	public function query(string $sql, mixed $params = null): ?QueryResult
 	{
+		$query = $this->loadSql($sql);
+
 		if (!$params)
 		{
-			return QueryResult::from($this->db->query($sql));
+			return QueryResult::from($this->db->query($query));
 		}
 
-		$stmt = $this->db->prepare($this->loadSql($sql));
+		$stmt = $this->db->prepare($query);
 		if (!$stmt)
 		{
 			throw new \Exception("Failed to prepare: $sql");
