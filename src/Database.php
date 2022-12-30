@@ -41,7 +41,16 @@ class Database
 		return $this->db->exec($this->loadSql($sql));
 	}
 
-	public function query(string $sql, mixed $params = null): ?QueryResult
+	public function query(string $sql, mixed $params = null): QueryResult
+	{
+		$result = $this->tryQuery($sql, $params);
+		if (!$result)
+			throw new \Exception("Failed to run query: $sql");
+
+		return $result;
+	}
+
+	private function tryQuery(string $sql, mixed $params): ?QueryResult
 	{
 		$query = $this->loadSql($sql);
 
@@ -81,9 +90,25 @@ class Database
 		return QueryResult::from($stmt->execute());
 	}
 
+	// query a single row that may or may not exist
 	public function queryRow(string $sql, mixed $params = null, int $mode = SQLITE3_ASSOC): ?array
 	{
-		return $this->query($sql, $params)?->singleRow($mode);
+		$result = $this->query($sql, $params);
+		$count = 0;
+		$result_row = null;
+
+		foreach ($result->rows($mode) as $row)
+		{
+			++$count;
+			$result_row = $row;
+		}
+
+		if ($count > 1)
+		{
+			throw new \Exception("Expected at most 1 row in query result");
+		}
+
+		return $result_row;
 	}
 
 	public function queryValue(string $sql, mixed $params = null): mixed
