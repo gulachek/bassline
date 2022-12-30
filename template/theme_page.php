@@ -60,8 +60,8 @@ function esc(?string $s): string
 	</p>
 	<label> Palette:
 	<select id="theme-palette" name="theme-palette">
-		<?php foreach ($AVAILABLE_PALETTES as $palette): ?>
-			<option value="<?=$palette['id']?>">
+		<?php foreach ($AVAILABLE_PALETTES as $id => $palette): ?>
+			<option value="<?=$id?>">
 				<?=esc($palette['name'])?>
 			</option>
 		<?php endforeach; ?>

@@ -83,8 +83,8 @@ function esc($str): string
 	<fieldset>
 	<legend> Select an existing palette </legend>
 	<select name="palette-id">
-	<?php foreach ($AVAILABLE_PALETTES as $palette): ?>
-		<option value="<?= $palette['id'] ?>"> <?= esc($palette['name']) ?> </option> 
+	<?php foreach ($AVAILABLE_PALETTES as $id => $palette): ?>
+		<option value="<?=$id?>"> <?= esc($palette['name']) ?> </option> 
 	<?php endforeach; ?>
 	</select>
 	<input type="submit" name="action" value="Edit" />

@@ -50,14 +50,7 @@ class ColorDatabase
 	public function availablePalettes(): array
 	{
 		$result = $this->db->query('get-palettes');
-		if (!$result)
-			throw new \Exception("Error reading available palettes");
-
-		$rows = [];
-		foreach ($result->rows() as $row)
-			array_push($rows, $row);
-
-		return $rows;
+		return $result->indexById();
 	}
 
 	public function createPalette(string $name): array

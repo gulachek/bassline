@@ -25,4 +25,24 @@ class QueryResult
 			yield $row;
 		}
 	}
+
+	// assume there exists an identifying column in query result
+	// this will iterate over rows and fill an array with keys
+	// of that column's value pointing to the row
+	public function indexBy(string|int $column): array
+	{
+		$mode = is_string($column) ? SQLITE3_ASSOC : SQLITE3_NUM;
+		$out = [];
+		foreach ($this->rows($mode) as $row)
+		{
+			$out[$row[$column]] = $row;
+		}
+		return $out;
+	}
+
+	// so common that it deserves function
+	public function indexById(): array
+	{
+		return $this->indexBy('id');
+	}
 }
