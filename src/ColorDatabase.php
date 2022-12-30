@@ -6,7 +6,6 @@ require __DIR__ . '/../vendor/autoload.php';
 
 class ColorDatabase
 {
-	const LIGHTNESS_DENOM = 10000;
 	const SHADE_COUNT = 15;
 
 	public function __construct(
@@ -78,11 +77,7 @@ class ColorDatabase
 	public function createPaletteColor(int $id): int
 	{
 		$this->db->query('create-palette-color', $id);
-
-		$rowid = $this->db->lastInsertRowID();
-		$color = $this->db->loadRowUnsafe('color', $rowid);
-
-		return $color['id'];
+		return $this->db->lastInsertRowID();
 	}
 
 	public function getPaletteFromColor(int $color_id): int
@@ -137,22 +132,11 @@ class ColorDatabase
 
 		// load theme colors
 		$result = $this->db->query('load-theme-colors', $theme_id);
-		$theme['theme-colors'] = [];
-		foreach ($result->rows() as $row)
-		{
-			$row['fg_lightness'] /= self::LIGHTNESS_DENOM;
-			$row['bg_lightness'] /= self::LIGHTNESS_DENOM;
-			$theme['theme-colors'][$row['id']] = $row;
-		}
+		$theme['theme-colors'] = $result->indexById();
 
 		// load color mappings
 		$result = $this->db->query('load-theme-color-map', $theme_id);
-		if (!$result)
-			throw new \Exception('Failed to load theme color mappings');
-
-		$theme['mappings'] = [];
-		foreach ($result->rows() as $row)
-			$theme['mappings'][$row['id']] = $row; 
+		$theme['mappings'] = $result->indexById();
 
 		return $theme;
 	}
@@ -166,17 +150,14 @@ class ColorDatabase
 
 		foreach ($theme['theme-colors'] as $id => $theme_color)
 		{
-			$fg_lightness = floor($theme_color['fg_lightness'] * self::LIGHTNESS_DENOM);
-			$bg_lightness = floor($theme_color['bg_lightness'] * self::LIGHTNESS_DENOM);
-
 			$this->db->query('save-theme-color', [
 				':theme' => $theme['id'],
 				':id' => $id,
 				':name' => $theme_color['name'],
 				':bg_color' => $theme_color['bg_color'],
-				':bg_lightness' => $bg_lightness,
+				':bg_lightness' => $theme_color['bg_lightness'],
 				':fg_color' => $theme_color['fg_color'],
-				':fg_lightness' => $fg_lightness
+				':fg_lightness' => $theme_color['fg_lightness']
 			]);
 		}
 

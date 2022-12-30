@@ -122,11 +122,11 @@ class ColorPalettePage extends Page
 				exit;
 			}
 
-			array_push($colors, [
+			$colors[$id] = [
 				'id' => $id,
 				'name' => $name,
 				'hex' => $hex
-			]);
+			];
 		}
 
 		return $colors;
@@ -163,11 +163,11 @@ class ColorPalettePage extends Page
 
 			$color_id = $this->db->createPaletteColor($id);
 
-			array_push($colors, [
+			$colors[$color_id] = [
 				'id' => $color_id,
 				'name' => 'New Color',
 				'hex' => '#000000'
-			]);
+			];
 
 			$PALETTE = [
 				'id' => $id,

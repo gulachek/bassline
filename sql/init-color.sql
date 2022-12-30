@@ -33,15 +33,14 @@ CREATE TABLE theme (
 	palette INTEGER
 );
 
--- lightness is fraction [0-10000]
 CREATE TABLE theme_color (
 	id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL DEFAULT "New Theme Color",
 	theme INTEGER NOT NULL,
 	bg_color INTEGER, -- id in color table
-	bg_lightness INTEGER DEFAULT 9500, -- [l/10000]
+	bg_lightness REAL DEFAULT 0.95,
 	fg_color INTEGER, -- id in color table
-	fg_lightness INTEGER DEFAULT 500 -- [l/10000]
+	fg_lightness REAL DEFAULT 0.05
 );
 
 -- this is the actual mapping from the color to the app semantic color
