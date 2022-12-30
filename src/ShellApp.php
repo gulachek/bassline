@@ -306,7 +306,7 @@ class ShellApp extends App
 				{
 					$lightness = $theme_color['bg_lightness'];
 
-					$palette = $theme['palette']['colors_assoc']
+					$palette = $theme['palette']['colors']
 						[$theme_color['bg_color']];
 					$srgb_base = SRGB::fromHex($palette['hex']);
 					list($h,$s,$l) = $srgb_base->toHSL();
@@ -317,7 +317,7 @@ class ShellApp extends App
 				{
 					$lightness = $theme_color['fg_lightness'];
 
-					$palette = $theme['palette']['colors_assoc']
+					$palette = $theme['palette']['colors']
 						[$theme_color['fg_color']];
 					$srgb_base = SRGB::fromHex($palette['hex']);
 					list($h,$s,$l) = $srgb_base->toHSL();

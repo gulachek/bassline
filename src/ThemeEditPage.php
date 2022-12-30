@@ -327,7 +327,7 @@ class ThemeEditPage extends Page
 					continue;
 				}
 
-				$palette_colors = $THEME['palette']['colors_assoc'];
+				$palette_colors = $THEME['palette']['colors'];
 
 				if (isset($theme_color['bg_color']))
 				{

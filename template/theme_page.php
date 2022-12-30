@@ -10,14 +10,14 @@ function esc(?string $s): string
 <dialog id="palette-select-popup">
 
 <?php if (isset($THEME['palette'])): ?>
-	<?php foreach ($THEME['palette']['colors'] as $color): ?>
+	<?php foreach ($THEME['palette']['colors'] as $id => $color): ?>
 		<div class="color-row">
 			<span class="color-row-name"> <?=esc($color['name'])?> </span>
 			<?php foreach (self::enumerateShades($color) as $shade): ?>
 				<input type="color"
 					class="color-button"
 					value="<?=$shade->toHex()?>"
-					data-color-id="<?=$color['id']?>"
+					data-color-id="<?=$id?>"
 					data-lightness="<?=$shade->toHSL()[2]?>"
 				/>
 			<?php endforeach; ?>

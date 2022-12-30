@@ -55,18 +55,14 @@ class ColorDatabase
 
 	public function createPalette(string $name): array
 	{
-		if (!$this->db->query('create-palette', $name))
-		{
-			throw new \Exception('Error creating palette');
-		}
-
+		$this->db->query('create-palette', $name);
 		$rowid = $this->db->lastInsertRowID();
 		$palette = $this->db->loadRowUnsafe('palette', $rowid);
 		$palette['colors'] = [];
 		return $palette;
 	}
 
-	public function loadPalette(int $id): array
+	public function loadPalette(int $id): ?array
 	{
 		$palette = $this->db->queryRow('load-palette', $id);
 
@@ -74,20 +70,7 @@ class ColorDatabase
 			return null;
 
 		$result = $this->db->query('load-palette-colors', $id);
-		if (!$result)
-			throw new \Exception('Failed to load colors');
-
-		$colors = [];
-		$colors_assoc = [];
-		foreach ($result->rows() as $row)
-		{
-			array_push($colors, $row);
-			$colors_assoc[$row['id']] = $row;
-		}
-
-		$palette['colors'] = $colors;
-		$palette['colors_assoc'] = $colors_assoc; // TODO: make this default
-
+		$palette['colors'] = $result->indexById();
 		return $palette;
 	}
 
@@ -149,9 +132,13 @@ class ColorDatabase
 		return $this->loadTheme($id);
 	}
 
-	public function loadTheme(int $theme_id): array
+	public function loadTheme(int $theme_id): ?array
 	{
 		$row = $this->db->loadRowUnsafe('theme', $theme_id);
+
+		if (!$row)
+			return null;
+
 		$theme = [
 			'id' => $row['id'],
 			'name' => $row['name'],

@@ -27,13 +27,13 @@ function esc($str): string
 <legend> Colors </legend>
 <input type="submit" name="action" value="New Color" />
 
-<?php foreach ($PALETTE['colors'] as $color): ?>
+<?php foreach ($PALETTE['colors'] as $id => $color): ?>
 
 <fieldset class="color-fields">
 
 	<input type="hidden"
 		name="color-ids[]"
-		value="<?= $color['id'] ?>"
+		value="<?=$id?>"
 		/>
 
 	<div class="color-preview">
@@ -42,26 +42,24 @@ function esc($str): string
 	<?php endfor; ?>
 	</div>
 
-	<?php $elem_id = fn($field) => "color-{$field}-{$color['id']}"; ?>
-
 	<div class="color-info">
 		<span class="color-name">
-		<label for="<?=$elem_id('name')?>"> Name: </label>
+		<label> Name:
 		<input type="text"
-			id="<?=$elem_id('name')?>"
 			name="color-names[]"
 			value="<?= $color['name'] ?>"
 			pattern="<?= $NAME_PATTERN ?>"
 			/>
+		</label>
 		</span>
 
 		<span class="color-color">
-		<label for="<?=$elem_id('hex')?>"> Color: </label>
+		<label> Color:
 		<input type="color"
 			name="color-values[]"
 			value="<?= $color['hex'] ?>"
-			id="<?=$elem_id('hex')?>"
 			/>
+		</label>
 		</span>
 	</div>
 

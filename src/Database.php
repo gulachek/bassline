@@ -26,7 +26,7 @@ class Database
 	}
 
 	// MAKE SURE YOU DON'T LET THE USER SPECIFY THE PARAMETERS
-	public function loadRowUnsafe(string $table, int $rowid): array
+	public function loadRowUnsafe(string $table, int $rowid): ?array
 	{
 		return $this->db->querySingle("SELECT * FROM $table WHERE rowid=$rowid;", true);
 	}
