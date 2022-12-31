@@ -33,9 +33,7 @@ class InstallDatabase
 	// query app key => semver
 	public function installedApps(): array
 	{
-		$result = $this->db->query('install/all-versions');
-		if (!$result)
-			throw new \Exception('failed to query installed versions');
+		$this->db->query('install/all-versions');
 
 		$apps = [];
 		foreach ($result->rows() as $row)
@@ -48,12 +46,9 @@ class InstallDatabase
 
 	public function setVersion(string $app, Semver $version): void
 	{
-		if (!$this->db->query('install/set-version', [
+		$this->db->query('install/set-version', [
 			':app' => $app,
 			':semver' => "$version"
-		]))
-		{
-			throw new \Exception('failed to set version');
-		}
+		]);
 	}
 }
