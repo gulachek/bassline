@@ -38,24 +38,17 @@ class SecurityDatabase
 			return null; // this means the DB is set up and can support us
 		}
 
-		if (!$this->db->exec('init-security'))
-			return 'failed to initialize database';
+		$this->db->exec('init-security');
 
-		if (!$this->db->query('add-user', [
+		$this->db->query('add-user', [
 			':id' => 0,
 			':username' => 'admin'
-		]))
-		{
-			return 'failed to add admin user';
-		}
+		]);
 
-		if (!$this->db->query('add-gmail', [
+		$this->db->query('add-gmail', [
 			':id' => 0,
 			':email' => $email
-		]))
-		{
-			return 'failed to add admin gmail';
-		}
+		]);
 
 		return null;
 	}
@@ -164,13 +157,12 @@ class SecurityDatabase
 				return null;
 			}
 		}
-		else if (!$this->db->query('update-google-user-id', [
-			':email' => $email,
-			':id' => $google_id
-		]))
+		else
 		{
-			$err = "Failed to update google user id.";
-			return null;
+			$this->db->query('update-google-user-id', [
+				':email' => $email,
+				':id' => $google_id
+			]);
 		}
 
 		// YAY! We now know which user we're dealing with
@@ -184,7 +176,7 @@ class SecurityDatabase
 		// Log the user in and clean up current login session
 		$token = random_bytes(256);
 
-		$result = $this->db->query('add-login', [
+		$this->db->query('add-login', [
 			':id' => $user,
 			':token' => $token
 		]);

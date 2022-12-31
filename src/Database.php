@@ -38,7 +38,11 @@ class Database
 
 	public function exec(string $sql): bool
 	{
-		return $this->db->exec($this->loadSql($sql));
+		if (!$this->db->exec($this->loadSql($sql)))
+		{
+			throw new \Exception("failed to exec query $sql");
+		}
+		return true;
 	}
 
 	public function query(string $sql, mixed $params = null): QueryResult
