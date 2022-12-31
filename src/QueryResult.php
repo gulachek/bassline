@@ -45,4 +45,13 @@ class QueryResult
 	{
 		return $this->indexBy('id');
 	}
+
+	public function column(string|int $column): array
+	{
+		$mode = is_string($column) ? SQLITE3_ASSOC : SQLITE3_NUM;
+		$out = [];
+		foreach ($this->rows($mode) as $row)
+			array_push($out, $row[$column]);
+		return $out;
+	}
 }

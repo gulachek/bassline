@@ -173,18 +173,11 @@ class ColorDatabase
 
 	public function changeThemePalette(int $theme_id, int $palette_id): void
 	{
-		if (!$this->db->query('clear-theme-color', $theme_id))
-		{
-			throw new \Exception('Failed to clear theme colors');
-		}
-
-		if (!$this->db->query('change-palette', [
+		$this->db->query('clear-theme-color', $theme_id);
+		$this->db->query('change-palette', [
 			':theme' => $theme_id,
 			':palette' => $palette_id
-		]))
-		{
-			throw new \Exception('Failed to change palette');
-		}
+		]);
 	}
 
 	public function createThemeColor(int $theme_id): array
@@ -196,14 +189,11 @@ class ColorDatabase
 
 	public function createColorMapping(int $theme_id, string $app, string $semantic_color): array
 	{
-		if (!$this->db->query('create-color-mapping', [
+		$this->db->query('create-color-mapping', [
 			':theme' => $theme_id,
 			':app' => $app,
 			':color_name' => $semantic_color
-		]))
-		{
-			throw new \Exception('Failed to create color mapping');
-		}
+		]);
 
 		return $this->db->loadRowUnsafe('theme_color', $this->db->lastInsertRowID());
 	}
@@ -234,13 +224,7 @@ class ColorDatabase
 	public function semanticColorNames(string $app): array
 	{
 		$result = $this->db->query('semantic-color-names', $app);
-
-		$rows = [];
-
-		foreach ($result->rows() as $row)
-			array_push($rows, $row['name']);
-
-		return $rows;
+		return $result->column('name');
 	}
 
 	public function getActiveThemes(): array
@@ -281,13 +265,6 @@ class ColorDatabase
 	public function availableThemes(): array
 	{
 		$result = $this->db->query('load-themes');
-
-		$out = [];
-		foreach ($result->rows() as $row)
-		{
-			$out[$row['id']] = $row;
-		}
-
-		return $out;
+		return $result->indexById();
 	}
 }
