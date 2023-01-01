@@ -57,11 +57,6 @@ class App
 		return [];
 	}
 
-	public function landingPage(): ?Page
-	{
-		return null;
-	}
-
 	public function mimeTypes(): array
 	{
 		return default_mime_types();

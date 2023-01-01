@@ -203,8 +203,18 @@ class Server
 
 	private function route()
 	{
-		$app = new ShellApp($this->config);
 		$path = $this->path;
+
+		// Apps control their own routing structure, but
+		// they do not control the top level path to the app.
+		// This is configured for site. Apps shouldn't need to
+		// think about how to set up relative uri in links from
+		// base page since it depends on if dir ends with '/' or
+		// not (cwd is dir with '/' but parent w/o).
+		if ($path->count() === 1 && !$path->isDir())
+			return new Redirect("{$path->path()}/");
+
+		$app = new ShellApp($this->config);
 		$config = $this->config;
 
 		if (!$app->isShell($path))
@@ -215,14 +225,8 @@ class Server
 			if (!$app)
 				return null;
 
-			if ($path->count() == 1 && !$path->isDir())
-				return new Redirect("{$path->path()}/");
-
 			$path = $path->child();
 		}
-
-		if ($path->isRoot())
-			return $app->landingPage();
 
 		$routee = $app->route($path);
 		if (is_array($routee))

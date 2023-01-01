@@ -31,11 +31,6 @@ class ShellApp extends App
 		return new Semver(0,1,0);
 	}
 
-	public function landingPage(): Page
-	{
-		return new LandingPage();
-	}
-
 	public function isShell($info)
 	{
 		if ($info->isRoot())
@@ -55,6 +50,7 @@ class ShellApp extends App
 	public function route(PathInfo $path): array
 	{
 		return [
+			'.' => new LandingPage(),
 			'login' => [
 				'.' => new LoginPage($this->config->googleClientId()),
 				'sign_in_with_google' => $this->handler('attemptLoginWithGoogle')
@@ -207,9 +203,11 @@ class ShellApp extends App
 		}
 
 		// https://www.rfc-editor.org/rfc/rfc5735#section-4
-		// This is loopback. not 'localhost' which seems like it
-		// could be spoofed.
-		$is_loopback = $remote_addr === '127.0.0.1';
+		// This is loopback. not 'localhost'. Haven't thought
+		// hard enough if this matters and could be spoofed.
+		$is_loopback = $remote_addr === '127.0.0.1'
+			|| $remote_addr === '::1'; // doesn't cover all of ipv6 but good enough for dev server
+
 		$is_encrypted = isset($_SERVER['HTTPS']);
 
 		if (!($is_encrypted || $is_loopback))

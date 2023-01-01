@@ -1,3 +1,9 @@
+<?php
+function esc(string $s): string
+{
+	return htmlspecialchars($s);
+}
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -22,19 +28,19 @@
 <a href="/"> <?= $SITE_NAME ?> </a>
 
 <?php foreach ($APPS as $appHref => $app): ?>
-	<a href="/<?= $appHref ?>/"> <?= $app->title() ?> </a>
+	<a href="/<?= esc($appHref) ?>/"> <?= esc($app->title()) ?> </a>
 <?php endforeach; ?>
 
 <?php if (isset($USER)): ?>
 	<!-- <div onclick="void(0);" class="menu"> -->
 	<div class="menu login">
-	<span><?= $USERNAME ?></span>
+	<span><?= esc($USERNAME) ?></span>
 	<div class="items">
-	<a href="/logout"> Log out </a>
+	<a href="/logout/"> Log out </a>
 	</div>
 	</div>
 <?php else: ?>
-	<a href="/login" class="login"> Log in </a>
+	<a href="/login/" class="login"> Log in </a>
 <?php endif; ?>
 
 </nav>

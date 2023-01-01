@@ -59,11 +59,6 @@ class App extends \Shell\App
 		return null;
 	}
 
-	public function landingPage(): \Shell\Page
-	{
-		return new LandingPage();
-	}
-
 	public function colors(): array
 	{
 		return [];
@@ -71,6 +66,9 @@ class App extends \Shell\App
 
 	public function route($path): ?\Shell\Page
 	{
+		if ($path->isRoot())
+			return new LandingPage();
+
 		if ($path->count() > 1)
 			return null; // not found
 
