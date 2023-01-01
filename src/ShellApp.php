@@ -44,7 +44,7 @@ class ShellApp extends App
 			return true;
 		}
 
-		return array_search($top, ['shell', 'login', 'logout']) !== false;
+		return array_search($top, ['shell', 'site', 'login', 'logout']) !== false;
 	}
 
 	public function route(PathInfo $path): array
@@ -56,6 +56,9 @@ class ShellApp extends App
 				'sign_in_with_google' => $this->handler('attemptLoginWithGoogle')
 			],
 			'logout' => $this->handler('logout'),
+			'site' => [ // use this instead of shell
+				'admin' => new AdminPage($this->config)
+			],
 			'shell' => [
 				'theme' => $this->handler('serveThemeEdit'),
 				'color_palette' => new ColorPalettePage($this->config),

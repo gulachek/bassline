@@ -1,0 +1,10 @@
+.card {
+	display: block;
+	max-width: 6in;
+	margin: 1em auto;
+	background-color: var(--theme-clickable-bg);
+	color: var(--theme-clickable-fg);
+	padding: 1.5em;
+	border-radius: 1em;
+	text-decoration: none;
+}
