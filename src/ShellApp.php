@@ -211,7 +211,7 @@ class ShellApp extends App
 		setcookie('login', $token, [
 			'expires' => $expire,
 			'path' => '/',
-			'secure' => $is_encrypted,
+			'secure' => false,
 			'httponly' => true,
 			'samesite' => 'Strict'
 		]);
