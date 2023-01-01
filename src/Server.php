@@ -235,12 +235,10 @@ class Server
 		return $routee;
 	}
 
-	private function recursiveRoute($routes, $path)
+	private function recursiveRoute(array $routes, PathInfo $path)
 	{
 		if ($path->isRoot())
-		{
 			return $routes['.'] ?? null;
-		}
 
 		$item = $routes[$path->at(0)] ?? null;
 		if (!$item)
