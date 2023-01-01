@@ -59,7 +59,8 @@ class ShellApp extends App
 			'shell' => [
 				'theme' => $this->handler('serveThemeEdit'),
 				'color_palette' => new ColorPalettePage($this->config),
-				'theme.css' => $this->handler('serveThemeCss')
+				'theme.css' => $this->handler('serveThemeCss'),
+				'log_in_as_user' => $this->handler('logInAsUser')
 			]
 		];
 	}
@@ -190,6 +191,33 @@ class ShellApp extends App
 		}
 
 		return new ThemeEditPage($db, $colors);
+	}
+
+	public function logInAsUser(): mixed
+	{
+		$user_id = intval($_REQUEST['user-id'] ?? '0');
+
+		$db = SecurityDatabase::fromConfig($this->config);
+		$token = $db->login($user_id);
+
+		if (!$token)
+		{
+			http_response_code(401);
+			echo "Failed to log in as $user_id";
+			exit;
+		}
+
+		$expire = time() + 30*24*60*60;
+		setcookie('login', $token, [
+			'expires' => $expire,
+			'path' => '/',
+			'secure' => $is_encrypted,
+			'httponly' => true,
+			'samesite' => 'Strict'
+		]);
+
+		$redir = $_REQUEST['redirect-uri'] ?? '/';
+		return new Redirect($redir);
 	}
 
 	public function attemptLoginWithGoogle()
@@ -378,4 +406,5 @@ class ShellApp extends App
 		require (__DIR__ . '/../template/theme.css.php');
 		exit;
 	}
+
 }

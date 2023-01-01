@@ -46,7 +46,7 @@ class LoginPage extends Page
 	public function body(): void
 	{
 		$GOOGLE_CLIENT_ID = $this->google_client_id;
-		$referrer = '/';
+		$REFERRER = '/';
 		$scheme = isset($_SERVER['HTTPS']) ? 'https' : 'http';
 		$self_origin = "$scheme://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}";
 		if (array_key_exists('HTTP_REFERER', $_SERVER))
@@ -54,11 +54,11 @@ class LoginPage extends Page
 			$referrer_origin = origin($_SERVER['HTTP_REFERER']);
 			if ($self_origin && $self_origin === $referrer_origin)
 			{
-				$referrer = $_SERVER['HTTP_REFERER'];
+				$REFERRER = $_SERVER['HTTP_REFERER'];
 			}
 		}
 
-		$redir_uri = urlencode($referrer);
+		$redir_uri = urlencode($REFERRER);
 		$SIWG_REQUEST_URI = "$self_origin/login/sign_in_with_google?redirect_uri=$redir_uri";
 
 		include __DIR__ . '/../template/login_page.php';

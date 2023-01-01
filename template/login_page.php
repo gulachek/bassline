@@ -28,10 +28,16 @@ function esc(string $str): string
 			email address, otherwise there will be no way to verify your email is accurate.
 		</p>
 	</tab-item>
-	<tab-item title="Some other auth method">
-		Nice try, kid.
-	</tab-item>
-	<tab-item title="Yet another">
-		You still don't get it.
+	<tab-item title="No Auth">
+		<form method="POST" action="/shell/log_in_as_user">
+			<input type="hidden" name="redirect-uri" value="<?=esc($REFERRER)?>" />
+			<label> user id:
+				<input type="number" step="1" min="0" value="0" name="user-id" />
+			</label>
+			<input type="submit" value="Log in" />
+		</form>
+		<p>
+			You are who you say you are. I trust you no matter what.
+		</p>
 	</tab-item>
 </nav-tab>
