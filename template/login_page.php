@@ -1,3 +1,9 @@
+<?php
+function esc(string $str): string
+{
+	return htmlspecialchars($str);
+}
+?>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="/static/nav_tab.js"></script>
 
@@ -5,11 +11,11 @@
 
 <p> Choose an authentication method. </p>
 
-<nav-tab style="background-color: blue;">
+<nav-tab>
 	<tab-item title="Sign in with Google">
 		<div id="g_id_onload"
-		 data-client_id="<?= $GOOGLE_CLIENT_ID ?>"
-		 data-login_uri="/login/sign_in_with_google?redirect_uri=<?= urlencode($REFERER) ?>"
+		 data-client_id="<?= esc($GOOGLE_CLIENT_ID) ?>"
+		 data-login_uri="<?=esc($SIWG_REQUEST_URI)?>"
 		 data-auto_prompt="false">
 		</div>
 		<div class="g_id_signin"

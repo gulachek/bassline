@@ -1,5 +1,5 @@
 <?php
-function esc(string $s): string
+function __esc(string $s): string
 {
 	return htmlspecialchars($s);
 }
@@ -28,13 +28,13 @@ function esc(string $s): string
 <a href="/"> <?= $SITE_NAME ?> </a>
 
 <?php foreach ($APPS as $appHref => $app): ?>
-	<a href="/<?= esc($appHref) ?>/"> <?= esc($app->title()) ?> </a>
+	<a href="/<?= __esc($appHref) ?>/"> <?= __esc($app->title()) ?> </a>
 <?php endforeach; ?>
 
 <?php if (isset($USER)): ?>
 	<!-- <div onclick="void(0);" class="menu"> -->
 	<div class="menu login">
-	<span><?= esc($USERNAME) ?></span>
+	<span><?= __esc($USERNAME) ?></span>
 	<div class="items">
 	<a href="/logout/"> Log out </a>
 	</div>
