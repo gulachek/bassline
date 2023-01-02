@@ -57,7 +57,10 @@ class ShellApp extends App
 			],
 			'logout' => $this->handler('logout'),
 			'site' => [ // use this instead of shell
-				'admin' => new AdminPage($this->config)
+				'admin' => [
+					'.' => new AdminPage($this->config),
+					'users' => new UserEditPage($this->config)
+				]
 			],
 			'shell' => [
 				'theme' => $this->handler('serveThemeEdit'),

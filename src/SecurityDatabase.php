@@ -194,4 +194,14 @@ class SecurityDatabase
 	{
 		$this->db->query('logout', base64_decode($token));
 	}
+
+	public function loadUsers(): array
+	{
+		return $this->db->query('load-users')->indexById();
+	}
+
+	public function loadUser(int $user_id): ?array
+	{
+		return $this->db->queryRow('load-user', $user_id);
+	}
 }

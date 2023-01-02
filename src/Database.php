@@ -58,7 +58,7 @@ class Database
 	{
 		$query = $this->loadSql($sql);
 
-		if (!$params)
+		if (is_null($params))
 		{
 			return QueryResult::from($this->db->query($query));
 		}
