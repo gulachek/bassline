@@ -70,6 +70,27 @@ class UserEditPage extends Page
 		return null;
 	}
 
+	private function parseUser(?string &$error): ?array
+	{
+		$id = $this->parseId('user_id', $error);
+		if (!$id)
+		{
+			$error = $error ?? 'No user_id specified';
+			return null;
+		}
+
+		$name = $this->parseUserName('username', $error);
+		if (!$name)
+		{
+			$error = $error ?? 'No username specified';
+			return null;
+		}
+
+		return [
+			'id' => $id,
+			'name' => $name
+		];
+	}
 
 	public function body()
 	{
@@ -117,6 +138,16 @@ class UserEditPage extends Page
 
 				if ($user)
 					$user_id = $user['id'];
+			}
+		}
+		else if ($action === 'save')
+		{
+			$user = $this->parseUser($error);
+			if ($user)
+			{
+				//var_dump($user);
+				//exit;
+				$db->saveUser($user, $error);
 			}
 		}
 

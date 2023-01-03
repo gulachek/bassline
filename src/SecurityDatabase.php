@@ -222,4 +222,21 @@ class SecurityDatabase
 		$this->db->query('create-user', $username);
 		return $this->db->loadRowUnsafe('users', $this->db->lastInsertRowId());
 	}
+
+	public function saveUser(array $user, ?string &$error): void
+	{
+		$name = $user['name'];
+
+		$current = $this->loadUserByName($name);
+		if ($current && $current['id'] !== $user['id'])
+		{
+			$error = "User with username '$name' already exists.";
+			return;
+		}
+
+		$this->db->query('save-user', [
+			':id' => $user['id'],
+			':username' => $user['name']
+		]);
+	}
 }

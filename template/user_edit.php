@@ -5,6 +5,14 @@ function esc(string $str): string
 }
 ?>
 
+<?php if ($ERROR): ?>
+	<dialog open>
+		<h2> Error </h2>
+		<p> <?=esc($ERROR)?> </p>
+		<form method="dialog"><button> Ok </button></form>
+	</dialog>
+<?php endif; ?>
+
 <h1> Edit User </h1>
 
 <form method="POST">
@@ -16,9 +24,11 @@ function esc(string $str): string
 
 <label> username:
 	<input type="text"
-		title="Enter a username"
+		name="username"
+		title="Enter a username (letters, numbers, or underscores)"
 		pattern="<?=$USERNAME_PATTERN?>"
 		value="<?=$USER['username']?>"
+		required
 		/>
 
 <input type="submit" name="action" value="Save" />
