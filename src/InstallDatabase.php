@@ -33,7 +33,7 @@ class InstallDatabase
 	// query app key => semver
 	public function installedApps(): array
 	{
-		$this->db->query('install/all-versions');
+		$result = $this->db->query('install/all-versions');
 
 		$apps = [];
 		foreach ($result->rows() as $row)

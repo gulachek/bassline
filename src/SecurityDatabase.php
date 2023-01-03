@@ -204,4 +204,22 @@ class SecurityDatabase
 	{
 		return $this->db->queryRow('load-user', $user_id);
 	}
+
+	public function loadUserByName(string $username): ?array
+	{
+		return $this->db->queryRow('load-user-by-name', $username);
+	}
+
+	public function createUser(string $username, ?string &$err): ?array
+	{
+		$current = $this->loadUserByName($username);
+		if (!is_null($current))
+		{
+			$err = "User with username '$username' already exists.";
+			return null;
+		}
+
+		$this->db->query('create-user', $username);
+		return $this->db->loadRowUnsafe('users', $this->db->lastInsertRowId());
+	}
 }

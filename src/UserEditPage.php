@@ -24,7 +24,7 @@ class UserEditPage extends Page
 		return [];
 	}
 
-	private function parsePattern(string $name, string $pattern): ?string
+	private function parsePattern(string $name, string $pattern, ?string &$err): ?string
 	{
 		if (!isset($_REQUEST[$name]))
 			return null;
@@ -32,18 +32,16 @@ class UserEditPage extends Page
 		$value = $_REQUEST[$name];
 		if (!preg_match("/^$pattern$/", $value))
 		{
-			http_response_code(400);
-			$esc = htmlspecialchars($name);
-			echo "Invalid $esc\n";
-			exit;
+			$err = "Invalid $name\n";
+			return null;
 		}
 
 		return $value;
 	}
 
-	private function parseId($name): ?int
+	private function parseId(string $name, ?string &$err): ?int
 	{
-		$val = $this->parsePattern($name, '\d+');
+		$val = $this->parsePattern($name, '\d+', $err);
 
 		if (is_null($val))
 			return null;
@@ -51,36 +49,87 @@ class UserEditPage extends Page
 		return intval($val);
 	}
 
+	private function parseUserName(string $name, ?string &$err): ?string
+	{
+		return $this->parsePattern($name, self::USERNAME_PATTERN, $err);
+	}
+
+	private function parseAction(): ?string
+	{
+		if (isset($_REQUEST['action']))
+			return strtolower($_REQUEST['action']);
+
+		return null;
+	}
+
+	private function parseErrMsg(): ?string
+	{
+		if (isset($_REQUEST['error']))
+			return strtolower($_REQUEST['error']);
+
+		return null;
+	}
+
+
 	public function body()
 	{
 		$db = SecurityDatabase::fromConfig($this->config);
 		$USERNAME_PATTERN = self::USERNAME_PATTERN;
 
-		$user_id = $this->parseId('user_id');
-		if (is_null($user_id))
+		$error = null;
+		$user_id = $this->parseId('user_id', $error);
+		$action = $this->parseAction();
+		$ERROR = $this->parseErrMsg() ?? $error;
+
+		if (is_null($action))
+		{
+			$action = is_null($user_id) ? 'select' : 'edit';
+		}
+
+		if ($action === 'select')
 		{
 			$USERS = $db->loadUsers();
 			require __DIR__ . '/../template/user_edit_select.php';
+			exit;
 		}
-		else if (!isset($_REQUEST['action']))
+		else if ($action === 'edit')
 		{
 			$USER = $db->loadUser($user_id);
 
-			if (!$USER)
+			if ($USER)
 			{
-				http_response_code(404);
-				echo "User not found for id $user_id\n";
+				require __DIR__ . '/../template/user_edit.php';
 				exit;
 			}
 
-			require __DIR__ . '/../template/user_edit.php';
+			$error = "User not found for id $user_id";
 		}
-		else
+		else if ($action === 'create')
 		{
-			$action = strtolower($_REQUEST['action']);
-			http_response_code(301);
-			header("Location: /site/admin/users?user_id=$user_id");
-			exit;
+			$username = $this->parseUserName('username', $error);
+			if (is_null($username))
+			{
+				$error = $error ?? 'No username specified';
+			}
+			else
+			{
+				$user = $db->createUser($username, $error);
+
+				if ($user)
+					$user_id = $user['id'];
+			}
 		}
+
+		$query = [];
+		if (!is_null($user_id))
+			$query['user_id'] = $user_id;
+		if (!is_null($error))
+			$query['error'] = $error; // TODO: make error codes so that site can't render bad words from crafted links
+
+		$query_str = http_build_query($query);
+
+		http_response_code(301);
+		header("Location: /site/admin/users?$query_str");
+		exit;
 	}
 }
