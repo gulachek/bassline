@@ -1,3 +1,5 @@
+<script src="/assets/user_edit.js"></script>
+
 <?php
 function esc(string $str): string
 {
@@ -34,3 +36,10 @@ function esc(string $str): string
 <input type="submit" name="action" value="Save" />
 
 </form>
+
+<script id="test-react-data" type="application/json">
+{ "hello": "world" }
+</script>
+
+<div id="test-react">
+</div>
