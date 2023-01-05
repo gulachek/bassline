@@ -1,45 +1,9 @@
 <script src="/assets/user_edit.js"></script>
 
-<?php
-function esc(string $str): string
-{
-	return htmlspecialchars($str);
-}
-?>
-
-<?php if ($ERROR): ?>
-	<dialog open>
-		<h2> Error </h2>
-		<p> <?=esc($ERROR)?> </p>
-		<form method="dialog"><button> Ok </button></form>
-	</dialog>
-<?php endif; ?>
-
-<h1> Edit User </h1>
-
-<form method="POST">
-
-<input type="hidden"
-	name="user_id"
-	value="<?=$USER['id']?>"
-	/>
-
-<label> username:
-	<input type="text"
-		name="username"
-		title="Enter a username (letters, numbers, or underscores)"
-		pattern="<?=$USERNAME_PATTERN?>"
-		value="<?=$USER['username']?>"
-		required
-		/>
-
-<input type="submit" name="action" value="Save" />
-
-</form>
-
-<script id="test-react-data" type="application/json">
-{ "hello": "world" }
+<script id="page-model" type="application/json">
+<?php /* json_encode escapes slashes by default */ ?>
+<?=json_encode($MODEL)?>
 </script>
 
-<div id="test-react">
+<div id="page-view">
 </div>

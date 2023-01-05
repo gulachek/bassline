@@ -115,10 +115,18 @@ class UserEditPage extends Page
 		}
 		else if ($action === 'edit')
 		{
-			$USER = $db->loadUser($user_id);
+			$user = $db->loadUser($user_id);
 
-			if ($USER)
+			if ($user)
 			{
+				$MODEL = [
+					'errorMsg' => $ERROR,
+					'user' => $user,
+					'patterns' => [
+						'username' => self::USERNAME_PATTERN
+					]
+				];
+
 				require __DIR__ . '/../template/user_edit.php';
 				exit;
 			}
