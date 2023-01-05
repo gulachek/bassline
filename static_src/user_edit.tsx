@@ -1,13 +1,11 @@
 import { createRoot } from 'react-dom/client';
 import * as React from 'react';
 import {
-	useCallback,
-	useState,
 	useRef,
-	useEffect,
-	ChangeEvent,
-	ChangeEventHandler
+	useEffect
 } from 'react';
+
+import { useElemState } from './useElemState';
 
 function ModalErrorMsg(props: {msg: string})
 {
@@ -24,26 +22,6 @@ function ModalErrorMsg(props: {msg: string})
 			<button> Ok </button>
 		</form>
 	</dialog>;
-}
-
-type TValue = string|number|readonly string[];
-
-interface IHasValue {
-	value: TValue;
-}
-
-function useElemState<TElem extends HTMLElement & IHasValue>(initialValue: TValue): [TValue, ChangeEventHandler<TElem>]
-{
-	type TEvent = ChangeEvent<TElem>;
-	type THandler = ChangeEventHandler<TElem>;
-
-	const [value, setValue] = useState(initialValue);
-	
-	const onChange: THandler = useCallback((e: TEvent) => {
-		setValue(e.target.value);
-	}, [setValue]);
-
-	return [value, onChange];
 }
 
 interface IUser
