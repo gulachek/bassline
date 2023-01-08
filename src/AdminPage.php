@@ -4,7 +4,7 @@ namespace Shell;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-class AdminPage extends Response
+class AdminPage extends Responder
 {
 	public function __construct(
 		private Config $config

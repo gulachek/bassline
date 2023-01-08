@@ -4,7 +4,7 @@ namespace Shell;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-class UserEditPage extends Response
+class UserEditPage extends Responder
 {
 	const USERNAME_PATTERN = "^[a-zA-Z0-9_]+$";
 

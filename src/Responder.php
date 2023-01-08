@@ -4,25 +4,25 @@ namespace Shell;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-class ResponseDelegate
+class ResponderDelegate
 {
 	public function __construct(
-		public readonly Response $response,
+		public readonly Responder $responder,
 		public readonly ?PathInfo $path
 	)
 	{
 	}
 
-	public static function fromResponseReturnVal(mixed $value): ?ResponseDelegate
+	public static function fromRespondReturnVal(mixed $value): ?ResponderDelegate
 	{
 		if (is_null($value))
 			return null;
 
-		if ($value instanceof ResponseDelegate)
+		if ($value instanceof ResponderDelegate)
 			return $value;
 
-		if ($value instanceof Response)
-			return new ResponseDelegate($value, null);
+		if ($value instanceof Responder)
+			return new ResponderDelegate($value, null);
 
 		throw new Error('Invalid return value from respond()');
 	}
@@ -81,14 +81,14 @@ class RespondArg
 		);
 	}
 
-	public function route(array $routes): ResponseDelegate
+	public function route(array $routes): ResponderDelegate
 	{
-		$not_found = new ResponseDelegate(new NotFound(), null);
+		$not_found = new ResponderDelegate(new NotFound(), null);
 
 		if ($this->path->isRoot())
 		{
 			if (isset($routes['.']))
-				return Response::delegateTo($routes['.']);
+				return Responder::delegateTo($routes['.']);
 			else
 				return $not_found;
 		}
@@ -100,23 +100,23 @@ class RespondArg
 		if (is_array($item))
 			return $this->child()->route($item);
 
-		if (!($item instanceof Response))
-			throw new \Exception('route: items must be arrays or Response objects');
+		if (!($item instanceof Responder))
+			throw new \Exception('route: items must be arrays or Responder objects');
 
-		return Response::delegateTo($item, $this->path->child());
+		return Responder::delegateTo($item, $this->path->child());
 	}
 }
 
 // Respond to a request
-abstract class Response
+abstract class Responder
 {
 	// respond to an HTTP request handled at path
 	// return null if the response is fully handled
-	// return a ResponseDelegate (with delegateTo) if passing to another object
+	// return a ResponderDelegate (with delegateTo) if passing to another object
 	abstract function respond(RespondArg $args): mixed;
 
-	public static function delegateTo(Response $resp, ?PathInfo $path = null): ResponseDelegate
+	public static function delegateTo(Responder $resp, ?PathInfo $path = null): ResponderDelegate
 	{
-		return new ResponseDelegate($resp, $path);
+		return new ResponderDelegate($resp, $path);
 	}
 }

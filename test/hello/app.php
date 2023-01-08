@@ -4,7 +4,7 @@ namespace Hello;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-class HelloPage extends \Shell\Response
+class HelloPage extends \Shell\Responder
 {
 	private $msg;
 
@@ -27,7 +27,7 @@ class HelloPage extends \Shell\Response
 	}
 }
 
-class LandingPage extends \Shell\Response
+class LandingPage extends \Shell\Responder
 {
 	public function respond($arg): mixed
 	{

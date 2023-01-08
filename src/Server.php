@@ -4,7 +4,7 @@ namespace Shell;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-class Server extends Response
+class Server extends Responder
 {
 	private Config $config;
 	private ?PathInfo $path;
@@ -185,7 +185,7 @@ class Server extends Response
 
 		$app = new ShellApp($this->config);
 		if ($app->isShell($path))
-			return Response::delegateTo($app, $arg->path);
+			return Responder::delegateTo($app, $arg->path);
 
 		$apps = $this->config->apps();
 		$app = $apps[$path->at(0)] ?? null;
@@ -193,7 +193,7 @@ class Server extends Response
 		if (!$app)
 			return new NotFound();
 
-		return Response::delegateTo($app, $path->child());
+		return Responder::delegateTo($app, $path->child());
 	}
 
 	// Entry point to respond to request
@@ -213,15 +213,15 @@ class Server extends Response
 		}
 
 		$resp = $this;
-		$del = new ResponseDelegate($resp, $path);
+		$del = new ResponderDelegate($resp, $path);
 		$arg = null;
 
 		do
 		{
-			$resp = $del->response;
+			$resp = $del->responder;
 			$path = $del->path ?? $path;
 			$arg = new RespondArg($path, $user, $this->config);
 		}
-		while ($del = ResponseDelegate::fromResponseReturnVal($resp->respond($arg)));
+		while ($del = ResponderDelegate::fromRespondReturnVal($resp->respond($arg)));
 	}
 }

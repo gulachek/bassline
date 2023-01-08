@@ -4,7 +4,7 @@ namespace Shell;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-class ThemeEditPage extends Response
+class ThemeEditPage extends Responder
 {
 	const NAME_PATTERN =  "^[a-zA-Z0-9 ]+$";
 	const HEX_PATTERN = '^#[0-9a-fA-F]{6}$';

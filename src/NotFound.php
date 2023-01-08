@@ -4,7 +4,7 @@ namespace Shell;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-class NotFound extends Response
+class NotFound extends Responder
 {
 	public function __construct()
 	{

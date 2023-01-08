@@ -4,7 +4,7 @@ namespace Shell;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-class ColorPalettePage extends Response
+class ColorPalettePage extends Responder
 {
 	private ColorDatabase $db;
 	const NAME_PATTERN =  "^[a-zA-Z0-9 ]+$";

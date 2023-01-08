@@ -4,7 +4,7 @@ namespace Shell;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-class LandingPage extends Response
+class LandingPage extends Responder
 {
 	public function respond(RespondArg $arg): mixed
 	{

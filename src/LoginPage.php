@@ -30,7 +30,7 @@ function origin(string $uri): ?string
 	return $origin;
 }
 
-class LoginPage extends Response
+class LoginPage extends Responder
 {
 	public function __construct(
 		private string $google_client_id
