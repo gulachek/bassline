@@ -33,13 +33,13 @@ class App
 		throw new \Exception('not implemented');
 	}
 
-	protected function handler(string $method): Handler
+	protected function handler(string $method): Response
 	{
 		return new MethodHandler($this, $method);
 	}
 
 	// Array to objects that can be handled (Page, Redirector, etc)
-	public function route(PathInfo $path): array | Page | Redirector | Handler | null
+	public function route(PathInfo $path): array | Page | Redirector | Response | null
 	{
 		return null;
 	}
@@ -82,16 +82,16 @@ class App
 	}
 }
 
-class MethodHandler extends Handler
+class MethodHandler extends Response
 {
 	public function __construct(
-		private Mixed $obj,
+		private mixed $obj,
 		private string $method
 	)
 	{
 	}
 
-	public function handleRequest(): Page | Redirect | null
+	public function respond(PathInfo $path): mixed
 	{
 		$obj = $this->obj;
 		$method = $this->method;

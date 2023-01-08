@@ -184,14 +184,10 @@ class Server
 		{
 			$this->renderPage($obj);
 		}
-		else if ($obj instanceof Handler)
-		{
-			$this->doRender($obj->handleRequest());
-		}
 		else if ($obj instanceof Response)
 		{
 			$path = $this->path;
-			while ($del = $obj->respond($path))
+			while ($del = ResponseDelegate::fromResponseReturnVal($obj->respond($path)))
 			{
 				$obj = $del->response;
 				$path = $del->path ?? $path;

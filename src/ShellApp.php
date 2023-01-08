@@ -210,7 +210,7 @@ class ShellApp extends App
 		{
 			http_response_code(401);
 			echo "Failed to log in as $user_id";
-			exit;
+			return null;
 		}
 
 		$expire = time() + 30*24*60*60;
@@ -226,14 +226,14 @@ class ShellApp extends App
 		return new Redirect($redir);
 	}
 
-	public function attemptLoginWithGoogle()
+	public function attemptLoginWithGoogle(): mixed
 	{
 		$remote_addr = $_SERVER['REMOTE_ADDR'] ?? null;
 		if (!$remote_addr)
 		{
 			http_response_code(500);
 			echo "REMOTE_ADDR not set up\n";
-			exit;
+			return null;
 		}
 
 		// https://www.rfc-editor.org/rfc/rfc5735#section-4
@@ -248,7 +248,7 @@ class ShellApp extends App
 		{
 			http_response_code(400);
 			echo "login is only supported with encryption\n"; // or loopback shh
-			exit;
+			return null;
 		}
 
 		$db = SecurityDatabase::fromConfig($this->config);
@@ -259,7 +259,7 @@ class ShellApp extends App
 		{
 			http_response_code(400);
 			echo "$err\n";
-			exit;
+			return null;
 		}
 
 		$token = $db->loginWithGoogle($payload, $err);
@@ -270,7 +270,7 @@ class ShellApp extends App
 			echo "Google signed you in correctly, but we were unable to log you in.\n";
 			echo "Contact the system administrator.\n";
 			echo "$err\n";
-			exit;
+			return null;
 		}
 
 		$expire = time() + 30*24*60*60;;
@@ -372,7 +372,7 @@ class ShellApp extends App
 		{
 			http_response_code(400);
 			echo "App not specified\n";
-			exit;
+			return null;
 		}
 
 		$app_key = strtolower($_REQUEST['app']);
@@ -382,7 +382,7 @@ class ShellApp extends App
 		{
 			http_response_code(404);
 			echo "App not found\n";
-			exit;
+			return null;
 		}
 
 		$app = $apps[$app_key];
@@ -410,7 +410,7 @@ class ShellApp extends App
 
 		header('Content-Type: text/css');
 		require (__DIR__ . '/../template/theme.css.php');
-		exit;
+		return null;
 	}
 
 }
