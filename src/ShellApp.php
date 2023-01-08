@@ -48,9 +48,9 @@ class ShellApp extends App
 		return array_search($top, ['shell', 'site', 'login', 'logout']) !== false;
 	}
 
-	public function route(PathInfo $path): array
+	public function respond(RespondArg $arg): mixed
 	{
-		return [
+		return $arg->route([
 			'.' => new LandingPage(),
 			'login' => [
 				'.' => new LoginPage($this->config->googleClientId()),
@@ -69,7 +69,7 @@ class ShellApp extends App
 				'theme.css' => $this->handler('serveThemeCss'),
 				'log_in_as_user' => $this->handler('logInAsUser')
 			]
-		];
+		]);
 	}
 
 	public function install(): ?string

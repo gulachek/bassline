@@ -66,8 +66,10 @@ class App extends \Shell\App
 		return [];
 	}
 
-	public function route($path): ?\Shell\Response
+	public function respond($arg): mixed
 	{
+		$path = $arg->path;
+
 		if ($path->isRoot())
 			return new LandingPage();
 

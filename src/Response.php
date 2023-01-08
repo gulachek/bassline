@@ -71,6 +71,40 @@ class RespondArg
 		$APPS = $this->config->apps();
 		include __DIR__ . '/../template/page.php';
 	}
+
+	private function child(): RespondArg
+	{
+		return new RespondArg(
+			$this->path->child(),
+			$this->user,
+			$this->config
+		);
+	}
+
+	public function route(array $routes): ResponseDelegate
+	{
+		$not_found = new ResponseDelegate(new NotFound(), null);
+
+		if ($this->path->isRoot())
+		{
+			if (isset($routes['.']))
+				return Response::delegateTo($routes['.']);
+			else
+				return $not_found;
+		}
+
+		$item = $routes[$this->path->at(0)] ?? null;
+		if (!$item)
+			return $not_found;
+
+		if (is_array($item))
+			return $this->child()->route($item);
+
+		if (!($item instanceof Response))
+			throw new \Exception('route: items must be arrays or Response objects');
+
+		return Response::delegateTo($item, $this->path->child());
+	}
 }
 
 // Respond to a request

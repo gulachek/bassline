@@ -4,7 +4,7 @@ namespace Shell;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-class Server
+class Server extends Response
 {
 	private Config $config;
 	private ?PathInfo $path;
@@ -170,10 +170,39 @@ class Server
 		return true;
 	}
 
+	public function respond(RespondArg $arg): mixed
+	{
+		$path = $arg->path;
+
+		// Apps control their own routing structure, but
+		// they do not control the top level path to the app.
+		// This is configured for site. Apps shouldn't need to
+		// think about how to set up relative uri in links from
+		// base page since it depends on if dir ends with '/' or
+		// not (cwd is dir with '/' but parent w/o).
+		if ($path->count() === 1 && !$arg->path->isDir())
+			return new Redirect("{$path->path()}/");
+
+		$app = new ShellApp($this->config);
+		if ($app->isShell($path))
+			return Response::delegateTo($app, $arg->path);
+
+		$apps = $this->config->apps();
+		$app = $apps[$path->at(0)] ?? null;
+
+		if (!$app)
+			return new NotFound();
+
+		return Response::delegateTo($app, $path->child());
+	}
+
+	// Entry point to respond to request
 	public function render()
 	{
 		if (!$this->path)
 			throw new \Exception('Specify a request if serving files');
+
+		$path = $this->path;
 
 		// TODO: if requested w/o encryption, log user out
 		$user = null;
@@ -183,83 +212,16 @@ class Server
 			$user = $db->getLoggedInUser($_COOKIE['login']);
 		}
 
-		$this->doRender($this->route(), $user);
-	}
+		$resp = $this;
+		$del = new ResponseDelegate($resp, $path);
+		$arg = null;
 
-	private function doRender($obj, $user)
-	{
-		if ($obj)
+		do
 		{
-			$path = $this->path;
-			$del = new ResponseDelegate($obj, $path);
-			$arg = null;
-
-			do
-			{
-				$obj = $del->response;
-				$path = $del->path ?? $path;
-				$arg = new RespondArg($path, $user, $this->config);
-			}
-			while ($del = ResponseDelegate::fromResponseReturnVal($obj->respond($arg)));
+			$resp = $del->response;
+			$path = $del->path ?? $path;
+			$arg = new RespondArg($path, $user, $this->config);
 		}
-		else
-		{
-			http_response_code(404);
-			header('Content-Type: text/plain');
-			echo 'Not found';
-		}
-	}
-
-	private function route()
-	{
-		$path = $this->path;
-
-		// Apps control their own routing structure, but
-		// they do not control the top level path to the app.
-		// This is configured for site. Apps shouldn't need to
-		// think about how to set up relative uri in links from
-		// base page since it depends on if dir ends with '/' or
-		// not (cwd is dir with '/' but parent w/o).
-		if ($path->count() === 1 && !$path->isDir())
-			return new Redirect("{$path->path()}/");
-
-		$app = new ShellApp($this->config);
-		$config = $this->config;
-
-		if (!$app->isShell($path))
-		{
-			$apps = $config->apps();
-			$app = $apps[$path->at(0)] ?? null;
-
-			if (!$app)
-				return null;
-
-			$path = $path->child();
-		}
-
-		$routee = $app->route($path);
-		if (is_array($routee))
-			return $this->recursiveRoute($routee, $path);
-
-		return $routee;
-	}
-
-	private function recursiveRoute(array $routes, PathInfo $path)
-	{
-		if ($path->isRoot())
-			return $routes['.'] ?? null;
-
-		$item = $routes[$path->at(0)] ?? null;
-		if (!$item)
-			return null;
-
-		if (is_array($item))
-			return $this->recursiveRoute($item, $path->child());
-
-		// reserve namespaces for apps to implement more
-		if ($path->count() == 1)
-			return $item;
-
-		return null;
+		while ($del = ResponseDelegate::fromResponseReturnVal($resp->respond($arg)));
 	}
 }

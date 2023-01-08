@@ -5,7 +5,8 @@ namespace Shell;
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/mime_type.php';
 
-class App
+// TODO: rename Response -> Responder
+class App extends Response
 {
 	public function __construct(
 		private string $docroot
@@ -38,10 +39,10 @@ class App
 		return new MethodHandler($this, $method);
 	}
 
-	// Array to objects that can be handled (Page, Redirector, etc)
-	public function route(PathInfo $path): array | Response | null
+	// top level request handler. can delegate to other Response objects
+	public function respond(RespondArg $path): mixed
 	{
-		return null;
+		throw new \Exception('not implemented');
 	}
 
 	public function staticDirs(): array
