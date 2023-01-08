@@ -1,9 +1,6 @@
-<?php
-function esc(string $str): string
-{
-	return htmlspecialchars($str);
-}
-?>
+<?php require_once $UTIL; ?>
+<link rel="stylesheet" href="/static/login_page.css" />
+
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="/static/nav_tab.js"></script>
 
@@ -14,8 +11,8 @@ function esc(string $str): string
 <nav-tab>
 	<tab-item title="Sign in with Google">
 		<div id="g_id_onload"
-		 data-client_id="<?= esc($GOOGLE_CLIENT_ID) ?>"
-		 data-login_uri="<?=esc($SIWG_REQUEST_URI)?>"
+		 data-client_id="<?=text($TEMPLATE['google_client_id'])?>"
+		 data-login_uri="<?=text($TEMPLATE['siwg_request_uri'])?>"
 		 data-auto_prompt="false">
 		</div>
 		<div class="g_id_signin"
@@ -30,7 +27,7 @@ function esc(string $str): string
 	</tab-item>
 	<tab-item title="No Auth">
 		<form method="POST" action="/shell/log_in_as_user">
-			<input type="hidden" name="redirect-uri" value="<?=esc($REFERRER)?>" />
+			<input type="hidden" name="redirect-uri" value="<?=text($TEMPLATE['referrer'])?>" />
 			<label> user id:
 				<input type="number" step="1" min="0" value="0" name="user-id" />
 			</label>

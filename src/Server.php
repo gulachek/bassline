@@ -175,16 +175,20 @@ class Server
 		if (!$this->path)
 			throw new \Exception('Specify a request if serving files');
 
-		$this->doRender($this->route());
+		// TODO: if requested w/o encryption, log user out
+		$user = null;
+		if (isset($_COOKIE['login']))
+		{
+			$db = SecurityDatabase::fromConfig($this->config);
+			$user = $db->getLoggedInUser($_COOKIE['login']);
+		}
+
+		$this->doRender($this->route(), $user);
 	}
 
-	private function doRender($obj)
+	private function doRender($obj, $user)
 	{
-		if ($obj instanceof Page)
-		{
-			$this->renderPage($obj);
-		}
-		else if ($obj instanceof Response)
+		if ($obj)
 		{
 			$path = $this->path;
 			$del = new ResponseDelegate($obj, $path);
@@ -194,7 +198,7 @@ class Server
 			{
 				$obj = $del->response;
 				$path = $del->path ?? $path;
-				$arg = new RespondArg($path);
+				$arg = new RespondArg($path, $user, $this->config);
 			}
 			while ($del = ResponseDelegate::fromResponseReturnVal($obj->respond($arg)));
 		}
@@ -257,26 +261,5 @@ class Server
 			return $item;
 
 		return null;
-	}
-
-	private function renderPage($page)
-	{
-		$USER = null;
-		$USERNAME = null;
-
-		if (isset($_COOKIE['login']))
-		{
-			$db = SecurityDatabase::fromConfig($this->config);
-			if ($user = $db->getLoggedInUser($_COOKIE['login']))
-			{
-				$USER = $user['id'];
-				$USERNAME = $user['username'];
-			}
-		}
-
-		$SITE_NAME = $this->config->siteName();
-		$SHELL = new Shell($page);
-		$APPS = $this->config->apps();
-		include __DIR__ . '/../template/page.php';
 	}
 }

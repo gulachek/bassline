@@ -1,15 +1,10 @@
-<?php
-function esc($str): string
-{
-	return htmlspecialchars($str);
-}
-?>
-
+<?php require_once $UTIL; ?>
+<link rel="stylesheet" href="/static/color_palette_page.css" />
 <h1> Edit Color Palette </h1>
 
 <form method="POST">
 
-<?php if ($PALETTE): ?>
+<?php if ($PALETTE = $TEMPLATE['palette']): ?>
 <input type="hidden" name="palette-id" value="<?= $PALETTE['id'] ?>" />
 
 <fieldset>
@@ -18,8 +13,8 @@ function esc($str): string
 <input type="text"
 	id="palette-name"
 	name="palette-name"
-	value="<?= esc($PALETTE['name']) ?>"
-	pattern="<?= $NAME_PATTERN ?>"
+	value="<?= text($PALETTE['name']) ?>"
+	pattern="<?= $TEMPLATE['name_pattern'] ?>"
 	/>
 </fieldset>
 
@@ -37,7 +32,7 @@ function esc($str): string
 		/>
 
 	<div class="color-preview">
-	<?php for($i = 0; $i < $SHADE_COUNT; ++$i): ?>
+	<?php for($i = 0; $i < $TEMPLATE['shade_count']; ++$i): ?>
 		<input type="color" readonly inert value="<?= $color['hex'] ?>" />
 	<?php endfor; ?>
 	</div>
@@ -48,7 +43,7 @@ function esc($str): string
 		<input type="text"
 			name="color-names[]"
 			value="<?= $color['name'] ?>"
-			pattern="<?= $NAME_PATTERN ?>"
+			pattern="<?= $TEMPLATE['name_pattern'] ?>"
 			/>
 		</label>
 		</span>
@@ -77,12 +72,12 @@ function esc($str): string
 <?php else: ?>
 
 
-<?php if (count($AVAILABLE_PALETTES)): ?>
+<?php if (count($TEMPLATE['available_palettes'])): ?>
 	<fieldset>
 	<legend> Select an existing palette </legend>
 	<select name="palette-id">
-	<?php foreach ($AVAILABLE_PALETTES as $id => $palette): ?>
-		<option value="<?=$id?>"> <?= esc($palette['name']) ?> </option> 
+	<?php foreach ($TEMPLATE['available_palettes'] as $id => $palette): ?>
+		<option value="<?=$id?>"> <?= text($palette['name']) ?> </option> 
 	<?php endforeach; ?>
 	</select>
 	<input type="submit" name="action" value="Edit" />
@@ -91,8 +86,13 @@ function esc($str): string
 
 <fieldset>
 <legend> Create a new palette </legend>
-<label for="new-name"> Palette name: </label>
-<input type="text" name="palette-name" value="New Palette" pattern="<?= $NAME_PATTERN ?>" />
+<label> Palette name:
+	<input type="text"
+		name="palette-name"
+		value="New Palette"
+		pattern="<?=$TEMPLATE['name_pattern']?>"
+	/>
+</label>
 <input type="submit" name="action" value="Create" />
 </fieldset>
 

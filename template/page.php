@@ -1,40 +1,30 @@
-<?php
-function __esc(string $s): string
-{
-	return htmlspecialchars($s);
-}
-?>
+<?php require $UTIL; ?>
 <!DOCTYPE html>
 <html>
-<head>
 
+<head>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title> <?= $SHELL->title() ?> </title>
+<title> <?=text($TITLE)?> </title>
 
 <script src="/static/loading_overlay.js"></script>
 
 <link rel="stylesheet" type="text/css" href="/shell/theme.css?app=shell" />
-
-<?php foreach ($SHELL->stylesheets() as $style): ?>
-	<link rel="stylesheet" type="text/css" href="<?= $style ?>" />
-<?php endforeach; ?>
-
+<link rel="stylesheet" type="text/css" href="/static/main.css" />
 </head>
 
 <body>
-
 <nav class="nav-bar">
 
-<a href="/"> <?= $SITE_NAME ?> </a>
+<a href="/"> <?= text($SITE_NAME) ?> </a>
 
 <?php foreach ($APPS as $appHref => $app): ?>
-	<a href="/<?= __esc($appHref) ?>/"> <?= __esc($app->title()) ?> </a>
+	<a href="/<?= text($appHref) ?>/"> <?= text($app->title()) ?> </a>
 <?php endforeach; ?>
 
 <?php if (isset($USER)): ?>
 	<!-- <div onclick="void(0);" class="menu"> -->
 	<div class="menu login">
-	<span><?= __esc($USERNAME) ?></span>
+	<span><?= text($USERNAME) ?></span>
 	<div class="items">
 	<a href="/logout/"> Log out </a>
 	</div>
@@ -47,7 +37,7 @@ function __esc(string $s): string
 
 <main class="main">
 	<loading-overlay>
-		<?= $SHELL->mainBody() ?>
+		<?php $RENDER_BODY(); ?>
 	</loading-overlay>
 </main>
 

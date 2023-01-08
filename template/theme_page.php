@@ -1,19 +1,15 @@
-<?php
+<?php require_once $UTIL; ?>
+<link rel="stylesheet" href="/static/theme_page.css" />
 
-function esc(?string $s): string
-{ return htmlspecialchars($s ?? ""); }
-
-?>
-
-<?php if ($THEME): ?>
+<?php if ($THEME = $TEMPLATE['theme']): ?>
 
 <dialog id="palette-select-popup">
 
 <?php if (isset($THEME['palette'])): ?>
 	<?php foreach ($THEME['palette']['colors'] as $id => $color): ?>
 		<div class="color-row">
-			<span class="color-row-name"> <?=esc($color['name'])?> </span>
-			<?php foreach (self::enumerateShades($color) as $shade): ?>
+			<span class="color-row-name"> <?=text($color['name'])?> </span>
+			<?php foreach ($TEMPLATE['self']->enumerateShades($color) as $shade): ?>
 				<input type="color"
 					class="color-button"
 					value="<?=$shade->toHex()?>"
@@ -36,8 +32,8 @@ function esc(?string $s): string
 <label> Name:
 <input type="text"
 	name="theme-name"
-	pattern="<?=$NAME_PATTERN?>"
-	value="<?=esc($THEME['name'])?>"
+	pattern="<?=$TEMPLATE['name_pattern']?>"
+	value="<?=text($THEME['name'])?>"
 	/>
 </label>
 <br />
@@ -45,7 +41,7 @@ function esc(?string $s): string
 <label> Palette:
 	<input type="text" readonly
 <?php if (isset($THEME['palette'])): ?>
-	value="<?=esc($THEME['palette']['name'])?>"
+	value="<?=text($THEME['palette']['name'])?>"
 
 <?php else: ?>
 	value="No palette selected"
@@ -60,9 +56,9 @@ function esc(?string $s): string
 	</p>
 	<label> Palette:
 	<select id="theme-palette" name="theme-palette">
-		<?php foreach ($AVAILABLE_PALETTES as $id => $palette): ?>
+		<?php foreach ($TEMPLATE['available_palettes'] as $id => $palette): ?>
 			<option value="<?=$id?>">
-				<?=esc($palette['name'])?>
+				<?=text($palette['name'])?>
 			</option>
 		<?php endforeach; ?>
 	</select>
@@ -78,7 +74,7 @@ function esc(?string $s): string
 		<input type="radio"
 			name="theme-status"
 			value="<?=$status?>"
-			<?php if($status === $STATUS): ?>
+			<?php if($status === $TEMPLATE['status']): ?>
 				checked
 			<?php endif; ?>
 			/> <?=ucwords($status)?>
@@ -101,15 +97,15 @@ function esc(?string $s): string
 		<label> Name:
 			<input type="text"
 				name="theme-color-names[]"
-				pattern="<?=$NAME_PATTERN?>"
-				value="<?=esc($color['name'])?>"
+				pattern="<?=$TEMPLATE['name_pattern']?>"
+				value="<?=text($color['name'])?>"
 			/>
 		</label>
 		
 		<span class="palette-select">
 			<label> Background:
 				<input class="color-indicator" type="color"
-					value="<?=$THEME_COLOR_HEX[$color['id']]['bg']?>"
+					value="<?=$TEMPLATE['hex'][$color['id']]['bg']?>"
 				/>
 			</label>
 			<input type="hidden"
@@ -127,7 +123,7 @@ function esc(?string $s): string
 			<label> Foreground:
 				<input type="color" 
 					class="color-indicator"
-					value="<?=$THEME_COLOR_HEX[$color['id']]['fg']?>"
+					value="<?=$TEMPLATE['hex'][$color['id']]['fg']?>"
 				/>
 			</label>
 			<input type="hidden"
@@ -161,7 +157,7 @@ function esc(?string $s): string
 		value="<?=$mapping['id']?>"
 	/>
 
-	<label> <?=esc($mapping['app']).'.'.esc($mapping['name'])?>:
+	<label> <?=text($mapping['app']).'.'.text($mapping['name'])?>:
 		<select name="mapping-theme-colors[]" >
 			<?php foreach ($THEME['theme-colors'] as $id => $color): ?>
 				<option
@@ -170,7 +166,7 @@ function esc(?string $s): string
 						selected
 					<?php endif; ?>
 				>
-					<?=esc($color['name'])?>
+					<?=text($color['name'])?>
 				</option>
 			<?php endforeach; ?>
 		</select>
@@ -193,12 +189,12 @@ function esc(?string $s): string
 <?php else: ?>
 
 <form method="POST">
-<?php if (count($AVAILABLE_THEMES)): ?>
+<?php if (count($TEMPLATE['available_themes'])): ?>
 <fieldset>
 <legend> Select a theme </legend>
 <select name="theme-id">
-	<?php foreach ($AVAILABLE_THEMES as $id => $theme): ?>
-		<option value="<?=$id?>"> <?=esc($theme['name'])?> </option>
+	<?php foreach ($TEMPLATE['available_themes'] as $id => $theme): ?>
+		<option value="<?=$id?>"> <?=text($theme['name'])?> </option>
 	<?php endforeach; ?>
 </select>
 <input type="submit" name="action" value="Edit" formmethod="GET" />

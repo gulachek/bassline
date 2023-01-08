@@ -4,7 +4,7 @@ namespace Hello;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-class HelloPage extends \Shell\Page
+class HelloPage extends \Shell\Response
 {
 	private $msg;
 
@@ -13,27 +13,29 @@ class HelloPage extends \Shell\Page
 		$this->msg = $msg;
 	}
 
-	public function title()
+	public function respond($arg): mixed
 	{
-		return "Hello {$this->msg}";
-	}
+		$arg->renderPage([
+			'title' => "Hello {$this->msg}",
+			'template' => __DIR__ . '/hello_page.php',
+			'args' => [
+				'msg' => $this->msg
+			]
+		]);
 
-	public function body()
-	{
-		return "<p> Hello {$this->msg} </p>";
+		return null;
 	}
 }
 
-class LandingPage extends \Shell\Page
+class LandingPage extends \Shell\Response
 {
-	public function title()
+	public function respond($arg): mixed
 	{
-		return "Hello";
-	}
-
-	public function body()
-	{
-		return '<a href="./buddy"> Hello buddy  </a>';
+		$arg->renderPage([
+			'title' => 'Hello',
+			'template' => __DIR__ . '/landing_page.php'
+		]);
+		return null;
 	}
 }
 
@@ -64,7 +66,7 @@ class App extends \Shell\App
 		return [];
 	}
 
-	public function route($path): ?\Shell\Page
+	public function route($path): ?\Shell\Response
 	{
 		if ($path->isRoot())
 			return new LandingPage();

@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="/static/admin_page.css" />
+
 <a class="card" href="/site/admin/users">
 <h2> Users </h2>
 <p>

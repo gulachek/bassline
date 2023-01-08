@@ -4,7 +4,7 @@ namespace Shell;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-class UserEditPage extends Page
+class UserEditPage extends Response
 {
 	const USERNAME_PATTERN = "^[a-zA-Z0-9_]+$";
 
@@ -12,16 +12,6 @@ class UserEditPage extends Page
 		private Config $config
 	)
 	{
-	}
-
-	public function title()
-	{
-		return 'Edit User';
-	}
-
-	public function stylesheets()
-	{
-		return [];
 	}
 
 	private function parsePattern(string $name, string $pattern, ?string &$err): ?string
@@ -92,7 +82,7 @@ class UserEditPage extends Page
 		];
 	}
 
-	public function body()
+	public function respond(RespondArg $arg): mixed
 	{
 		$db = SecurityDatabase::fromConfig($this->config);
 		$USERNAME_PATTERN = self::USERNAME_PATTERN;
@@ -109,9 +99,17 @@ class UserEditPage extends Page
 
 		if ($action === 'select')
 		{
-			$USERS = $db->loadUsers();
-			require __DIR__ . '/../template/user_edit_select.php';
-			exit;
+			$arg->renderPage([
+				'title' => 'Select User',
+				'template' => __DIR__ . '/../template/user_edit_select.php',
+				'args' => [
+					'users' => $db->loadUsers(),
+					'error' => $ERROR,
+					'username_pattern' => self::USERNAME_PATTERN
+				]
+			]);
+
+			return null;
 		}
 		else if ($action === 'edit')
 		{
@@ -127,8 +125,14 @@ class UserEditPage extends Page
 					]
 				];
 
-				require __DIR__ . '/../template/user_edit.php';
-				exit;
+				$arg->renderPage([
+					'title' => 'Edit User',
+					'template' => __DIR__ . '/../template/user_edit.php',
+					'args' => [
+						'model' => $MODEL
+					]
+				]);
+				return null;
 			}
 
 			$error = "User not found for id $user_id";

@@ -4,7 +4,7 @@ namespace Shell;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-class ThemeEditPage extends Page
+class ThemeEditPage extends Response
 {
 	const NAME_PATTERN =  "^[a-zA-Z0-9 ]+$";
 	const HEX_PATTERN = '^#[0-9a-fA-F]{6}$';
@@ -14,16 +14,6 @@ class ThemeEditPage extends Page
 		private array $colors
 	)
 	{
-	}
-
-	public function title()
-	{
-		return 'Edit Theme';
-	}
-
-	public function stylesheets()
-	{
-		return ['/static/theme_page.css'];
 	}
 
 	private function parsePattern(string $name, string $pattern): string
@@ -222,7 +212,7 @@ class ThemeEditPage extends Page
 		return $mappings;
 	}
 
-	public static function enumerateShades(array $color): array
+	public function enumerateShades(array $color): array
 	{
 		$shades = [];
 		$srgb = SRGB::fromHex($color['hex']);
@@ -242,7 +232,7 @@ class ThemeEditPage extends Page
 		return $shades;
 	}
 
-	public function body()
+	public function respond(RespondArg $arg): mixed
 	{
 		$THEME = null;
 		$AVAILABLE_THEMES = $this->db->availableThemes();
@@ -354,6 +344,20 @@ class ThemeEditPage extends Page
 			}
 		}
 
-		require __DIR__ . '/../template/theme_page.php';
+		$arg->renderPage([
+			'title' => 'Edit Theme',
+			'template' => __DIR__ . '/../template/theme_page.php',
+			'args' => [
+				'theme' => $THEME,
+				'name_pattern' => $NAME_PATTERN,
+				'available_palettes' => $AVAILABLE_PALETTES,
+				'status' => $STATUS,
+				'hex' => $THEME_COLOR_HEX,
+				'available_themes' => $AVAILABLE_THEMES,
+				'self' => $this
+			]
+		]);
+
+		return null;
 	}
 }

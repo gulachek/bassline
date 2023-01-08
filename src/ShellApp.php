@@ -4,16 +4,17 @@ namespace Shell;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-class LandingPage extends Page
+class LandingPage extends Response
 {
-	public function title()
+	public function respond(RespondArg $arg): mixed
 	{
-		return 'Landing Page';
-	}
+		// TODO: make requested app's mounted dir the root for relative paths
+		$arg->renderPage([
+			'title' => 'Landing Page',
+			'template' => __DIR__ . '/../template/landing_page.php'
+		]);
 
-	public function body()
-	{
-		return '<h1>Welcome to my example site</h1>';
+		return null;
 	}
 }
 

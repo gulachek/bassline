@@ -2,7 +2,7 @@
 
 namespace Shell;
 
-require_once __DIR__ . '/Page.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 function origin(string $uri): ?string
 {
@@ -30,7 +30,7 @@ function origin(string $uri): ?string
 	return $origin;
 }
 
-class LoginPage extends Page
+class LoginPage extends Response
 {
 	public function __construct(
 		private string $google_client_id
@@ -38,12 +38,7 @@ class LoginPage extends Page
 	{
 	}
 	
-	public function title(): string
-	{
-		return 'Log in';
-	}
-
-	public function body(): void
+	public function respond(RespondArg $arg): mixed
 	{
 		$GOOGLE_CLIENT_ID = $this->google_client_id;
 		$REFERRER = '/';
@@ -61,11 +56,15 @@ class LoginPage extends Page
 		$redir_uri = urlencode($REFERRER);
 		$SIWG_REQUEST_URI = "$self_origin/login/sign_in_with_google?redirect_uri=$redir_uri";
 
-		include __DIR__ . '/../template/login_page.php';
-	}
-
-	public function stylesheets(): array
-	{
-		return ['/static/login_page.css'];
+		$arg->renderPage([
+			'title' => 'Log in',
+			'template' => __DIR__ . '/../template/login_page.php',
+			'args' => [
+				'referrer' => $REFERRER,
+				'google_client_id' => $GOOGLE_CLIENT_ID,
+				'siwg_request_uri' => $SIWG_REQUEST_URI
+			]
+		]);
+		return null;
 	}
 }

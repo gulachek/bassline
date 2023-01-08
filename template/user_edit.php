@@ -2,7 +2,7 @@
 
 <script id="page-model" type="application/json">
 <?php /* json_encode escapes slashes by default */ ?>
-<?=json_encode($MODEL)?>
+<?=json_encode($TEMPLATE['model'])?>
 </script>
 
 <div id="page-view">

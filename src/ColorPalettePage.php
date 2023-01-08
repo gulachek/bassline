@@ -4,7 +4,7 @@ namespace Shell;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-class ColorPalettePage extends Page
+class ColorPalettePage extends Response
 {
 	private ColorDatabase $db;
 	const NAME_PATTERN =  "^[a-zA-Z0-9 ]+$";
@@ -15,16 +15,6 @@ class ColorPalettePage extends Page
 	)
 	{
 		$this->db = ColorDatabase::fromConfig($config);
-	}
-
-	public function title()
-	{
-		return 'Edit Color Palette';
-	}
-
-	public function stylesheets()
-	{
-		return ['/static/color_palette_page.css'];
 	}
 
 	private function postPaletteId()
@@ -132,7 +122,7 @@ class ColorPalettePage extends Page
 		return $colors;
 	}
 
-	public function body()
+	public function respond(RespondArg $arg): mixed
 	{
 		$AVAILABLE_PALETTES = [];
 		$PALETTE = null;
@@ -201,6 +191,17 @@ class ColorPalettePage extends Page
 			exit;
 		}
 
-		require __DIR__ . '/../template/color_palette_page.php';
+		$arg->renderPage([
+			'title' => 'Edit Color Palette',
+			'template' => __DIR__ . '/../template/color_palette_page.php',
+			'args' => [
+				'palette' => $PALETTE,
+				'name_pattern' => $NAME_PATTERN,
+				'shade_count' => $SHADE_COUNT,
+				'available_palettes' => $AVAILABLE_PALETTES
+			]
+		]);
+
+		return null;
 	}
 }

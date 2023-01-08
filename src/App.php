@@ -39,7 +39,7 @@ class App
 	}
 
 	// Array to objects that can be handled (Page, Redirector, etc)
-	public function route(PathInfo $path): array | Page | Redirector | Response | null
+	public function route(PathInfo $path): array | Response | null
 	{
 		return null;
 	}

@@ -1,14 +1,9 @@
-<?php
-function esc(string $str): string
-{
-	return htmlspecialchars($str);
-}
-?>
+<?php require_once $UTIL; ?>
 
-<?php if ($ERROR): ?>
+<?php if ($err = $TEMPLATE['error']): ?>
 	<dialog open>
 		<h2> Error </h2>
-		<p> <?=esc($ERROR)?> </p>
+		<p> <?=text($err)?> </p>
 		<form method="dialog"><button> Ok </button></form>
 	</dialog>
 <?php endif; ?>
@@ -16,10 +11,10 @@ function esc(string $str): string
 <h1> Select a user </h1>
 
 <ul>
-<?php foreach ($USERS as $id => $user): ?>
+<?php foreach ($TEMPLATE['users'] as $id => $user): ?>
 <li>
 	<a href="/site/admin/users?user_id=<?=$id?>">
-		<?=esc($user['username'])?>
+		<?=text($user['username'])?>
 	</a>
 </li>
 <?php endforeach; ?>
@@ -28,7 +23,7 @@ function esc(string $str): string
 <form method="POST">
 <input type="text"
 	title="Enter a username (letters, numbers, or underscores)"
-	pattern="<?=$USERNAME_PATTERN?>"
+	pattern="<?=$TEMPLATE['username_pattern']?>"
 	name="username"
 	value="new_user"
 	required
