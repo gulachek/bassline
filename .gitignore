@@ -1,3 +1,4 @@
 vendor
 assets
 node_modules
+*.swp
