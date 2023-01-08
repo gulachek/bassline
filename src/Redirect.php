@@ -13,7 +13,7 @@ class Redirect extends Response
 	{
 	}
 
-	public function respond(PathInfo $path): ?ResponseDelegate
+	public function respond(RespondArg $arg): mixed
 	{
 		header("Location: {$this->location}", true, $this->statusCode);
 		return null;

@@ -187,11 +187,16 @@ class Server
 		else if ($obj instanceof Response)
 		{
 			$path = $this->path;
-			while ($del = ResponseDelegate::fromResponseReturnVal($obj->respond($path)))
+			$del = new ResponseDelegate($obj, $path);
+			$arg = null;
+
+			do
 			{
 				$obj = $del->response;
 				$path = $del->path ?? $path;
+				$arg = new RespondArg($path);
 			}
+			while ($del = ResponseDelegate::fromResponseReturnVal($obj->respond($arg)));
 		}
 		else
 		{

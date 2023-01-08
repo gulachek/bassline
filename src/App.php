@@ -91,7 +91,7 @@ class MethodHandler extends Response
 	{
 	}
 
-	public function respond(PathInfo $path): mixed
+	public function respond(RespondArg $arg): mixed
 	{
 		$obj = $this->obj;
 		$method = $this->method;
