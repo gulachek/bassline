@@ -2,10 +2,56 @@ import { createRoot } from 'react-dom/client';
 import * as React from 'react';
 import {
 	useRef,
-	useEffect
+	useEffect,
+	useCallback,
+	useState,
+	FormEvent
 } from 'react';
 
 import { useElemState } from './useElemState';
+
+type JSONScalar = string|number|boolean;
+
+interface IJsonPost
+{
+	body: object;
+	query?: { [key: string]: JSONScalar };
+}
+
+interface ISaveReponse
+{
+	errorMsg?: string|null;
+}
+
+async function postJson<TResponse>(path: string, post: IJsonPost): Promise<TResponse>
+{
+	const { body, query } = post;
+
+	const uri = new URL(path, document.baseURI);
+	
+	if (query)
+	{
+		for (const key in query)
+		{
+			if (query.hasOwnProperty(key))
+				uri.searchParams.set(key, query[key].toString());
+		}
+	}
+	
+	const response = await fetch(uri, {
+		method: 'POST',
+		mode: 'same-origin',
+		cache: 'no-cache',
+		credentials: 'same-origin',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		redirect: 'follow',
+		body: JSON.stringify(body)
+	});
+
+	return response.json() as TResponse;
+}
 
 function ModalErrorMsg(props: {msg: string})
 {
@@ -44,18 +90,40 @@ interface IPageProps
 
 function Page(props: IPageProps)
 {
-	const { user, patterns, errorMsg } = props;
+	const { user, patterns } = props;
+
+	const [errorMsg, setErrorMsg] = useState(props.errorMsg);
 
 	const [uname, unameOnChange] = useElemState(user.username);
 
+	const userId = user.id;
+
+	// TODO: can just showModal()/close() instead of entire unmount
 	const err = errorMsg ? <ModalErrorMsg msg={errorMsg} /> : null;
+
+	const submitForm = useCallback(async (e: FormEvent) => {
+		e.preventDefault(); // don't actually navigate page
+		
+		const { errorMsg } = await postJson<ISaveReponse>('/site/admin/users', {
+			body: {
+				user_id: userId,
+				username: uname
+			},
+			query: {
+				action: 'save'
+			}
+		});
+
+		setErrorMsg(errorMsg);
+		
+	}, [uname, userId, setErrorMsg]);
 
 	return <React.Fragment>
 		{err}
 
 		<h1> Edit User </h1>
 
-		<form method="POST">
+		<form onSubmit={submitForm}>
 
 		<input type="hidden"
 			name="user_id"

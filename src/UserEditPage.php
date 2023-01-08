@@ -14,12 +14,14 @@ class UserEditPage extends Responder
 	{
 	}
 
-	private function parsePattern(string $name, string $pattern, ?string &$err): ?string
+	private function parsePattern(string $name, string $pattern, ?string &$err, ?array $obj = null): ?string
 	{
-		if (!isset($_REQUEST[$name]))
+		$obj = $obj ?? $_REQUEST;
+
+		if (!isset($obj[$name]))
 			return null;
 
-		$value = $_REQUEST[$name];
+		$value = $obj[$name];
 		if (!preg_match("/^$pattern$/", $value))
 		{
 			$err = "Invalid $name\n";
@@ -29,9 +31,9 @@ class UserEditPage extends Responder
 		return $value;
 	}
 
-	private function parseId(string $name, ?string &$err): ?int
+	private function parseId(string $name, ?string &$err, ?array $obj = null): ?int
 	{
-		$val = $this->parsePattern($name, '\d+', $err);
+		$val = $this->parsePattern($name, '\d+', $err, $obj);
 
 		if (is_null($val))
 			return null;
@@ -39,9 +41,9 @@ class UserEditPage extends Responder
 		return intval($val);
 	}
 
-	private function parseUserName(string $name, ?string &$err): ?string
+	private function parseUserName(string $name, ?string &$err, ?array $obj = null): ?string
 	{
-		return $this->parsePattern($name, self::USERNAME_PATTERN, $err);
+		return $this->parsePattern($name, self::USERNAME_PATTERN, $err, $obj);
 	}
 
 	private function parseAction(): ?string
@@ -60,16 +62,16 @@ class UserEditPage extends Responder
 		return null;
 	}
 
-	private function parseUser(?string &$error): ?array
+	private function parseUser(?string &$error, ?array $obj = null): ?array
 	{
-		$id = $this->parseId('user_id', $error);
+		$id = $this->parseId('user_id', $error, $obj);
 		if (!$id)
 		{
 			$error = $error ?? 'No user_id specified';
 			return null;
 		}
 
-		$name = $this->parseUserName('username', $error);
+		$name = $this->parseUserName('username', $error, $obj);
 		if (!$name)
 		{
 			$error = $error ?? 'No username specified';
@@ -80,6 +82,35 @@ class UserEditPage extends Responder
 			'id' => $id,
 			'name' => $name
 		];
+	}
+
+	private function parseJsonArray(?string &$error): ?array
+	{
+		$post = file_get_contents('php://input');
+		if (!$post)
+		{
+			$error = 'No post body';
+			return null;
+		}
+
+		$obj = json_decode($post, true);
+
+		if (!$obj || !is_array($obj) || array_is_list($obj))
+		{
+			$error = 'Invalid JSON object';
+			return null;
+		}
+
+		return $obj;
+	}
+
+	private function parseUserJson(?string &$error): ?array
+	{
+		$obj = $this->parseJsonArray($error);
+		if (!$obj)
+			return null;
+
+		return $this->parseUser($error, $obj);
 	}
 
 	public function respond(RespondArg $arg): mixed
@@ -154,13 +185,16 @@ class UserEditPage extends Responder
 		}
 		else if ($action === 'save')
 		{
-			$user = $this->parseUser($error);
+			$user = $this->parseUserJson($error);
 			if ($user)
 			{
-				//var_dump($user);
-				//exit;
 				$db->saveUser($user, $error);
 			}
+
+			echo json_encode([
+				'errorMsg' => $error
+			]);
+			exit;
 		}
 
 		$query = [];
