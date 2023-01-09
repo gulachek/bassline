@@ -12,6 +12,7 @@ body {
 	background-color: var(--theme-banner-bg);
 	color: var(--theme-banner-fg);
 	text-align: right;
+	border-bottom: solid 1px;
 }
 
 .nav-bar a {
@@ -31,24 +32,28 @@ body {
 
 .nav-bar .menu {
 	position: relative;
+	text-align: center;
 }
 
 .nav-bar .menu .items {
 	background-color: var(--theme-banner-bg);
+	display: inline-block;
 	visibility: hidden;
 	position: absolute;
 	top: 100%;
-	left: 0;
-	width: 100%;
+	right: 0;
+	border: solid 1px;
 }
 
 .nav-bar .menu .items > * {
 	padding: 0.5em;
 	display: inline-block;
+	width: max-content;
 }
 
 .nav-bar .menu .items > *:hover {
-	/*background-color: var(--theme-banner-dark);*/
+	background-color: var(--theme-banner-hover-bg);
+	color: var(--theme-banner-hover-fg);
 }
 
 .nav-bar .menu:hover > .items {

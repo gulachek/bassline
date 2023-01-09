@@ -22,12 +22,12 @@
 <?php endforeach; ?>
 
 <?php if (isset($USER)): ?>
-	<!-- <div onclick="void(0);" class="menu"> -->
-	<div class="menu login">
-	<span><?= text($USERNAME) ?></span>
-	<div class="items">
-	<a href="/logout/"> Log out </a>
-	</div>
+	<div class="menu">
+		<span><?= text($USERNAME) ?></span>
+		<div class="items">
+			<a href="/site/admin/"> Admin </a>
+			<a href="/logout/"> Log out </a>
+		</div>
 	</div>
 <?php else: ?>
 	<a href="/login/" class="login"> Log in </a>
