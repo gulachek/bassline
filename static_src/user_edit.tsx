@@ -98,17 +98,21 @@ function Page(props: IPageProps)
 
 	const userId = user.id;
 
-	// TODO: can just showModal()/close() instead of entire unmount
-	const err = errorMsg ? <ModalErrorMsg msg={errorMsg} /> : null;
+	const formData = useRef({
+		username: uname,
+		user_id: userId
+	});
+
+	// keep form data in sync
+	useEffect(() => {
+		formData.current.username = uname;
+	}, [uname]);
 
 	const submitForm = useCallback(async (e: FormEvent) => {
 		e.preventDefault(); // don't actually navigate page
 		
 		const { errorMsg } = await postJson<ISaveReponse>('/site/admin/users', {
-			body: {
-				user_id: userId,
-				username: uname
-			},
+			body: formData.current,
 			query: {
 				action: 'save'
 			}
@@ -116,7 +120,10 @@ function Page(props: IPageProps)
 
 		setErrorMsg(errorMsg);
 		
-	}, [uname, userId, setErrorMsg]);
+	}, [formData]);
+
+	// TODO: can just showModal()/close() instead of entire unmount
+	const err = errorMsg ? <ModalErrorMsg msg={errorMsg} /> : null;
 
 	return <React.Fragment>
 		{err}

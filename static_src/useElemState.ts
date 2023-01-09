@@ -20,7 +20,7 @@ export function useElemState<TElem extends HTMLElement & IHasValue>(initialValue
 	
 	const onChange: THandler = useCallback((e: TEvent) => {
 		setValue(e.target.value);
-	}, [setValue]);
+	}, []);
 
 	return [value, onChange];
 }

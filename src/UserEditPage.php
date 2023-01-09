@@ -65,7 +65,7 @@ class UserEditPage extends Responder
 	private function parseUser(?string &$error, ?array $obj = null): ?array
 	{
 		$id = $this->parseId('user_id', $error, $obj);
-		if (!$id)
+		if (!is_int($id))
 		{
 			$error = $error ?? 'No user_id specified';
 			return null;
