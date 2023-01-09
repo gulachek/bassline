@@ -1,4 +1,5 @@
 <?php require_once $UTIL; ?>
+<link rel="stylesheet" href="/static/clickable.css" />
 
 <?php if ($err = $TEMPLATE['error']): ?>
 	<dialog open>
@@ -29,5 +30,5 @@
 	required
 	/>
 	
-<input type="submit" name="action" value="Create" />
+<input type="submit" name="action" value="Create" class="clickable" />
 </form>
