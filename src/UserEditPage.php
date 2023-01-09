@@ -156,12 +156,10 @@ class UserEditPage extends Responder
 					]
 				];
 
-				$arg->renderPage([
+				ReactPage::render($arg, [
 					'title' => 'Edit User',
-					'template' => __DIR__ . '/../template/user_edit.php',
-					'args' => [
-						'model' => $MODEL
-					]
+					'script' => '/assets/user_edit.js',
+					'model' => $MODEL
 				]);
 				return null;
 			}

@@ -1,4 +1,4 @@
-<script src="/assets/user_edit.js"></script>
+<script src="<?=$TEMPLATE['script']?>"></script>
 
 <script id="page-model" type="application/json">
 <?php /* json_encode escapes slashes by default */ ?>

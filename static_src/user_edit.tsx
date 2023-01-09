@@ -1,4 +1,3 @@
-import { createRoot } from 'react-dom/client';
 import * as React from 'react';
 import {
 	useRef,
@@ -9,6 +8,8 @@ import {
 } from 'react';
 
 import { useElemState } from './useElemState';
+
+import { renderReactPage } from './renderReactPage';
 
 type JSONScalar = string|number|boolean;
 
@@ -160,20 +161,4 @@ function Page(props: IPageProps)
 	</React.Fragment>;
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-	const data = document.getElementById('page-model');
-	let parsedData: IPageProps = {
-		user: { id: -1, username: '[error]' },
-		patterns: { username: 'x{400}' }
-	};
-
-	try {
-		parsedData = JSON.parse(data.innerText) as IPageProps;
-	} catch (ex) {
-		parsedData.errorMsg = ex.message;
-	}
-
-	const app = document.getElementById('page-view');
-	const root = createRoot(app);
-	root.render(<Page {...parsedData} />);
-});
+renderReactPage<IPageProps>(model => <Page {...model} />);
