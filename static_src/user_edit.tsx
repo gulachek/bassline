@@ -53,17 +53,23 @@ async function postJson<TResponse>(path: string, post: IJsonPost): Promise<TResp
 	return response.json() as TResponse;
 }
 
-function ModalErrorMsg(props: {msg: string})
+function ModalErrorMsg(props: {msg: string|null})
 {
 	const dialogRef = useRef<HTMLDialogElement>();
+	const { msg } = props;
 
 	useEffect(() => {
-		dialogRef.current.showModal();
-	}, [dialogRef]);
+
+		if (msg)
+			dialogRef.current.showModal();
+		else
+			dialogRef.current.close();
+
+	}, [dialogRef.current, msg]);
 
 	return <dialog ref={dialogRef}>
 		<h2> Error </h2>
-		<p> {props.msg} </p>
+		<p> {msg} </p>
 		<form method="dialog">
 			<button> Ok </button>
 		</form>
@@ -110,6 +116,8 @@ function Page(props: IPageProps)
 
 	const submitForm = useCallback(async (e: FormEvent) => {
 		e.preventDefault(); // don't actually navigate page
+
+		setErrorMsg(null);
 		
 		const { errorMsg } = await postJson<ISaveReponse>('/site/admin/users', {
 			body: formData.current,
@@ -122,20 +130,12 @@ function Page(props: IPageProps)
 		
 	}, [formData]);
 
-	// TODO: can just showModal()/close() instead of entire unmount
-	const err = errorMsg ? <ModalErrorMsg msg={errorMsg} /> : null;
-
 	return <React.Fragment>
-		{err}
+		<ModalErrorMsg msg={errorMsg || null} />
 
 		<h1> Edit User </h1>
 
 		<form onSubmit={submitForm}>
-
-		<input type="hidden"
-			name="user_id"
-			value={user.id}
-			/>
 
 		<label> username:
 			<input type="text"
