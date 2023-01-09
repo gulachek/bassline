@@ -101,6 +101,7 @@ function Page(props: IPageProps)
 	const [errorMsg, setErrorMsg] = useState(props.errorMsg);
 
 	const [uname, unameOnChange] = useElemState(user.username);
+	const [savedUname, setSavedUname] = useState(user.username);
 
 	const userId = user.id;
 
@@ -117,18 +118,23 @@ function Page(props: IPageProps)
 	const submitForm = useCallback(async (e: FormEvent) => {
 		e.preventDefault(); // don't actually navigate page
 
-		setErrorMsg(null);
+		const submittedData = { ...formData.current };
 		
 		const { errorMsg } = await postJson<ISaveReponse>('/site/admin/users', {
-			body: formData.current,
+			body: submittedData,
 			query: {
 				action: 'save'
 			}
 		});
 
 		setErrorMsg(errorMsg);
+
+		if (!errorMsg)
+			setSavedUname(submittedData.username);
 		
 	}, [formData]);
+
+	const hasChanges = uname !== savedUname;
 
 	return <React.Fragment>
 		<ModalErrorMsg msg={errorMsg || null} />
@@ -148,7 +154,7 @@ function Page(props: IPageProps)
 				/>
 		</label>
 
-		<input type="submit" name="action" value="Save" />
+		<input disabled={!hasChanges} type="submit" name="action" value="Save" />
 
 		</form>
 	</React.Fragment>;

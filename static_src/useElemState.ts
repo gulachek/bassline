@@ -5,13 +5,13 @@ import {
 	ChangeEventHandler
 } from 'react';
 
-type TValue = string|number|readonly string[];
+type ElemValue = string;
 
 interface IHasValue {
-	value: TValue;
+	value: ElemValue;
 }
 
-export function useElemState<TElem extends HTMLElement & IHasValue>(initialValue: TValue): [TValue, ChangeEventHandler<TElem>]
+export function useElemState<TElem extends HTMLElement & IHasValue>(initialValue: ElemValue): [ElemValue, ChangeEventHandler<TElem>]
 {
 	type TEvent = ChangeEvent<TElem>;
 	type THandler = ChangeEventHandler<TElem>;
