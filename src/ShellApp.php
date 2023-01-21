@@ -60,7 +60,7 @@ class ShellApp extends App
 			'site' => [ // use this instead of shell
 				'admin' => [
 					'.' => new AdminPage($this->config),
-					'users' => new UserEditPage($this->config)
+					'users' => new UserEditPage($this->config, $this->authPlugins())
 				]
 			],
 			'shell' => [
@@ -130,6 +130,14 @@ class ShellApp extends App
 		}
 
 		$db->syncSemanticColors();
+	}
+
+	private function authPlugins(): array
+	{
+		return [
+			'siwg' => new SignInWithGoogle(),
+			'noauth' => new NoAuthPlugin()
+		];
 	}
 
 	private function allApps(): array

@@ -205,6 +205,35 @@ class SecurityDatabase
 		return $this->db->queryRow('load-user', $user_id);
 	}
 
+	public function loadGmail(int $user_id): array
+	{
+		return $this->db->query('load-gmail', $user_id)->column('gmail_address');
+	}
+
+	public function saveGmail(int $user_id, array $emails, ?string &$error): bool
+	{
+		foreach ($emails as $email)
+		{
+			if (!filter_var($email, FILTER_VALIDATE_EMAIL))
+			{
+				$error = "Invalid email '$email'";
+				return false;
+			}
+		}
+
+		$this->db->query('delete-gmail', $user_id);
+
+		foreach ($emails as $email)
+		{
+			$this->db->query('add-gmail', [
+				':email' => $email,
+				':id' => $user_id
+			]);
+		}
+
+		return true;
+	}
+
 	public function loadUserByName(string $username): ?array
 	{
 		return $this->db->queryRow('load-user-by-name', $username);

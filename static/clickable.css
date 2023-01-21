@@ -3,11 +3,19 @@
 	background-color: var(--theme-clickable-bg);
 	border: solid 1px;
 	cursor: pointer;
-	padding: 0.5em;
-	border-radius: 0.5em;
 }
 
 .clickable:hover {
 	color: var(--theme-clickable-hover-fg);
 	background-color: var(--theme-clickable-hover-bg);
+}
+
+.clickable[disabled] {
+	opacity: 0.5;
+}
+
+.clickable[disabled]:hover {
+	color: var(--theme-clickable-fg);
+	background-color: var(--theme-clickable-bg);
+	cursor: initial;
 }

@@ -1,0 +1,22 @@
+.siwg {
+	.controls {
+		text-align: center;
+	}
+
+	.array {
+		display: flex;
+		flex-direction: column;
+		margin: 1em;
+	}
+
+	.cell {
+		padding: 0.5em;
+		outline: solid 1px;
+		display: block;
+	}
+
+	.cell.selected {
+		color: var(--theme-selected-fg);
+		background-color: var(--theme-selected-bg);
+	}
+}

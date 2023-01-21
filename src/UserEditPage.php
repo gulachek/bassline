@@ -4,12 +4,18 @@ namespace Shell;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+function is_json_obj(mixed $obj): bool
+{
+	return is_array($obj) && !array_is_list($obj);
+}
+
 class UserEditPage extends Responder
 {
 	const USERNAME_PATTERN = "^[a-zA-Z0-9_]+$";
 
 	public function __construct(
-		private Config $config
+		private Config $config,
+		private array $auth_plugins
 	)
 	{
 	}
@@ -95,7 +101,7 @@ class UserEditPage extends Responder
 
 		$obj = json_decode($post, true);
 
-		if (!$obj || !is_array($obj) || array_is_list($obj))
+		if (!is_json_obj($obj))
 		{
 			$error = 'Invalid JSON object';
 			return null;
@@ -104,13 +110,63 @@ class UserEditPage extends Responder
 		return $obj;
 	}
 
-	private function parseUserJson(?string &$error): ?array
+	private function parsePluginSaveData(?string &$error, array $obj): ?array
+	{
+		$pdata = $obj['pluginData'];
+
+		if (!is_json_obj($pdata))
+		{
+			$error = 'Plugin data must be JSON object';
+			return null;
+		}
+
+		foreach ($pdata as $key => $data)
+		{
+			if (!array_key_exists($key, $this->auth_plugins))
+			{
+				$error = "$key is not a valid plugin key";
+				return null;
+			}
+
+			if (!is_array($data))
+			{
+				$error = "$key data did not deserialize as php array";
+				return null;
+			}
+		}
+
+		return $pdata;
+	}
+
+	private function parseSaveJson(?string &$error,
+		?array &$user, ?array &$plugin_data): bool
 	{
 		$obj = $this->parseJsonArray($error);
 		if (!$obj)
-			return null;
+			return false;
 
-		return $this->parseUser($error, $obj);
+		$user = $this->parseUser($error, $obj);
+		if (!$user) return false;
+		$plugin_data = $this->parsePluginSaveData($error, $obj);
+		return !!$plugin_data;
+	}
+
+	private function doSave(SecurityDatabase $db): ?string
+	{
+		if (!$this->parseSaveJson($error, $user, $plugin_data))
+			return $error;
+
+		$db->saveUser($user, $error);
+		if ($error) return $error;
+
+		foreach ($plugin_data as $key => $data)
+		{
+			$p = $this->auth_plugins[$key];
+			if (!$p->invokeSaveUserEditData($user['id'], $data, $db, $error))
+				return $error;
+		}
+
+		return null;
 	}
 
 	public function respond(RespondArg $arg): mixed
@@ -148,17 +204,31 @@ class UserEditPage extends Responder
 
 			if ($user)
 			{
+				$pluginData = [];
+				foreach ($this->auth_plugins as $key => $plugin)
+				{
+					if ($data = $plugin->getUserEditData($user_id, $db))
+					{
+						$data['key'] = $key;
+						array_push($pluginData, $data);
+					}
+				}
+
 				$MODEL = [
 					'errorMsg' => $ERROR,
 					'user' => $user,
 					'patterns' => [
 						'username' => self::USERNAME_PATTERN
-					]
+					],
+					'authPlugins' => $pluginData
 				];
 
 				ReactPage::render($arg, [
 					'title' => 'Edit User',
-					'script' => '/assets/user_edit.js',
+					'scripts' => [
+						'/static/require.js',
+						'/assets/user_edit.js'
+					],
 					'model' => $MODEL
 				]);
 				return null;
@@ -183,11 +253,7 @@ class UserEditPage extends Responder
 		}
 		else if ($action === 'save')
 		{
-			$user = $this->parseUserJson($error);
-			if ($user)
-			{
-				$db->saveUser($user, $error);
-			}
+			$error = $this->doSave($db);
 
 			echo json_encode([
 				'errorMsg' => $error

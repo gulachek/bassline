@@ -8,6 +8,7 @@ function default_mime_types(): array
 		'html' => 'text/html',
 		'php' => 'text/html',
 		'css' => 'text/css',
+		'scss' => 'text/css',
 		'js' => 'application/javascript',
 		'mjs' => 'application/javascript',
 		'json' => 'application/json',
