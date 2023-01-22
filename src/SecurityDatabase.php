@@ -62,7 +62,7 @@ class SecurityDatabase
 
 	// handle a "sign in with google" request
 	// https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
-	public function signInWithGoogle(string $google_client_id, ?string &$err = null): ?array
+	public function signInWithGoogle(string $google_client_id, ?string &$err = null): ?int
 	{
 		if (empty($_POST["g_csrf_token"]))
 		{
@@ -115,13 +115,6 @@ class SecurityDatabase
 			return null;
 		}
 
-		return $payload;
-	}
-
-	public function loginWithGoogle(array $payload, ?string &$err): ?string
-	{
-		$err = null;
-
 		$google_id = $payload['sub'] ?? null;
 		if (!$google_id)
 		{
@@ -165,10 +158,7 @@ class SecurityDatabase
 			]);
 		}
 
-		// YAY! We now know which user we're dealing with
-		$user = intval($google_user['user_id']);
-
-		return $this->login($user);
+		return intval($google_user['user_id']);
 	}
 
 	public function login(int $user): ?string

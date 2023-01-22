@@ -7,6 +7,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 class SignInWithGoogle extends AuthPlugin
 {
 	public function __construct(
+		private SecurityDatabase $db,
+		private string $google_client_id
 	)
 	{
 	}
@@ -14,6 +16,19 @@ class SignInWithGoogle extends AuthPlugin
 	public function title(): string
 	{
 		return 'Sign in with Google';
+	}
+
+	protected function renderLoginForm(string $post_uri): void
+	{
+		$GOOGLE_CLIENT_ID = $this->google_client_id;
+		$SIWG_REQUEST_URI = $post_uri;
+
+		require(__DIR__ . '/../template/siwg_login_form.php');
+	}
+
+	function authenticate(): ?int
+	{
+		return $this->db->signInWithGoogle($this->google_client_id);
 	}
 
 	protected function saveUserEditData(

@@ -53,8 +53,8 @@ class ShellApp extends App
 		return $arg->route([
 			'.' => new LandingPage(),
 			'login' => [
-				'.' => new LoginPage($this->config->googleClientId()),
-				'sign_in_with_google' => $this->handler('attemptLoginWithGoogle')
+				'.' => new LoginPage($this->config, $this->authPlugins()),
+				'attempt' => $this->handler('attemptLogin'),
 			],
 			'logout' => $this->handler('logout'),
 			'site' => [ // use this instead of shell
@@ -67,7 +67,6 @@ class ShellApp extends App
 				'theme' => $this->handler('serveThemeEdit'),
 				'color_palette' => new ColorPalettePage($this->config),
 				'theme.css' => $this->handler('serveThemeCss'),
-				'log_in_as_user' => $this->handler('logInAsUser')
 			]
 		]);
 	}
@@ -134,9 +133,11 @@ class ShellApp extends App
 
 	private function authPlugins(): array
 	{
+		$db = SecurityDatabase::fromConfig($this->config);
+
 		return [
-			'siwg' => new SignInWithGoogle(),
-			'noauth' => new NoAuthPlugin()
+			'siwg' => new SignInWithGoogle($db, $this->config->googleClientId()),
+			'noauth' => new NoAuthPlugin($db)
 		];
 	}
 
@@ -208,90 +209,35 @@ class ShellApp extends App
 		return new ThemeEditPage($db, $colors);
 	}
 
-	public function logInAsUser(): mixed
+	public function attemptLogin(): mixed
 	{
-		$user_id = intval($_REQUEST['user-id'] ?? '0');
-
-		$db = SecurityDatabase::fromConfig($this->config);
-		$token = $db->login($user_id);
-
-		if (!$token)
-		{
-			http_response_code(401);
-			echo "Failed to log in as $user_id";
-			return null;
-		}
-
-		$expire = time() + 30*24*60*60;
-		setcookie('login', $token, [
-			'expires' => $expire,
-			'path' => '/',
-			'secure' => false,
-			'httponly' => true,
-			'samesite' => 'Strict'
-		]);
-
-		$redir = $_REQUEST['redirect-uri'] ?? '/';
-		return new Redirect($redir);
-	}
-
-	public function attemptLoginWithGoogle(): mixed
-	{
-		$remote_addr = $_SERVER['REMOTE_ADDR'] ?? null;
-		if (!$remote_addr)
-		{
-			http_response_code(500);
-			echo "REMOTE_ADDR not set up\n";
-			return null;
-		}
-
-		// https://www.rfc-editor.org/rfc/rfc5735#section-4
-		// This is loopback. not 'localhost'. Haven't thought
-		// hard enough if this matters and could be spoofed.
-		$is_loopback = $remote_addr === '127.0.0.1'
-			|| $remote_addr === '::1'; // doesn't cover all of ipv6 but good enough for dev server
-
-		$is_encrypted = isset($_SERVER['HTTPS']);
-
-		if (!($is_encrypted || $is_loopback))
-		{
-			http_response_code(400);
-			echo "login is only supported with encryption\n"; // or loopback shh
-			return null;
-		}
-
-		$db = SecurityDatabase::fromConfig($this->config);
-
-		$payload = $db->signInWithGoogle($this->config->googleClientId(), $err);
-
-		if ($err)
-		{
-			http_response_code(400);
-			echo "$err\n";
-			return null;
-		}
-
-		$token = $db->loginWithGoogle($payload, $err);
-
-		if (!$token)
-		{
-			http_response_code(400);
-			echo "Google signed you in correctly, but we were unable to log you in.\n";
-			echo "Contact the system administrator.\n";
-			echo "$err\n";
-			return null;
-		}
-
-		$expire = time() + 30*24*60*60;;
-		setcookie('login', $token, [
-			'expires' => $expire,
-			'path' => '/',
-			'secure' => $is_encrypted,
-			'httponly' => true,
-			'samesite' => 'Strict'
-		]);
-
+		$plugin_key = $_REQUEST['auth'];
 		$redir = $_REQUEST['redirect_uri'] ?? '/';
+
+		$plugins = $this->authPlugins();
+
+		$plugin = $plugins[$plugin_key] ?? null;
+
+		if (!$plugin)
+			return new NotFound();
+
+		$db = SecurityDatabase::fromConfig($this->config);
+		$user_id = $plugin->authenticate();
+
+		if (!is_null($user_id))
+		{
+			$token = $db->login($user_id);
+
+			$expire = time() + 30*24*60*60;
+			setcookie('login', $token, [
+				'expires' => $expire,
+				'path' => '/',
+				'secure' => isset($_SERVER['HTTPS']),
+				'httponly' => true,
+				'samesite' => 'Strict'
+			]);
+		}
+
 		return new Redirect($redir);
 	}
 
