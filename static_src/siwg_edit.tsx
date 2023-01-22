@@ -173,6 +173,7 @@ export const UserEditor: AuthPluginUserEditComponent<SiwgData> = (props) =>
 	return <div className="siwg" onKeyDown={keyDown}>
 		<div className="controls">
 			<input type="email"
+				className="editable"
 				onChange={onChange}
 				value={value}
 			/>

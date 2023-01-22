@@ -171,6 +171,12 @@ class ShellApp extends App
 				'default-system-bg' => SystemColor::BUTTON_FACE,
 				'default-system-fg' => SystemColor::BUTTON_TEXT
 			],
+			'editable' => [
+				'description' => 'Color for elements that are editable (text box)',
+				'example-uri' => '/shell/color_palette',
+				'default-system-bg' => SystemColor::FIELD,
+				'default-system-fg' => SystemColor::FIELD_TEXT
+			],
 			'selected' => [
 				'description' => 'Color for selected interactive elements',
 				'example-uri' => '/login',

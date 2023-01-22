@@ -19,3 +19,9 @@
 	background-color: var(--theme-clickable-bg);
 	cursor: initial;
 }
+
+.editable {
+	color: var(--theme-editable-fg);
+	background-color: var(--theme-editable-bg);
+	border: solid 1px;
+}

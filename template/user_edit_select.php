@@ -23,6 +23,7 @@
 
 <form method="POST">
 <input type="text"
+	class="editable"
 	title="Enter a username (letters, numbers, or underscores)"
 	pattern="<?=$TEMPLATE['username_pattern']?>"
 	name="username"
