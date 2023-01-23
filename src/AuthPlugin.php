@@ -12,6 +12,7 @@ abstract class AuthPlugin
 
 	final public function invokeRenderLoginForm(string $key): void
 	{
+		$referrer = '/';
 		$scheme = isset($_SERVER['HTTPS']) ? 'https' : 'http';
 		$self_origin = "$scheme://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}";
 		if (array_key_exists('HTTP_REFERER', $_SERVER))
