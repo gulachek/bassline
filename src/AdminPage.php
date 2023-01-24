@@ -16,7 +16,10 @@ class AdminPage extends Responder
 	{
 		$arg->renderPage([
 			'title' => 'Admin',
-			'template' => __DIR__ . '/../template/admin_page.php'
+			'template' => __DIR__ . '/../template/admin_page.php',
+			'args' => [
+				'access_users' => $arg->userCan('edit_users')
+			]
 		]);
 
 		return null;

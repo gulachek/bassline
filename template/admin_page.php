@@ -1,11 +1,13 @@
 <link rel="stylesheet" href="/static/admin_page.css" />
 
+<?php if ($TEMPLATE['access_users']): ?>
 <a class="card" href="/site/admin/users">
 <h2> Users </h2>
 <p>
 Create user accounts on the site and edit authentication configuration.
 </p>
 </a>
+<?php endif; ?>
 
 <a class="card" href="/shell/theme">
 <h2> Theme </h2>
