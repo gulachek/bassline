@@ -262,7 +262,7 @@ class ShellApp extends App
 			$db->logout($_COOKIE['login']);
 		}
 
-		return new Redirect($_SERVER['HTTP_REFERER']);
+		return new Redirect('/');
 	}
 
 	private static function mappedThemeColorsForApp(array $theme, string $app_key): array
