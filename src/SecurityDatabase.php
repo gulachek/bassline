@@ -29,13 +29,18 @@ class SecurityDatabase
 
 		$this->db->exec('init-security');
 
-		$this->db->query('add-user', 'admin');
-		$id = $this->db->lastInsertRowId();
+		// create admin
+		$user = $this->createUser('admin', $err);
+		if (!$user) return $err;
 
-		$this->db->query('add-gmail', [
-			':id' => $id,
-			':email' => $email
-		]);
+		// make super user
+		$user['is_superuser'] = true;
+		$this->saveUser($user, $err);
+		if ($err) return $err;
+
+		// add gmail
+		$this->saveGmail($user['id'], [$email], $err);
+		if ($err) return $err;
 
 		return null;
 	}
@@ -242,7 +247,8 @@ class SecurityDatabase
 
 		$this->db->query('save-user', [
 			':id' => $user['id'],
-			':username' => $user['name']
+			':username' => $user['name'],
+			':is_superuser' => !!($user['is_superuser'] ?? false)
 		]);
 	}
 }

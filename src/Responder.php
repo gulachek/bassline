@@ -55,8 +55,10 @@ class RespondArg
 		if (!$this->isLoggedIn())
 			return false;
 
-		$app = $app ?? $this->app_key;
+		if ($this->user['is_superuser'])
+			return true;
 
+		$app = $app ?? $this->app_key;
 
 		return false;
 	}
