@@ -23,30 +23,17 @@ class SecurityDatabase
 	{
 		if ($this->db->queryValue('table-exists', 'props'))
 		{
-			$db_version = $this->db->queryValue('get-prop', 'version');
-			$db_consumer = new Semver(0,1,0); // this is server
-
-			if (!$db_version)
-				return 'Expected a database that was set up to have a version listed in props';
-
-			$db_semver = Semver::parse($db_version);
-
-			// this means, "will all of the queries in my source branch work on the DB?"
-			if (!$db_semver->canSupport($db_consumer))
-				return "DB version ($db_semver) is incompatible with server software ($db_consumer)";
-
-			return null; // this means the DB is set up and can support us
+			// assume this was already created and we just need to update
+			return null;
 		}
 
 		$this->db->exec('init-security');
 
-		$this->db->query('add-user', [
-			':id' => 0,
-			':username' => 'admin'
-		]);
+		$this->db->query('add-user', 'admin');
+		$id = $this->db->lastInsertRowId();
 
 		$this->db->query('add-gmail', [
-			':id' => 0,
+			':id' => $id,
 			':email' => $email
 		]);
 
@@ -238,7 +225,7 @@ class SecurityDatabase
 			return null;
 		}
 
-		$this->db->query('create-user', $username);
+		$this->db->query('add-user', $username);
 		return $this->db->loadRowUnsafe('users', $this->db->lastInsertRowId());
 	}
 

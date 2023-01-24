@@ -100,6 +100,11 @@ class ShellApp extends App
 	// TODO: this should operate on all apps as group instead of individual
 	public function installApp(string $key, App $app): void
 	{
+		$this->syncAppColors($key, $app);
+	}
+
+	private function syncAppColors(string $key, App $app): void
+	{
 		$app_colors = $app->colors();
 
 		$db = ColorDatabase::fromConfig($this->config);

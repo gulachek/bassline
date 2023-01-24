@@ -31,11 +31,34 @@ class ResponderDelegate
 class RespondArg
 {
 	public function __construct(
+		private readonly string $app_key,
 		public readonly PathInfo $path,
 		private readonly ?array $user,
 		private readonly Config $config
 	)
 	{
+	}
+
+	public function isLoggedIn(): bool
+	{
+		return !is_null($this->user);
+	}
+
+	/*
+	 * Can the currently logged in user has capability, return true.
+	 * App defaults to currently requested app. This doesn't make
+	 * much sense for an app to specify, as it shouldn't care about
+	 * any other app capabilities.
+	 */
+	public function userCan(string $cap, ?string $app = null): bool
+	{
+		if (!$this->isLoggedIn())
+			return false;
+
+		$app = $app ?? $this->app_key;
+
+
+		return false;
 	}
 
 	public function renderPage(array $page_args): void
@@ -75,6 +98,7 @@ class RespondArg
 	private function child(): RespondArg
 	{
 		return new RespondArg(
+			$this->app_key,
 			$this->path->child(),
 			$this->user,
 			$this->config

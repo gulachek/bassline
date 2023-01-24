@@ -1,1 +1,1 @@
-INSERT INTO users (id, username) VALUES (:id, :username);
+INSERT INTO users (username) VALUES (?);

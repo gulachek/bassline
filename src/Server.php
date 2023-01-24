@@ -4,7 +4,7 @@ namespace Shell;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-class Server extends Responder
+class Server
 {
 	private Config $config;
 	private ?PathInfo $path;
@@ -106,7 +106,7 @@ class Server extends Responder
 			$has_err = true;
 		}
 
-		return $has_err;;
+		return !$has_err;
 	}
 
 	// return true if static content was served, false otherwise
@@ -170,32 +170,6 @@ class Server extends Responder
 		return true;
 	}
 
-	public function respond(RespondArg $arg): mixed
-	{
-		$path = $arg->path;
-
-		// Apps control their own routing structure, but
-		// they do not control the top level path to the app.
-		// This is configured for site. Apps shouldn't need to
-		// think about how to set up relative uri in links from
-		// base page since it depends on if dir ends with '/' or
-		// not (cwd is dir with '/' but parent w/o).
-		if ($path->count() === 1 && !$arg->path->isDir())
-			return new Redirect("{$path->path()}/");
-
-		$app = new ShellApp($this->config);
-		if ($app->isShell($path))
-			return Responder::delegateTo($app, $arg->path);
-
-		$apps = $this->config->apps();
-		$app = $apps[$path->at(0)] ?? null;
-
-		if (!$app)
-			return new NotFound();
-
-		return Responder::delegateTo($app, $path->child());
-	}
-
 	// Entry point to respond to request
 	public function render()
 	{
@@ -204,7 +178,15 @@ class Server extends Responder
 
 		$path = $this->path;
 
-		// TODO: if requested w/o encryption, log user out
+		// Apps control their own routing structure, but
+		// they do not control the top level path to the app.
+		// This is configured for site. Apps shouldn't need to
+		// think about how to set up relative uri in links from
+		// base page since it depends on if dir ends with '/' or
+		// not (cwd is dir with '/' but parent w/o).
+		if ($path->count() === 1 && !$path->isDir())
+			return new Redirect("{$path->path()}/");
+
 		$user = null;
 		if (isset($_COOKIE['login']))
 		{
@@ -212,15 +194,28 @@ class Server extends Responder
 			$user = $db->getLoggedInUser($_COOKIE['login']);
 		}
 
-		$resp = $this;
-		$del = new ResponderDelegate($resp, $path);
+		$app = new ShellApp($this->config);
+		$app_key = 'shell';
+		if (!$app->isShell($path))
+		{
+			$apps = $this->config->apps();
+			$app_key = $path->at(0);
+			$app = $apps[$app_key] ?? null;
+			$path = $path->child();
+
+			if (!$app)
+				return new NotFound();
+		}
+
+		$del = new ResponderDelegate($app, $path);
 		$arg = null;
+		$resp = null;
 
 		do
 		{
 			$resp = $del->responder;
 			$path = $del->path ?? $path;
-			$arg = new RespondArg($path, $user, $this->config);
+			$arg = new RespondArg($app_key, $path, $user, $this->config);
 		}
 		while ($del = ResponderDelegate::fromRespondReturnVal($resp->respond($arg)));
 	}
