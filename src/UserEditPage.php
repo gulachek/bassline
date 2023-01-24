@@ -171,6 +171,13 @@ class UserEditPage extends Responder
 
 	public function respond(RespondArg $arg): mixed
 	{
+		if (!$arg->userCan('edit_users'))
+		{
+			http_response_code(401);
+			echo "Not authorized\n";
+			return null;
+		}
+
 		$db = SecurityDatabase::fromConfig($this->config);
 		$USERNAME_PATTERN = self::USERNAME_PATTERN;
 
@@ -258,7 +265,7 @@ class UserEditPage extends Responder
 			echo json_encode([
 				'errorMsg' => $error
 			]);
-			exit;
+			return null;
 		}
 
 		$query = [];
@@ -271,6 +278,6 @@ class UserEditPage extends Responder
 
 		http_response_code(301);
 		header("Location: /site/admin/users?$query_str");
-		exit;
+		return null;
 	}
 }

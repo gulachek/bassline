@@ -49,7 +49,11 @@ class SecurityDatabase
 	public function getLoggedInUser(string $token): ?array
 	{
 		$raw_token = base64_decode($token);
-		return $this->db->queryRow('get-login-user', $raw_token);
+		$id = $this->db->queryValue('get-login-user', $raw_token);
+		if (!$id)
+			return null;
+
+		return $this->db->queryRow('load-user', $id);
 	}
 
 	// handle a "sign in with google" request
@@ -236,7 +240,8 @@ class SecurityDatabase
 
 	public function saveUser(array $user, ?string &$error): void
 	{
-		$name = $user['name'];
+		// TODO: this should be same name as column or at least consistent
+		$name = $user['name'] ?? $user['username'];
 
 		$current = $this->loadUserByName($name);
 		if ($current && $current['id'] !== $user['id'])
@@ -247,7 +252,7 @@ class SecurityDatabase
 
 		$this->db->query('save-user', [
 			':id' => $user['id'],
-			':username' => $user['name'],
+			':username' => $name,
 			':is_superuser' => !!($user['is_superuser'] ?? false)
 		]);
 	}
