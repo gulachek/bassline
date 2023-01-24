@@ -20,6 +20,7 @@ class NoAuthPlugin extends AuthPlugin
 	protected function renderLoginForm(string $post_uri): void
 	{
 		$POST_URI = $post_uri;
+		$USERS = $this->db->loadUsers();
 
 		require(__DIR__ . '/../template/noauth_login_form.php');
 	}

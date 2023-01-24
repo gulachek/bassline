@@ -1,7 +1,9 @@
 <form method="POST" action="<?=text($POST_URI)?>">
-	<label> user id:
-		<input type="number" step="1" min="0" value="0" name="user-id" />
-	</label>
+	<select name="user-id">
+		<?php foreach ($USERS as $id => $user): ?>
+		<option value="<?=$id?>"> <?=text($user['username'])?> </option>
+		<?php endforeach; ?>
+	</select>
 	<input type="submit" value="Log in" />
 </form>
 <p>
