@@ -241,19 +241,26 @@ class SecurityDatabase
 	public function saveUser(array $user, ?string &$error): void
 	{
 		// TODO: this should be same name as column or at least consistent
+		$id = $user['id'];
 		$name = $user['name'] ?? $user['username'];
 
-		$current = $this->loadUserByName($name);
-		if ($current && $current['id'] !== $user['id'])
+		$current = $this->loadUser($id);
+		$is_super = $user['is_superuser'] ?? $current['is_superuser'];
+
+
+		if ($current['username'] !== $name)
 		{
-			$error = "User with username '$name' already exists.";
-			return;
+			if ($this->loadUserByName($name))
+			{
+				$error = "User with username '$name' already exists.";
+				return;
+			}
 		}
 
 		$this->db->query('save-user', [
 			':id' => $user['id'],
 			':username' => $name,
-			':is_superuser' => !!($user['is_superuser'] ?? false)
+			':is_superuser' => $is_super
 		]);
 	}
 }
