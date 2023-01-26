@@ -225,6 +225,21 @@ class SecurityDatabase
 		return $this->db->queryRow('load-user-by-name', $username);
 	}
 
+	public function loadGroups(): array
+	{
+		return $this->db->query('load-groups')->indexById();
+	}
+
+	public function loadGroup(int $id): ?array
+	{
+		return $this->db->queryRow('load-group', $id);
+	}
+
+	public function loadGroupByName(string $groupname): ?array
+	{
+		return $this->db->queryRow('load-group-by-name', $groupname);
+	}
+
 	public function createUser(string $username, ?string &$err): ?array
 	{
 		$current = $this->loadUserByName($username);
@@ -236,6 +251,19 @@ class SecurityDatabase
 
 		$this->db->query('add-user', $username);
 		return $this->db->loadRowUnsafe('users', $this->db->lastInsertRowId());
+	}
+
+	public function createGroup(string $groupname, ?string &$err): ?array
+	{
+		$current = $this->loadGroupByName($groupname);
+		if (!is_null($current))
+		{
+			$err = "Group with groupname '$groupname' already exists.";
+			return null;
+		}
+
+		$this->db->query('create-group', $groupname);
+		return $this->db->loadRowUnsafe('groups', $this->db->lastInsertRowId());
 	}
 
 	public function saveUser(array $user, ?string &$error): void

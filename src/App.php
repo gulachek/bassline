@@ -94,6 +94,6 @@ class MethodHandler extends Responder
 	{
 		$obj = $this->obj;
 		$method = $this->method;
-		return $obj->$method();
+		return $obj->$method($arg);
 	}
 }

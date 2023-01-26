@@ -26,6 +26,11 @@ module.exports = {
 				type: 'amd'
 			},
 			dependOn: ['react']
+		},
+		group_edit: {
+			import: resolve('static_src/group_edit.tsx'),
+			filename: '[name].js',
+			dependOn: ['react']
 		}
 	},
 	module: {
@@ -36,7 +41,7 @@ module.exports = {
 				exclude: /node_modules/
 			},
 			{
-				test: /\.scss$/i,
+				test: /\.s?css$/i,
 				use: [
 					{
 						loader: "style-loader",

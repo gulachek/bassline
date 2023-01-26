@@ -60,7 +60,8 @@ class ShellApp extends App
 			'site' => [ // use this instead of shell
 				'admin' => [
 					'.' => new AdminPage($this->config),
-					'users' => new UserEditPage($this->config, $this->authPlugins())
+					'users' => new UserEditPage($this->config, $this->authPlugins()),
+					'groups' => $this->handler('renderGroups'),
 				]
 			],
 			'shell' => [
@@ -379,4 +380,57 @@ class ShellApp extends App
 		return null;
 	}
 
+	public function renderGroups(RespondArg $arg): mixed
+	{
+		if (!$arg->userCan('edit_groups'))
+		{
+			http_response_code(401);
+			echo "Not authorized";
+			return null;
+		}
+
+		$path = $arg->path;
+		$db = SecurityDatabase::fromConfig($this->config);
+
+		if ($path->count() > 1)
+			return new NotFound();
+
+		$action = $path->isRoot() ? 'select' : $path->at(0);
+
+		if ($action === 'select')
+		{
+			$groups = $db->loadGroups();
+			if (count($groups) < 1)
+			{
+				$groups = [$db->createGroup('new_group', $err)];
+			}
+
+			$arg->renderPage([
+				'template' => __DIR__ . '/../template/group_select.php',
+				'title' => 'Select a group',
+				'args' => [
+					'groups' => $groups
+				]
+			]);
+		}
+		else if ($action === 'edit')
+		{
+			$id = intval($_REQUEST['id']);
+			$group = $db->loadGroup($id);
+			if (!$group)
+				return new NotFound();
+
+			$model = [
+				'group' => $group
+			];
+
+			ReactPage::render($arg, [
+				'title' => "Edit {$group['groupname']}",
+				'scripts' => ['/assets/group_edit.js'],
+				'model' => $model
+			]);
+		}
+
+		return null;
+	}
 }
