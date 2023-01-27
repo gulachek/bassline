@@ -240,6 +240,28 @@ class SecurityDatabase
 		return $this->db->queryRow('load-group-by-name', $groupname);
 	}
 
+	// TODO make everything use strong Group typing
+	public function saveGroup(Group $group, ?string &$err): void
+	{
+		$err = null;
+		$current = $this->loadGroup($group->id);
+		$name = $group->groupname;
+
+		if ($current['groupname'] !== $name)
+		{
+			if ($this->loadGroupByName($name))
+			{
+				$error = "Group with groupname '$name' already exists.";
+				return;
+			}
+		}
+
+		$this->db->query('save-group', [
+			':id' => $group->id,
+			':groupname' => $name,
+		]);
+	}
+
 	public function createUser(string $username, ?string &$err): ?array
 	{
 		$current = $this->loadUserByName($username);

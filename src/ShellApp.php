@@ -432,7 +432,17 @@ class ShellApp extends App
 		}
 		else if ($action === 'save')
 		{
-			echo json_encode([ 'error' => 'not implemented' ]);
+			$group = $arg->parseBody(Group::class);
+			if (!$group)
+			{
+				http_response_code(400);
+				echo "Bad group";
+				return null;
+			}
+
+			$db->saveGroup($group, $error);
+
+			echo json_encode(['error' => $error]);
 		}
 
 		return null;

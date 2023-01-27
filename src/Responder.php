@@ -4,6 +4,10 @@ namespace Shell;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
+
 class ResponderDelegate
 {
 	public function __construct(
@@ -130,6 +134,20 @@ class RespondArg
 			throw new \Exception('route: items must be arrays or Responder objects');
 
 		return Responder::delegateTo($item, $this->path->child());
+	}
+
+	public function parseBody(mixed $class): mixed
+	{
+		$json = file_get_contents('php://input');
+		if (!$json)
+		{
+			throw new \Exception('Failed to read request body');
+		}
+
+		$normalizer = new ObjectNormalizer();
+		$serializer = new Serializer([$normalizer], [new JsonEncoder()]);
+
+		return $serializer->deserialize($json, $class, 'json');
 	}
 }
 
