@@ -430,6 +430,10 @@ class ShellApp extends App
 				'model' => $model
 			]);
 		}
+		else if ($action === 'save')
+		{
+			echo json_encode([ 'error' => 'not implemented' ]);
+		}
 
 		return null;
 	}
