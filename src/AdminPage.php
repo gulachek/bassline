@@ -18,7 +18,8 @@ class AdminPage extends Responder
 			'title' => 'Admin',
 			'template' => __DIR__ . '/../template/admin_page.php',
 			'args' => [
-				'access_users' => $arg->userCan('edit_users')
+				'access_users' => $arg->userCan('edit_users'),
+				'access_groups' => $arg->userCan('edit_groups')
 			]
 		]);
 

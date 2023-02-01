@@ -9,6 +9,15 @@ Create user accounts on the site and edit authentication configuration.
 </a>
 <?php endif; ?>
 
+<?php if ($TEMPLATE['access_groups']): ?>
+<a class="card" href="/site/admin/groups">
+<h2> Groups </h2>
+<p>
+Create and edit groups to assign membership to users and grand security capabilities.
+</p>
+</a>
+<?php endif; ?>
+
 <a class="card" href="/shell/theme">
 <h2> Theme </h2>
 <p>
