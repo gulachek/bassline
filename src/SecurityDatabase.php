@@ -45,6 +45,34 @@ class SecurityDatabase
 		return null;
 	}
 
+	public function capabilityNames(string $app_key): array
+	{
+		$result = $this->db->query('capability-names', $app_key);
+		return $result->column('name');
+	}
+
+	public function removeCapability(string $app_key, string $cap_name): void
+	{
+		$this->db->query('remove-capability', [
+			':app' => $app_key,
+			':name' => $cap_name
+		]);
+	}
+
+	public function addCapability(string $app_key, string $cap_name): void
+	{
+		$this->db->query('add-capability', [
+			':app' => $app_key,
+			':name' => $cap_name
+		]);
+	}
+
+	// now that caps have been added/removed, remove dangling refs, add index where needed, etc
+	public function syncCapabilities(): void
+	{
+		$this->db->query('remove-dangling-group-capabilities');
+	}
+
 	// return the username and user ID for a logged in user
 	public function getLoggedInUser(string $token): ?array
 	{

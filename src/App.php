@@ -51,7 +51,18 @@ class App extends Responder
 		];
 	}
 
+	/*
+	 * Broadcast all semantic colors used by this app
+	 */
 	public function colors(): array
+	{
+		return [];
+	}
+
+	/*
+	 * Broadcast all capabilities used by this app
+	 */
+	public function capabilities(): array
 	{
 		return [];
 	}

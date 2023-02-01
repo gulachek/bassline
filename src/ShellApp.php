@@ -102,6 +102,7 @@ class ShellApp extends App
 	public function installApp(string $key, App $app): void
 	{
 		$this->syncAppColors($key, $app);
+		$this->syncAppCapabilities($key, $app);
 	}
 
 	private function syncAppColors(string $key, App $app): void
@@ -125,7 +126,6 @@ class ShellApp extends App
 			}
 		}
 
-		$added_colors = [];
 		foreach ($app_colors as $name => $color)
 		{
 			if (!array_key_exists($name, $existing_colors))
@@ -135,6 +135,38 @@ class ShellApp extends App
 		}
 
 		$db->syncSemanticColors();
+	}
+
+	private function syncAppCapabilities(string $key, App $app): void
+	{
+		$app_caps = $app->capabilities();
+
+		$db = SecurityDatabase::fromConfig($this->config);
+
+		$existing_caps = [];
+
+		$cap_names = $db->capabilityNames($key);
+		foreach ($cap_names as $name)
+		{
+			if (array_key_exists($name, $app_caps))
+			{
+				$existing_caps[$name] = true;
+			}
+			else
+			{
+				$db->removeCapability($key, $name);
+			}
+		}
+
+		foreach ($app_caps as $name => $cap)
+		{
+			if (!array_key_exists($name, $existing_caps))
+			{
+				$db->addCapability($key, $name);
+			}
+		}
+
+		$db->syncCapabilities();
 	}
 
 	private function authPlugins(): array
@@ -201,6 +233,18 @@ class ShellApp extends App
 				'default-system-bg' => SystemColor::HIGHLIGHT,
 				'default-system-fg' => SystemColor::HIGHLIGHT_TEXT
 			],
+		];
+	}
+
+	public function capabilities(): array
+	{
+		return [
+			'edit_users' => [
+				'description' => 'Create/delete/modify user records. Edit username and auth credentials for any user.'
+			],
+			'edit_groups' => [
+				'description' => 'Create/delete/modify group records. Edit membership and group capabilities.'
+			]
 		];
 	}
 
