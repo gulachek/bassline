@@ -10,15 +10,26 @@ import {
 import { renderReactPage } from './renderReactPage';
 import { postJson } from './postJson';
 
+type CapabilityId = number;
+
 interface IGroup
 {
 	id: number;
 	groupname: string;
+	capabilities: CapabilityId[];
+}
+
+interface ICapability
+{
+	app: string;
+	name: string;
+	description: string;
 }
 
 interface IPageModel
 {
 	group: IGroup;
+	capabilities: { [key: string]: ICapability };
 }
 
 interface IEditState
@@ -50,9 +61,23 @@ interface IEndSaveAction
 	response: ISaveResponse;
 }
 
+interface IAddCapabilityAction
+{
+	type: 'addCapability';
+	capId: CapabilityId;
+}
+
+interface IRemoveCapabilityAction
+{
+	type: 'removeCapability';
+	capId: CapabilityId;
+}
+
 type EditAction = ISetGroupnameAction
 	| IBeginSaveAction
 	| IEndSaveAction
+	| IAddCapabilityAction
+	| IRemoveCapabilityAction
 ;
 
 function reducer(state: IEditState, action: EditAction)
@@ -60,6 +85,7 @@ function reducer(state: IEditState, action: EditAction)
 	const group = {...state.group};
 	let savedGroup = { ...state.savedGroup };
 	let isSaving = state.isSaving;
+	const caps = new Set(group.capabilities);
 
 	if (action.type === 'setGroupname')
 	{
@@ -83,13 +109,34 @@ function reducer(state: IEditState, action: EditAction)
 
 		isSaving = false;
 	}
+	else if (action.type === 'addCapability')
+	{
+		caps.add(action.capId);
+	}
+	else if (action.type === 'removeCapability')
+	{
+		caps.delete(action.capId);
+	}
 
+	group.capabilities = Array.from(caps);
 	return { group, savedGroup, isSaving };
 }
 
 function groupsAreEqual(a: IGroup, b: IGroup): boolean
 {
-	return a.groupname === b.groupname;
+	if (a.groupname !== b.groupname)
+		return false;
+
+	if (a.capabilities.length !== b.capabilities.length)
+		return false;
+
+	for (const capId of a.capabilities)
+	{
+		if (!b.capabilities.includes(capId))
+			return false;
+	}
+
+	return true;
 }
 
 function Page(props: IPageModel)
@@ -111,7 +158,7 @@ function Page(props: IPageModel)
 	const onChangeGroupname = useCallback((e: ChangeEvent<HTMLInputElement>) => {
 		dispatch({ type: 'setGroupname', value: e.target.value });
 	}, []);
-	
+
 	const onSave = useCallback(async (e: FormEvent) => {
 		e.preventDefault(); // we'll send our own request
 		dispatch({ type: 'beginSave' });
@@ -129,6 +176,34 @@ function Page(props: IPageModel)
 		});
 	}
 
+	const capabilities = [];
+	for (const capIdStr in props.capabilities)
+	{
+		const capId = parseInt(capIdStr);
+		const cap = props.capabilities[capIdStr];
+		const { name, app, description } = cap;
+
+		const changeCap = (e: ChangeEvent<HTMLInputElement>) => {
+			if (e.target.checked) {
+				dispatch({ type: 'addCapability', capId });
+			} else {
+				dispatch({ type: 'removeCapability', capId });
+			}
+		};
+
+		const hasCap = group.capabilities.includes(capId);
+
+		capabilities.push(<div key={capId}>
+			<label>
+			<input type="checkbox"
+				checked={hasCap}
+				onChange={changeCap}
+				/> {app}.{name}
+			</label>
+			<em> {description} </em>
+		</div>);
+	}
+
 	return <form onSubmit={onSave}>
 		<h1> Edit group </h1>
 		<fieldset>
@@ -141,6 +216,11 @@ function Page(props: IPageModel)
 					/>
 			</label>
 			
+		</fieldset>
+
+		<fieldset>
+			<legend> Capabilities </legend>
+			{capabilities}
 		</fieldset>
 
 		<button disabled={isSaving || !hasChange} > Save </button>

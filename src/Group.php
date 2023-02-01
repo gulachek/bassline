@@ -8,7 +8,8 @@ class Group
 {
 	public function __construct(
 		public int $id,
-		public string $groupname
+		public string $groupname,
+		public array $capabilities
 	)
 	{
 	}

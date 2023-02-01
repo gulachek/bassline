@@ -45,6 +45,11 @@ class SecurityDatabase
 		return null;
 	}
 
+	public function loadCapabilities(): array
+	{
+		return $this->db->query('load-capabilities')->indexById();
+	}
+
 	public function capabilityNames(string $app_key): array
 	{
 		$result = $this->db->query('capability-names', $app_key);
@@ -260,7 +265,12 @@ class SecurityDatabase
 
 	public function loadGroup(int $id): ?array
 	{
-		return $this->db->queryRow('load-group', $id);
+		$group = $this->db->queryRow('load-group', $id);
+		if (!$group)
+			return null;
+
+		$group['capabilities'] = $this->db->query('load-group-capabilities', $id)->column('cap_id');
+		return $group;
 	}
 
 	public function loadGroupByName(string $groupname): ?array
@@ -273,6 +283,13 @@ class SecurityDatabase
 	{
 		$err = null;
 		$current = $this->loadGroup($group->id);
+
+		if (!$current)
+		{
+			$error = "Group {$group->id} does not exist";
+			return;
+		}
+
 		$name = $group->groupname;
 
 		if ($current['groupname'] !== $name)
@@ -288,6 +305,15 @@ class SecurityDatabase
 			':id' => $group->id,
 			':groupname' => $name,
 		]);
+
+		$this->db->query('delete-group-capabilities', $group->id);
+		foreach ($group->capabilities as $id)
+		{
+			$this->db->query('add-group-capability', [
+				':group' => $group->id,
+				':cap' => $id
+			]);
+		}
 	}
 
 	public function createUser(string $username, ?string &$err): ?array

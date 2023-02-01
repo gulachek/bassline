@@ -188,6 +188,37 @@ class ShellApp extends App
 		return $apps;
 	}
 
+	private function allCapabilities(): array
+	{
+		$db = SecurityDatabase::fromConfig($this->config);
+		$caps = $db->loadCapabilities();
+		$apps = $this->allApps();
+		$merged = [];
+
+		$last_app = null;
+		$app_caps = null;
+
+		foreach ($caps as $id => $cap)
+		{
+			$app_key = $cap['app'];
+			$cap_name = $cap['name'];
+
+			if ($last_app !== $app_key)
+			{
+				$app_caps = $apps[$app_key]->capabilities();
+				$last_app = $app_key;
+			}
+
+			$merged[$id] = [
+				'app' => $app_key,
+				'name' => $cap_name,
+				'description' => $app_caps[$cap_name]['description']
+			];
+		}
+
+		return $merged;
+	}
+
 	public function colors(): array
 	{
 		return [
@@ -464,8 +495,11 @@ class ShellApp extends App
 			if (!$group)
 				return new NotFound();
 
+			$caps = $this->allCapabilities();
+
 			$model = [
-				'group' => $group
+				'group' => $group,
+				'capabilities' => $caps
 			];
 
 			ReactPage::render($arg, [
