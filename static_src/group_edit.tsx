@@ -176,6 +176,36 @@ function CapabilitySwitch(props: ICapabilitySwitchProps)
 	</div>;
 }
 
+interface ICapabilitiesProps
+{
+	groupCapabilities: CapabilityId[];
+	allCapabilities: { [key: string]: ICapability };
+}
+
+function Capabilities(props: ICapabilitiesProps)
+{
+	const { groupCapabilities, allCapabilities } = props;
+
+	const capabilities = [];
+	for (const capIdStr in allCapabilities)
+	{
+		const capId = parseInt(capIdStr);
+		const hasCap = groupCapabilities.includes(capId);
+		const cap = allCapabilities[capIdStr];
+		capabilities.push(<CapabilitySwitch
+			key={capId}
+			capId={capId}
+			groupHasCap={hasCap}
+			capability={cap}
+		/>);
+	}
+
+	return <fieldset>
+		<legend> Capabilities </legend>
+		{capabilities}
+	</fieldset>;
+}
+
 function Page(props: IPageModel)
 {
 	const initialState = {
@@ -213,20 +243,6 @@ function Page(props: IPageModel)
 		});
 	}
 
-	const capabilities = [];
-	for (const capIdStr in props.capabilities)
-	{
-		const capId = parseInt(capIdStr);
-		const hasCap = group.capabilities.includes(capId);
-		const cap = props.capabilities[capIdStr];
-		capabilities.push(<CapabilitySwitch
-			key={capId}
-			capId={capId}
-			groupHasCap={hasCap}
-			capability={cap}
-		/>);
-	}
-
 	return <form onSubmit={onSave}>
 		<GroupDispatchContext.Provider value={dispatch}>
 		<h1> Edit group </h1>
@@ -242,10 +258,10 @@ function Page(props: IPageModel)
 			
 		</fieldset>
 
-		<fieldset>
-			<legend> Capabilities </legend>
-			{capabilities}
-		</fieldset>
+		<Capabilities
+			allCapabilities={props.capabilities}
+			groupCapabilities={group.capabilities}
+		/>
 
 		<button disabled={isSaving || !hasChange} > Save </button>
 		</GroupDispatchContext.Provider>
