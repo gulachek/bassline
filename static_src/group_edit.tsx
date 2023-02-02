@@ -206,6 +206,45 @@ function Capabilities(props: ICapabilitiesProps)
 	</fieldset>;
 }
 
+interface IGroupNameProps
+{
+	groupname: string;
+}
+
+function GroupName(props: IGroupNameProps)
+{
+	const { groupname } = props;
+
+	const dispatch = useContext(GroupDispatchContext);
+
+	const onChangeGroupname = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+		dispatch({ type: 'setGroupname', value: e.target.value });
+	}, []);
+
+	return <label> groupname:
+		<input
+			type="text"
+			value={groupname}
+			onChange={onChangeGroupname}
+			/>
+	</label>;
+}
+
+interface IGroupPropertiesProps
+{
+	groupname: string;
+}
+
+function GroupProperties(props: IGroupPropertiesProps)
+{
+	const { groupname } = props;
+
+	return <fieldset>
+		<legend> Group properties </legend>
+		<GroupName groupname={groupname} />
+	</fieldset>;
+}
+
 function Page(props: IPageModel)
 {
 	const initialState = {
@@ -221,10 +260,6 @@ function Page(props: IPageModel)
 	const { isSaving, group, savedGroup } = state;
 
 	const hasChange = !groupsAreEqual(group, savedGroup);
-
-	const onChangeGroupname = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-		dispatch({ type: 'setGroupname', value: e.target.value });
-	}, []);
 
 	const onSave = useCallback(async (e: FormEvent) => {
 		e.preventDefault(); // we'll send our own request
@@ -245,25 +280,16 @@ function Page(props: IPageModel)
 
 	return <form onSubmit={onSave}>
 		<GroupDispatchContext.Provider value={dispatch}>
-		<h1> Edit group </h1>
-		<fieldset>
-			<legend> Group properties </legend>
-			<label> groupname:
-				<input
-					type="text"
-					value={group.groupname}
-					onChange={onChangeGroupname}
-					/>
-			</label>
-			
-		</fieldset>
+			<h1> Edit group </h1>
 
-		<Capabilities
-			allCapabilities={props.capabilities}
-			groupCapabilities={group.capabilities}
-		/>
+			<GroupProperties groupname={group.groupname} />
 
-		<button disabled={isSaving || !hasChange} > Save </button>
+			<Capabilities
+				allCapabilities={props.capabilities}
+				groupCapabilities={group.capabilities}
+			/>
+
+			<button disabled={isSaving || !hasChange} > Save </button>
 		</GroupDispatchContext.Provider>
 	</form>;
 }
