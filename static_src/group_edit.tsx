@@ -1,6 +1,8 @@
 import * as React from 'react';
 import {
 	useReducer,
+	createContext,
+	useContext,
 	useCallback,
 	useRef,
 	ChangeEvent,
@@ -38,6 +40,8 @@ interface IEditState
 	savedGroup: IGroup;
 	isSaving: boolean;
 }
+
+const GroupDispatchContext = createContext(null);
 
 interface ISetGroupnameAction
 {
@@ -139,6 +143,39 @@ function groupsAreEqual(a: IGroup, b: IGroup): boolean
 	return true;
 }
 
+interface ICapabilitySwitchProps
+{
+	capId: number;
+	groupHasCap: boolean;
+	capability: ICapability;
+}
+
+function CapabilitySwitch(props: ICapabilitySwitchProps)
+{
+	const { groupHasCap, capability, capId } = props;
+	const { name, app, description } = capability;
+
+	const dispatch = useContext(GroupDispatchContext);
+
+	const changeCap = (e: ChangeEvent<HTMLInputElement>) => {
+		if (e.target.checked) {
+			dispatch({ type: 'addCapability', capId });
+		} else {
+			dispatch({ type: 'removeCapability', capId });
+		}
+	};
+
+	return <div>
+		<label>
+		<input type="checkbox"
+			checked={groupHasCap}
+			onChange={changeCap}
+			/> {app}.{name}
+		</label>
+		<em> {description} </em>
+	</div>;
+}
+
 function Page(props: IPageModel)
 {
 	const initialState = {
@@ -180,31 +217,18 @@ function Page(props: IPageModel)
 	for (const capIdStr in props.capabilities)
 	{
 		const capId = parseInt(capIdStr);
-		const cap = props.capabilities[capIdStr];
-		const { name, app, description } = cap;
-
-		const changeCap = (e: ChangeEvent<HTMLInputElement>) => {
-			if (e.target.checked) {
-				dispatch({ type: 'addCapability', capId });
-			} else {
-				dispatch({ type: 'removeCapability', capId });
-			}
-		};
-
 		const hasCap = group.capabilities.includes(capId);
-
-		capabilities.push(<div key={capId}>
-			<label>
-			<input type="checkbox"
-				checked={hasCap}
-				onChange={changeCap}
-				/> {app}.{name}
-			</label>
-			<em> {description} </em>
-		</div>);
+		const cap = props.capabilities[capIdStr];
+		capabilities.push(<CapabilitySwitch
+			key={capId}
+			capId={capId}
+			groupHasCap={hasCap}
+			capability={cap}
+		/>);
 	}
 
 	return <form onSubmit={onSave}>
+		<GroupDispatchContext.Provider value={dispatch}>
 		<h1> Edit group </h1>
 		<fieldset>
 			<legend> Group properties </legend>
@@ -224,6 +248,7 @@ function Page(props: IPageModel)
 		</fieldset>
 
 		<button disabled={isSaving || !hasChange} > Save </button>
+		</GroupDispatchContext.Provider>
 	</form>;
 }
 
