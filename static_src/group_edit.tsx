@@ -264,19 +264,11 @@ function Page(props: IPageModel)
 	const onSave = useCallback(async (e: FormEvent) => {
 		e.preventDefault(); // we'll send our own request
 		dispatch({ type: 'beginSave' });
-	}, [id, group]);
 
-	// implement save
-	const saveRequestInFlight = useRef(false);
-	if (isSaving && !saveRequestInFlight.current)
-	{
-		saveRequestInFlight.current = true;
-		const promise = postJson<ISaveResponse>('./save', { body: group });
-		promise.then((response: ISaveResponse) =>	{
-			saveRequestInFlight.current = false;
-			dispatch({ type: 'endSave', response });
-		});
-	}
+		const response = await postJson<ISaveResponse>('./save', { body: group });
+
+		dispatch({ type: 'endSave', response });
+	}, [id, group]);
 
 	return <form onSubmit={onSave}>
 		<GroupDispatchContext.Provider value={dispatch}>
