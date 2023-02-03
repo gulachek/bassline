@@ -9,33 +9,6 @@
 	margin: 1em;
 }
 
-.cap-edit {
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-	justify-content: space-evenly;
-
-	> * {
-		margin: 1em;
-	}
-}
-
-.button-select {
-	display: flex;
-	flex-direction: column;
-
-	button {
-		display: inline-block;
-		background-color: var(--theme-clickable-bg);
-		color: var(--theme-clickable-fg);
-	}
-
-	button.selected {
-		background-color: var(--theme-selected-bg);
-		color: var(--theme-selected-fg);
-	}
-}
-
-button > input {
-	border: solid 1px black;
+.cap-select {
+	margin: 1em 0;
 }
