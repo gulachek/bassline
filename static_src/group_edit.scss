@@ -1,0 +1,18 @@
+.cap-edit {
+	display: flex;
+	flex-direction: row;
+}
+
+.cap-select {
+	display: flex;
+	flex-direction: row;
+}
+
+.button-select {
+	display: flex;
+	flex-direction: column;
+
+	button {
+		display: inline-block;
+	}
+}

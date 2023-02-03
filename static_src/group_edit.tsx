@@ -5,12 +5,17 @@ import {
 	useContext,
 	useCallback,
 	useRef,
+	useState,
 	ChangeEvent,
-	FormEvent
+	FormEvent,
+	MouseEvent,
+	HTMLAttributes
 } from 'react';
 
 import { renderReactPage } from './renderReactPage';
 import { postJson } from './postJson';
+
+import './group_edit.scss';
 
 type CapabilityId = number;
 
@@ -144,66 +149,107 @@ function groupsAreEqual(a: IGroup, b: IGroup): boolean
 	return true;
 }
 
-interface ICapabilitySwitchProps
-{
-	groupHasCap: boolean;
-	capability: ICapability;
-}
-
-function CapabilitySwitch(props: ICapabilitySwitchProps)
-{
-	const { groupHasCap, capability } = props;
-	const { name, app, description } = capability;
-	const capId = capability.id;
-
-	const dispatch = useContext(GroupDispatchContext);
-
-	const changeCap = (e: ChangeEvent<HTMLInputElement>) => {
-		if (e.target.checked) {
-			dispatch({ type: 'addCapability', capId });
-		} else {
-			dispatch({ type: 'removeCapability', capId });
-		}
-	};
-
-	return <div>
-		<label>
-		<input type="checkbox"
-			checked={groupHasCap}
-			onChange={changeCap}
-			/> {app}.{name}
-		</label>
-		<em> {description} </em>
-	</div>;
-}
-
 interface ICapabilitiesProps
 {
 	groupCapabilities: CapabilityId[];
 	allCapabilities: { [appKey: string]: ICapability[] };
 }
 
+function Button(props: HTMLAttributes<HTMLButtonElement>)
+{
+	const { onClick } = props;
+	const wrapOnClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
+		e.preventDefault(); // no form submission
+		onClick && onClick(e);
+	}, [onClick]);
+
+	const copyProps = {...props};
+	copyProps.onClick = wrapOnClick;
+
+	return <button {...copyProps} />;
+}
+
 function Capabilities(props: ICapabilitiesProps)
 {
 	const { groupCapabilities, allCapabilities } = props;
 
-	const capabilities = [];
-	for (const appKey in allCapabilities)
-	{
-		for (const cap of allCapabilities[appKey])
-		{
-			const hasCap = groupCapabilities.includes(cap.id);
-			capabilities.push(<CapabilitySwitch
-				key={cap.id}
-				groupHasCap={hasCap}
-				capability={cap}
-			/>);
+	const apps = Object.keys(allCapabilities);
+	if (apps.length < 1)
+		throw new Error('No apps. Something is wrong');
+
+	const firstApp = apps[0];
+	const [currentApp, setCurrentApp] = useState(firstApp);
+
+	const appCaps = allCapabilities[currentApp];
+	if (appCaps.length < 1)
+		throw new Error('App has no capabilities. Something is wrong.');
+
+	const firstCap = appCaps[0];
+	const [currentCap, setCurrentCap] = useState(firstCap);
+
+	const dispatch = useContext(GroupDispatchContext);
+
+	const changeCap = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+		if (!currentCap)
+			return;
+
+		if (e.target.checked) {
+			dispatch({ type: 'addCapability', capId: currentCap.id });
+		} else {
+			dispatch({ type: 'removeCapability', capId: currentCap.id });
 		}
-	}
+	}, [currentCap]);
+
+	const hasCurrentCap = groupCapabilities.includes(currentCap?.id);
+
+	const appButtons = apps.map((appKey: string) => {
+		const selected = appKey === currentApp ? '*' : '';
+		return <Button className="app"
+			key={appKey}
+			tabIndex={0}
+			onClick={() => setCurrentApp(appKey)}
+		>
+			{selected}{appKey}
+		</Button>;
+	}, [currentApp]);
+
+	const capButtons = appCaps.map((cap: ICapability) => {
+		const selected = currentCap?.id === cap.id ? '*' : '';
+		return <Button className="cap"
+			key={cap.id}
+			tabIndex={0}
+			onClick={() => setCurrentCap(cap)}
+		>
+			{selected}{cap.name}
+		</Button>;
+	}, [currentCap]);
+
+	const desc = currentCap ? currentCap.description : 'Select a capability';
 
 	return <fieldset>
 		<legend> Capabilities </legend>
-		{capabilities}
+		<div className="cap-edit">
+		<div className="cap-select">
+			<div className="apps button-select">
+				{appButtons}
+			</div>
+			<div className="caps button-select">
+				{capButtons}
+			</div>
+		</div>
+		<div className="cap-details">
+			<p>
+				<label>
+					<input
+						type="checkbox"
+						checked={hasCurrentCap}
+						onChange={changeCap}
+					/> enabled
+				</label>
+			</p>
+				<em> {desc} </em>
+		</div>
+		</div>
 	</fieldset>;
 }
 
