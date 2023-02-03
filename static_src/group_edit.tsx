@@ -23,6 +23,7 @@ interface IGroup
 
 interface ICapability
 {
+	id: number;
 	app: string;
 	name: string;
 	description: string;
@@ -31,7 +32,7 @@ interface ICapability
 interface IPageModel
 {
 	group: IGroup;
-	capabilities: { [key: string]: ICapability };
+	capabilities: { [appKey: string]: ICapability[] };
 }
 
 interface IEditState
@@ -145,15 +146,15 @@ function groupsAreEqual(a: IGroup, b: IGroup): boolean
 
 interface ICapabilitySwitchProps
 {
-	capId: number;
 	groupHasCap: boolean;
 	capability: ICapability;
 }
 
 function CapabilitySwitch(props: ICapabilitySwitchProps)
 {
-	const { groupHasCap, capability, capId } = props;
+	const { groupHasCap, capability } = props;
 	const { name, app, description } = capability;
+	const capId = capability.id;
 
 	const dispatch = useContext(GroupDispatchContext);
 
@@ -179,7 +180,7 @@ function CapabilitySwitch(props: ICapabilitySwitchProps)
 interface ICapabilitiesProps
 {
 	groupCapabilities: CapabilityId[];
-	allCapabilities: { [key: string]: ICapability };
+	allCapabilities: { [appKey: string]: ICapability[] };
 }
 
 function Capabilities(props: ICapabilitiesProps)
@@ -187,17 +188,17 @@ function Capabilities(props: ICapabilitiesProps)
 	const { groupCapabilities, allCapabilities } = props;
 
 	const capabilities = [];
-	for (const capIdStr in allCapabilities)
+	for (const appKey in allCapabilities)
 	{
-		const capId = parseInt(capIdStr);
-		const hasCap = groupCapabilities.includes(capId);
-		const cap = allCapabilities[capIdStr];
-		capabilities.push(<CapabilitySwitch
-			key={capId}
-			capId={capId}
-			groupHasCap={hasCap}
-			capability={cap}
-		/>);
+		for (const cap of allCapabilities[appKey])
+		{
+			const hasCap = groupCapabilities.includes(cap.id);
+			capabilities.push(<CapabilitySwitch
+				key={cap.id}
+				groupHasCap={hasCap}
+				capability={cap}
+			/>);
+		}
 	}
 
 	return <fieldset>

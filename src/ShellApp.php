@@ -205,15 +205,17 @@ class ShellApp extends App
 
 			if ($last_app !== $app_key)
 			{
+				$merged[$app_key] = [];
 				$app_caps = $apps[$app_key]->capabilities();
 				$last_app = $app_key;
 			}
 
-			$merged[$id] = [
+			array_push($merged[$app_key], [
+				'id' => $id,
 				'app' => $app_key,
 				'name' => $cap_name,
 				'description' => $app_caps[$cap_name]['description']
-			];
+			]);
 		}
 
 		return $merged;
