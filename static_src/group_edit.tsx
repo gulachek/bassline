@@ -206,19 +206,31 @@ function Capabilities(props: ICapabilitiesProps)
 
 	const hasCurrentCap = groupCapabilities.includes(currentCap?.id);
 
-	const appButtons = apps.map((appKey: string) => {
-		let className = 'app';
-		if (appKey === currentApp)
-			className += ' selected';
-
-		return <Button className={className}
-			key={appKey}
-			tabIndex={0}
-			onClick={() => setCurrentApp(appKey)}
-		>
-			{appKey}
-		</Button>;
+	const appOptions = apps.map((appKey: string) => {
+		return <option key={appKey} value={appKey}> {appKey} </option>;
 	});
+
+	const appSelect = <select onChange={(e: ChangeEvent<HTMLSelectElement>) => setCurrentApp(e.target.value)}>
+		{appOptions}
+	</select>;
+
+	const capSelects = [];
+	for (const app of apps)
+	{
+		const caps = allCapabilities[app];
+		const capOptions = caps.map((cap: ICapability) => {
+			return <option key={cap.id} value={cap.id}> {cap.name} </option>;
+		});
+
+		capSelects.push(<label
+				key={app}
+				className={app === currentApp ? 'ovc-visible' : ''}
+			> Capability: <select
+			onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+				setCurrentCap(caps[e.target.selectedIndex]);
+			}}
+		> {capOptions} </select> </label>);
+	}
 
 	const capButtons = appCaps.map((cap: ICapability) => {
 		const hasCap = groupCapabilities.includes(cap.id);
@@ -264,22 +276,18 @@ function Capabilities(props: ICapabilitiesProps)
 		}
 	}
 
-	return <fieldset>
-		<legend> Capabilities </legend>
+	return <section className="section">
+		<h3> Capabilities </h3>
 		<div className="cap-edit">
 		<div className="cap-select">
-			<div className="apps button-select">
-				{appButtons}
-			</div>
-			<div className="caps button-select">
-				{capButtons}
-			</div>
+			<label> Application: {appSelect} </label>
+			<OneVisibleChild> {capSelects} </OneVisibleChild>
 		</div>
 		<OneVisibleChild className="cap-details-panel">
 			{details}
 		</OneVisibleChild>
 		</div>
-	</fieldset>;
+	</section>;
 }
 
 interface IGroupNameProps
@@ -315,10 +323,10 @@ function GroupProperties(props: IGroupPropertiesProps)
 {
 	const { groupname } = props;
 
-	return <fieldset>
-		<legend> Group properties </legend>
+	return <section className="section">
+		<h3> Group properties </h3>
 		<GroupName groupname={groupname} />
-	</fieldset>;
+	</section>;
 }
 
 function Page(props: IPageModel)
@@ -350,12 +358,15 @@ function Page(props: IPageModel)
 		<GroupDispatchContext.Provider value={dispatch}>
 			<h1> Edit group </h1>
 
-			<GroupProperties groupname={group.groupname} />
+			<div className="section-container">
+				<GroupProperties groupname={group.groupname} />
 
-			<Capabilities
-				allCapabilities={props.capabilities}
-				groupCapabilities={group.capabilities}
-			/>
+				<Capabilities
+					allCapabilities={props.capabilities}
+					groupCapabilities={group.capabilities}
+				/>
+
+			</div>
 
 			<button disabled={isSaving || !hasChange} > Save </button>
 		</GroupDispatchContext.Provider>

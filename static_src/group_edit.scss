@@ -1,18 +1,23 @@
+.section-container {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.section {
+	border: solid 1px;
+	padding: 1em;
+	margin: 1em;
+}
+
 .cap-edit {
 	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
 	justify-content: space-evenly;
-}
 
-.cap-details-panel {
-	border: solid 1px;
-}
-
-.cap-select {
-	display: flex;
-	flex-direction: row;
-	justify-content: space-evenly;
+	> * {
+		margin: 1em;
+	}
 }
 
 .button-select {
