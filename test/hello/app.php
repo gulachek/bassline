@@ -53,7 +53,7 @@ class App extends \Shell\App
 
 	public function version(): \Shell\Semver
 	{
-		return new \Shell\Semver(0,1,0);
+		return new \Shell\Semver(0,1,1);
 	}
 
 	public function install(): ?string
@@ -61,9 +61,23 @@ class App extends \Shell\App
 		return null;
 	}
 
+	public function upgradeFromVersion(\Shell\Semver $version): ?string
+	{
+		return null;
+	}
+
 	public function colors(): array
 	{
 		return [];
+	}
+
+	public function capabilities(): array
+	{
+		return [
+			'edit_greeting' => [
+				'description' => 'User can edit the main greeting'
+			]
+		];
 	}
 
 	public function respond($arg): mixed
