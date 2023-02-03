@@ -14,6 +14,7 @@ import {
 
 import { renderReactPage } from './renderReactPage';
 import { postJson } from './postJson';
+import { OneVisibleChild } from './containers';
 
 import './group_edit.scss';
 
@@ -158,15 +159,20 @@ interface ICapabilitiesProps
 function Button(props: HTMLAttributes<HTMLButtonElement>)
 {
 	const { onClick } = props;
+	const btn = useRef<HTMLButtonElement>(null);
+
 	const wrapOnClick = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-		e.preventDefault(); // no form submission
-		onClick && onClick(e);
-	}, [onClick]);
+		if (e.target === btn.current)
+		{
+			e.preventDefault(); // no form submission
+			onClick && onClick(e);
+		}
+	}, [onClick, btn.current]);
 
 	const copyProps = {...props};
 	copyProps.onClick = wrapOnClick;
 
-	return <button {...copyProps} />;
+	return <button ref={btn} {...copyProps} />;
 }
 
 function Capabilities(props: ICapabilitiesProps)
@@ -189,42 +195,74 @@ function Capabilities(props: ICapabilitiesProps)
 
 	const dispatch = useContext(GroupDispatchContext);
 
-	const changeCap = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-		if (!currentCap)
-			return;
-
+	const changeCap = (capId: CapabilityId, e: ChangeEvent<HTMLInputElement>) => {
+		e.stopPropagation();
 		if (e.target.checked) {
-			dispatch({ type: 'addCapability', capId: currentCap.id });
+			dispatch({ type: 'addCapability', capId });
 		} else {
-			dispatch({ type: 'removeCapability', capId: currentCap.id });
+			dispatch({ type: 'removeCapability', capId });
 		}
-	}, [currentCap]);
+	};
 
 	const hasCurrentCap = groupCapabilities.includes(currentCap?.id);
 
 	const appButtons = apps.map((appKey: string) => {
-		const selected = appKey === currentApp ? '*' : '';
-		return <Button className="app"
+		let className = 'app';
+		if (appKey === currentApp)
+			className += ' selected';
+
+		return <Button className={className}
 			key={appKey}
 			tabIndex={0}
 			onClick={() => setCurrentApp(appKey)}
 		>
-			{selected}{appKey}
+			{appKey}
 		</Button>;
-	}, [currentApp]);
+	});
 
 	const capButtons = appCaps.map((cap: ICapability) => {
-		const selected = currentCap?.id === cap.id ? '*' : '';
-		return <Button className="cap"
+		const hasCap = groupCapabilities.includes(cap.id);
+		let className = 'cap';
+		if (cap.id === currentCap.id)
+			className += ' selected';
+
+		return <Button className={className}
 			key={cap.id}
 			tabIndex={0}
 			onClick={() => setCurrentCap(cap)}
 		>
-			{selected}{cap.name}
+			<input type="checkbox"
+				checked={hasCap}
+				onChange={changeCap.bind(null, cap.id)}
+			/>
+			{cap.name}
 		</Button>;
-	}, [currentCap]);
+	});
 
-	const desc = currentCap ? currentCap.description : 'Select a capability';
+	const details = [];
+	for (const app of apps)
+	{
+		const caps = allCapabilities[app];
+		for (const cap of caps)
+		{
+			let className = 'cap-details';
+			if (currentApp === app && currentCap.id === cap.id)
+				className += ' ovc-visible';
+
+			details.push(<div key={cap.id} className={className}>
+				<p>
+					<label>
+						<input
+							type="checkbox"
+							checked={groupCapabilities.includes(cap.id)}
+							onChange={changeCap.bind(null, cap.id)}
+						/> enabled
+					</label>
+				</p>
+				<em> {cap.description} </em>
+			</div>);
+		}
+	}
 
 	return <fieldset>
 		<legend> Capabilities </legend>
@@ -237,18 +275,9 @@ function Capabilities(props: ICapabilitiesProps)
 				{capButtons}
 			</div>
 		</div>
-		<div className="cap-details">
-			<p>
-				<label>
-					<input
-						type="checkbox"
-						checked={hasCurrentCap}
-						onChange={changeCap}
-					/> enabled
-				</label>
-			</p>
-				<em> {desc} </em>
-		</div>
+		<OneVisibleChild className="cap-details-panel">
+			{details}
+		</OneVisibleChild>
 		</div>
 	</fieldset>;
 }

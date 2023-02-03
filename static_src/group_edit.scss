@@ -1,11 +1,18 @@
 .cap-edit {
 	display: flex;
 	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: space-evenly;
+}
+
+.cap-details-panel {
+	border: solid 1px;
 }
 
 .cap-select {
 	display: flex;
 	flex-direction: row;
+	justify-content: space-evenly;
 }
 
 .button-select {
@@ -14,5 +21,16 @@
 
 	button {
 		display: inline-block;
+		background-color: var(--theme-clickable-bg);
+		color: var(--theme-clickable-fg);
 	}
+
+	button.selected {
+		background-color: var(--theme-selected-bg);
+		color: var(--theme-selected-fg);
+	}
+}
+
+button > input {
+	border: solid 1px black;
 }

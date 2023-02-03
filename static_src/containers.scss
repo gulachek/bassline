@@ -1,0 +1,12 @@
+.one-visible-child {
+	display: grid;
+
+	> * {
+		grid-area: 1/1/2/2;
+		visibility: hidden;
+	}
+
+	> .ovc-visible {
+		visibility: visible;
+	}
+}
