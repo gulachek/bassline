@@ -1,6 +1,11 @@
+.header {
+	text-align: center;
+}
+
 .section-container {
 	display: flex;
 	flex-wrap: wrap;
+	justify-content: center;
 }
 
 .section {

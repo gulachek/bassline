@@ -290,7 +290,7 @@ function Page(props: IPageModel)
 
 	return <form onSubmit={onSave}>
 		<GroupDispatchContext.Provider value={dispatch}>
-			<h1> Edit group </h1>
+			<h1 className="header"> Edit group </h1>
 
 			<div className="section-container">
 				<GroupProperties groupname={group.groupname} />
