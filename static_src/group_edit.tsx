@@ -6,6 +6,7 @@ import {
 	useCallback,
 	useRef,
 	useState,
+	useEffect,
 	ChangeEvent,
 	FormEvent,
 	MouseEvent,
@@ -263,6 +264,98 @@ function GroupProperties(props: IGroupPropertiesProps)
 	</section>;
 }
 
+interface IDebounceTimerArgs
+{
+	// every time this is called, delay timer by ms
+	debounceMs: number,
+	// if total delay time exceeds this number, trigger timer
+	maxDebounceMs: number
+}
+
+class DebounceTimer
+{
+	private debounceMs: number = 0;
+	private maxDebounceMs: number = 0;
+	private triggerDeadline: number = -1;
+	private lastDebounce: number = -1;
+	private isActive: boolean;
+	private fn?: () => any;
+	
+	public constructor(args: IDebounceTimerArgs)
+	{
+		this.debounceMs = args.debounceMs;
+		this.maxDebounceMs = args.maxDebounceMs;
+		this.isActive = false;
+	}
+
+	private get nowMs(): number
+	{
+		return (new Date()).getTime();
+	}
+
+	public restart(fn: () => any): void
+	{
+		const now = this.nowMs;
+		this.fn = fn;
+
+		this.lastDebounce = now;
+		if (!this.isActive)
+		{
+			this.triggerDeadline = now + this.maxDebounceMs;
+			this.isActive = true;
+		}
+		this.doDebounce();
+	}
+
+	public stop(): void
+	{
+		this.isActive = false;
+	}
+
+	private doDebounce(): boolean
+	{
+		if (!this.isActive)
+			return false;
+
+		const now = this.nowMs;
+
+		if (now > this.triggerDeadline)
+		{
+			this.trigger();
+			return true;
+		}
+
+		const lastDebounce = this.lastDebounce;
+		if ((now - lastDebounce) > this.debounceMs)
+		{
+			this.trigger();
+			return true;
+		}
+
+		setTimeout(() => this.doDebounce(), this.debounceMs);
+		return false;
+	}
+
+	private trigger(): void
+	{
+		this.fn && this.fn();
+		delete this.fn;
+		this.isActive = false;
+	}
+}
+
+interface IPreventUnload
+{
+	preventDefault(): any;
+	returnValue?: string;
+}
+
+function preventUnload(e: IPreventUnload): string
+{
+	e.preventDefault();
+	return e.returnValue = '';
+}
+
 function Page(props: IPageModel)
 {
 	const initialState = {
@@ -279,8 +372,13 @@ function Page(props: IPageModel)
 
 	const hasChange = !groupsAreEqual(group, savedGroup);
 
-	const onSave = useCallback(async (e: FormEvent) => {
-		e.preventDefault(); // we'll send our own request
+	const timer = useRef(new DebounceTimer({
+		debounceMs: 500,
+		maxDebounceMs: 5000
+	}));
+
+	const onSave = useCallback(async (e?: FormEvent) => {
+		e?.preventDefault(); // we'll send our own request
 		dispatch({ type: 'beginSave' });
 
 		const response = await postJson<ISaveResponse>('./save', { body: group });
@@ -288,9 +386,28 @@ function Page(props: IPageModel)
 		dispatch({ type: 'endSave', response });
 	}, [id, group]);
 
+	useEffect(() => {
+		if (hasChange)
+		{
+			timer.current.restart(() => onSave());
+			window.addEventListener('beforeunload', preventUnload);
+		}
+		else
+		{
+			timer.current.stop();
+			window.removeEventListener('beforeunload', preventUnload);
+		}
+	});
+
 	return <form onSubmit={onSave}>
 		<GroupDispatchContext.Provider value={dispatch}>
-			<h1 className="header"> Edit group </h1>
+			<div className="header">
+				<h1> Edit group </h1>
+				<p className="save-indicator">
+					<input type="checkbox" readOnly checked={!hasChange} /> 
+					Saved
+				</p>
+			</div>
 
 			<div className="section-container">
 				<GroupProperties groupname={group.groupname} />
@@ -301,8 +418,6 @@ function Page(props: IPageModel)
 				/>
 
 			</div>
-
-			<button disabled={isSaving || !hasChange} > Save </button>
 		</GroupDispatchContext.Provider>
 	</form>;
 }
