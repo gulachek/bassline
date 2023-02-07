@@ -1,4 +1,4 @@
-<link rel="stylesheet" type="text/css" href="/static/clickable.css" />
+<link rel="stylesheet" type="text/css" href="/assets/group_select.css" />
 <h1> Select a group </h1>
 
 <div class="group-container">
