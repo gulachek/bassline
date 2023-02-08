@@ -113,19 +113,14 @@ function arrayEqual(left: string[], right: string[])
 
 export const UserEditor: AuthPluginUserEditComponent<SiwgData> = (props) =>
 {
-	const { dataRef, savedData, setHasChange } = props;
-	const { current } = dataRef;
+	const { data, setData } = props;
 
-	const initialState = { emails: dataRef.current, index: 0 };
+	const initialState = { emails: data, index: 0 };
 
 	const [state, dispatch] = useReducer(emailArrayReducer, initialState);
+	useEffect(() => setData(state.emails), [state.emails]);
 
 	const { emails, index } = state;
-
-	useEffect(() => {
-		dataRef.current = emails;
-		setHasChange(!arrayEqual(emails, savedData));
-	}, [emails, savedData]);
 
 	const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
 		dispatch({ type: 'update', value: e.target.value });
@@ -185,3 +180,8 @@ export const UserEditor: AuthPluginUserEditComponent<SiwgData> = (props) =>
 		</div>
 	</div>;
 };
+
+export function modelEquals(left: SiwgData, right: SiwgData): boolean
+{
+	return arrayEqual(left, right);
+}

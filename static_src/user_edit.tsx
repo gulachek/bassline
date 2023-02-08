@@ -5,8 +5,10 @@ import {
 	useEffect,
 	useCallback,
 	useState,
+	useReducer,
 	useImperativeHandle,
 	FormEvent,
+	ChangeEvent,
 	FC,
 	ReactNode,
 	MutableRefObject
@@ -26,9 +28,12 @@ interface ISaveReponse
 	errorMsg?: string|null;
 }
 
+type PluginDataEqualFn = (data: any, savedData: any) => boolean;
+
 interface IAuthPluginScriptModule
 {
 	UserEditor: AuthPluginUserEditComponent;
+	modelEquals: PluginDataEqualFn;
 }
 
 function useModule<T>(script: string)
@@ -48,33 +53,6 @@ interface IAuthPluginData
 	title: string;
 	data: any;
 }
-
-interface IAuthPluginEditorProps
-{
-	script: string;
-	title: string;
-	savedData: any;
-	dataRef: MutableRefObject<any>;
-	setHasChange(hasChange: boolean): void;
-}
-
-const AuthPluginEditor: FC<IAuthPluginEditorProps> = (props, ref) =>
-{
-	const { script, title, savedData, dataRef } = props;
-
-	const scriptMod = useModule<IAuthPluginScriptModule>(script);
-	const EditorFn = scriptMod && scriptMod.UserEditor;
-	const editor = EditorFn && <EditorFn
-			dataRef={dataRef}
-			savedData={savedData}
-			setHasChange={props.setHasChange}
-	/>;
-	
-	return <section className="section">
-		<h3> {title} </h3>
-		{editor}
-	</section>;
-};
 
 function ModalErrorMsg(props: {msg: string|null})
 {
@@ -110,14 +88,6 @@ interface IPatterns
 	username: string;
 }
 
-interface IPageProps
-{
-	errorMsg?: string|null;
-	user: IUser;
-	patterns: IPatterns;
-	authPlugins: IAuthPluginData[];
-}
-
 interface IFormData
 {
 	username: string;
@@ -125,70 +95,135 @@ interface IFormData
 	pluginData: { [key: string]: any };
 }
 
+interface IPageState
+{
+	data: IFormData;
+	savedData: IFormData;
+}
+
+interface IPageSetUsernameAction
+{
+	type: 'setUsername';
+	username: string;
+}
+
+interface IPageSetPluginDataAction
+{
+	type: 'setPluginData';
+	key: string;
+	data: any;
+}
+
+interface IPageUpdateSavedDataAction
+{
+	type: 'updateSavedData';
+	savedData: IFormData;
+}
+
+type PageAction =
+	IPageSetUsernameAction
+	| IPageSetPluginDataAction
+	| IPageUpdateSavedDataAction
+;
+
+function reducer(state: IPageState, action: PageAction): IPageState
+{
+	let { savedData } = state;
+	const { data } = state;
+	let { username } = data;
+	const pluginData = {...data.pluginData};
+	
+	if (action.type === 'setUsername')
+	{
+		username = action.username;
+	}
+	else if (action.type === 'setPluginData')
+	{
+		const { key, data } = action;
+		pluginData[key] = data;
+	}
+	else if (action.type === 'updateSavedData')
+	{
+		savedData = action.savedData;
+	}
+	else
+	{
+		throw new Error('Unknown action type');
+	}
+
+	return { savedData, data: {
+		username, user_id: savedData.user_id, pluginData
+	} };
+}
+
+interface IPageModel
+{
+	errorMsg?: string|null;
+	user: IUser;
+	patterns: IPatterns;
+	authPlugins: IAuthPluginData[];
+}
+
+interface IPageProps extends IPageModel
+{
+	pluginModules: { [key: string]: IAuthPluginScriptModule };
+}
+
 function Page(props: IPageProps)
 {
-	const { user, patterns, authPlugins } = props;
+	const { user, patterns, authPlugins, pluginModules } = props;
 
 	const [errorMsg, setErrorMsg] = useState(props.errorMsg);
 
-	const [uname, unameOnChange] = useElemState(user.username);
-	const [savedUname, setSavedUname] = useState(user.username);
-	const refIsInit = useRef(true);
-
 	const userId = user.id;
 
-	const initFormData: IFormData = {
-		username: uname,
-		user_id: userId,
-		pluginData: {}
-	};
+	const initState = useMemo(() => {
+		const data: IFormData = {
+			username: user.username,
+			user_id: userId,
+			pluginData: {}
+		};
 
-	const formData = useRef(initFormData);
+		const pluginHasChange: { [key: string]: boolean } = {};
 
-	// keep form data in sync
-	useEffect(() => {
-		formData.current.username = uname;
-	}, [uname]);
+		for (const p of authPlugins)
+		{
+			data.pluginData[p.key] = p.data;
+			pluginHasChange[p.key] = false;
+		}
 
-	let anyHasChange = false;
+		return { data, savedData: data, pluginHasChange };
+	}, [user, userId, authPlugins]);
+
+	const [state, dispatch] = useReducer(reducer, initState); 
+
+	const { data, savedData } = state;
+
 	const plugins: ReactNode[] = [];
-	const setSavedDataMap = useRef(new Map());
-	const dataRefMap = useRef(new Map<string, any>());
+	let pluginHasChange = false;
 
 	for (const p of authPlugins)
 	{
-		const [hasChange, setHasChange] = useState(false);
-		const dataCopy = useMemo(() => structuredClone(p.data), []);
-		const [savedData, setSavedData] = useState(dataCopy);
-		const dataRef = useRef(p.data);
+		const { modelEquals, UserEditor } = pluginModules[p.key];
+		pluginHasChange = pluginHasChange
+			|| !modelEquals(data.pluginData[p.key], savedData.pluginData[p.key]);
 
-		useEffect(() => {
-			formData.current.pluginData[p.key] = savedData;
-		}, [p.key, savedData]);
-
-		if (refIsInit.current)
-		{
-			setSavedDataMap.current.set(p.key, setSavedData);
-			dataRefMap.current.set(p.key, dataRef);
-		}
-
-		anyHasChange = anyHasChange || hasChange;
-		plugins.push(<AuthPluginEditor
-			key={p.key}
-			script={p.script}
-			title={p.title}
-			savedData={savedData}
-			dataRef={dataRef}
-			setHasChange={setHasChange}
-		/>);
+		plugins.push(<section
+				className="section"
+				key={p.key}
+				>
+				<h3> {p.title} </h3>
+				<UserEditor
+					data={data.pluginData[p.key]}
+					setData={(data: any) => dispatch(
+						{ type: 'setPluginData', key: p.key, data }
+					)}
+				/>
+		</section>);
 	}
 
 	const onSave = useCallback(async () => {
-		const submittedData = { ...formData.current };
-
-		dataRefMap.current.forEach((dataRef, key) => {
-			submittedData.pluginData[key] = dataRef.current;
-		});
+		const submittedData = structuredClone(data);
 		
 		const { errorMsg } = await postJson<ISaveReponse>('/site/admin/users', {
 			body: submittedData,
@@ -202,17 +237,16 @@ function Page(props: IPageProps)
 		if (errorMsg)
 			return;
 
-		setSavedUname(submittedData.username);
-		for (const key in submittedData.pluginData)
-		{
-			setSavedDataMap.current.get(key)(submittedData.pluginData[key]);
-		}
+		dispatch({ type: 'updateSavedData', savedData: submittedData });
 		
+	}, [data]);
+
+	const hasChange = data.username !== savedData.username
+		|| pluginHasChange;
+
+	const setUsername = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+		dispatch({ type: 'setUsername', username: e.target.value });
 	}, []);
-
-	anyHasChange = anyHasChange || uname !== savedUname;
-
-	refIsInit.current = false;
 
 	return <React.Fragment>
 		<ModalErrorMsg msg={errorMsg || null} />
@@ -220,41 +254,48 @@ function Page(props: IPageProps)
 		<h1> Edit User </h1>
 		<p>
 			<label>
-				<input type="checkbox" readOnly checked={!anyHasChange} />
+				<input type="checkbox" readOnly checked={!hasChange} />
 				Saved
 			</label>
 		</p>
-		<AutoSaveForm onSave={onSave} hasChange={anyHasChange}>
-		<input
-			className="vanish"
-			disabled={!anyHasChange}
-			type="submit"
-			name="action"
-			value="Save"
-		/>
+		<AutoSaveForm onSave={onSave} hasChange={hasChange}>
+			<div className="section-container">
 
-		<div className="section-container">
+				<section className="section">
+					<h3> User Properties </h3>
+					<label> username:
+						<input type="text"
+							className="editable"
+							name="username"
+							title="Enter a username (letters, numbers, or underscores)"
+							pattern={patterns.username}
+							value={data.username}
+							onChange={setUsername}
+							required
+							/>
+					</label>
+				</section>
 
-			<section className="section">
-				<h3> User Properties </h3>
-				<label> username:
-					<input type="text"
-						className="editable"
-						name="username"
-						title="Enter a username (letters, numbers, or underscores)"
-						pattern={patterns.username}
-						value={uname}
-						onChange={unameOnChange}
-						required
-						/>
-				</label>
-			</section>
-
-			{plugins}
-		</div>
+				{plugins}
+			</div>
 
 		</AutoSaveForm>
 	</React.Fragment>;
 }
 
-renderReactPage<IPageProps>(model => <Page {...model} />);
+renderReactPage<IPageModel>(async (model) => {
+	const promises: Promise<void>[] = [];
+	const modules: { [key: string]: IAuthPluginScriptModule } = {};
+
+	for (const p of model.authPlugins)
+	{
+		promises.push(new Promise(async (res) => {
+			modules[p.key] = await requireAsync<IAuthPluginScriptModule>(p.script);
+			res();
+		}));
+	}
+
+	await Promise.all(promises);
+
+	return <Page {...model} pluginModules={modules} />;
+});

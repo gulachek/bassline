@@ -1,10 +1,9 @@
-import { FC, MutableRefObject } from 'react';
+import { FC } from 'react';
 
 export interface IAuthPluginUserEditProps<TData>
 {
-	savedData: TData;
-	dataRef: MutableRefObject<TData>;
-	setHasChange(hasChange: boolean): void;
+	data: any;
+	setData(data: any): void;
 }
 
 export type AuthPluginUserEditComponent<TData = any> = FC<IAuthPluginUserEditProps<TData>>;
