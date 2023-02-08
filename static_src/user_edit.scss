@@ -1,8 +1,18 @@
 @import '/static/clickable.css';
 
 .main {
-	min-width: 6in;
-	margin: 0 auto;
+	text-align: center;
+}
+
+.section-container {
+	display: flex;
+	justify-content: center;
+}
+
+.section {
+	border: solid 1px;
+	padding: 1em;
+	margin: 1em;
 }
 
 .vanish {

@@ -69,10 +69,10 @@ const AuthPluginEditor: FC<IAuthPluginEditorProps> = (props, ref) =>
 			setHasChange={props.setHasChange}
 	/>;
 	
-	return <fieldset>
-		<legend> {title} </legend>
+	return <section className="section">
+		<h3> {title} </h3>
 		{editor}
-	</fieldset>;
+	</section>;
 };
 
 function ModalErrorMsg(props: {msg: string|null})
@@ -222,28 +222,32 @@ function Page(props: IPageProps)
 
 		<form onSubmit={submitForm}>
 		<input
-			className="vanish clickable"
+			className="vanish"
 			disabled={!anyHasChange}
 			type="submit"
 			name="action"
 			value="Save"
 		/>
 
-		<div>
-			<label> username:
-				<input type="text"
-					className="editable"
-					name="username"
-					title="Enter a username (letters, numbers, or underscores)"
-					pattern={patterns.username}
-					value={uname}
-					onChange={unameOnChange}
-					required
-					/>
-			</label>
-		</div>
+		<div className="section-container">
 
-		{plugins}
+			<section className="section">
+				<h3> User Properties </h3>
+				<label> username:
+					<input type="text"
+						className="editable"
+						name="username"
+						title="Enter a username (letters, numbers, or underscores)"
+						pattern={patterns.username}
+						value={uname}
+						onChange={unameOnChange}
+						required
+						/>
+				</label>
+			</section>
+
+			{plugins}
+		</div>
 
 		<div>
 			<input
