@@ -16,6 +16,7 @@ import {
 import { renderReactPage } from './renderReactPage';
 import { postJson } from './postJson';
 import { OneVisibleChild } from './containers';
+import { AutoSaveForm } from './autosave/AutoSaveForm';
 
 import './group_edit.scss';
 
@@ -264,98 +265,6 @@ function GroupProperties(props: IGroupPropertiesProps)
 	</section>;
 }
 
-interface IDebounceTimerArgs
-{
-	// every time this is called, delay timer by ms
-	debounceMs: number,
-	// if total delay time exceeds this number, trigger timer
-	maxDebounceMs: number
-}
-
-class DebounceTimer
-{
-	private debounceMs: number = 0;
-	private maxDebounceMs: number = 0;
-	private triggerDeadline: number = -1;
-	private lastDebounce: number = -1;
-	private isActive: boolean;
-	private fn?: () => any;
-	
-	public constructor(args: IDebounceTimerArgs)
-	{
-		this.debounceMs = args.debounceMs;
-		this.maxDebounceMs = args.maxDebounceMs;
-		this.isActive = false;
-	}
-
-	private get nowMs(): number
-	{
-		return (new Date()).getTime();
-	}
-
-	public restart(fn: () => any): void
-	{
-		const now = this.nowMs;
-		this.fn = fn;
-
-		this.lastDebounce = now;
-		if (!this.isActive)
-		{
-			this.triggerDeadline = now + this.maxDebounceMs;
-			this.isActive = true;
-		}
-		this.doDebounce();
-	}
-
-	public stop(): void
-	{
-		this.isActive = false;
-	}
-
-	private doDebounce(): boolean
-	{
-		if (!this.isActive)
-			return false;
-
-		const now = this.nowMs;
-
-		if (now > this.triggerDeadline)
-		{
-			this.trigger();
-			return true;
-		}
-
-		const lastDebounce = this.lastDebounce;
-		if ((now - lastDebounce) > this.debounceMs)
-		{
-			this.trigger();
-			return true;
-		}
-
-		setTimeout(() => this.doDebounce(), this.debounceMs);
-		return false;
-	}
-
-	private trigger(): void
-	{
-		this.fn && this.fn();
-		delete this.fn;
-		this.isActive = false;
-	}
-}
-
-interface IPreventUnload
-{
-	preventDefault(): any;
-	returnValue?: string;
-}
-
-function preventUnload(e: IPreventUnload): string
-{
-	e.preventDefault();
-	return e.returnValue = '';
-}
-
 function Page(props: IPageModel)
 {
 	const initialState = {
@@ -372,13 +281,7 @@ function Page(props: IPageModel)
 
 	const hasChange = !groupsAreEqual(group, savedGroup);
 
-	const timer = useRef(new DebounceTimer({
-		debounceMs: 500,
-		maxDebounceMs: 5000
-	}));
-
-	const onSave = useCallback(async (e?: FormEvent) => {
-		e?.preventDefault(); // we'll send our own request
+	const onSave = useCallback(async () => {
 		dispatch({ type: 'beginSave' });
 
 		const response = await postJson<ISaveResponse>('./save', { body: group });
@@ -386,20 +289,7 @@ function Page(props: IPageModel)
 		dispatch({ type: 'endSave', response });
 	}, [id, group]);
 
-	useEffect(() => {
-		if (hasChange)
-		{
-			timer.current.restart(() => onSave());
-			window.addEventListener('beforeunload', preventUnload);
-		}
-		else
-		{
-			timer.current.stop();
-			window.removeEventListener('beforeunload', preventUnload);
-		}
-	});
-
-	return <form onSubmit={onSave}>
+	return <AutoSaveForm onSave={onSave} hasChange={hasChange}>
 		<GroupDispatchContext.Provider value={dispatch}>
 			<div className="header">
 				<h1> Edit group </h1>
@@ -419,7 +309,7 @@ function Page(props: IPageModel)
 
 			</div>
 		</GroupDispatchContext.Provider>
-	</form>;
+	</AutoSaveForm>;
 }
 
 renderReactPage<IPageModel>(model => <Page {...model} />);

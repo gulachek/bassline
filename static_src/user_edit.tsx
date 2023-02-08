@@ -17,6 +17,7 @@ import { renderReactPage } from './renderReactPage';
 import { postJson } from './postJson';
 import { requireAsync } from './requireAsync';
 import { AuthPluginUserEditComponent } from './authPluginUserEdit';
+import { AutoSaveForm } from './autosave/AutoSaveForm';
 
 import './user_edit.scss';
 
@@ -182,9 +183,7 @@ function Page(props: IPageProps)
 		/>);
 	}
 
-	const submitForm = useCallback(async (e: FormEvent) => {
-		e.preventDefault(); // don't actually navigate page
-
+	const onSave = useCallback(async () => {
 		const submittedData = { ...formData.current };
 
 		dataRefMap.current.forEach((dataRef, key) => {
@@ -219,8 +218,13 @@ function Page(props: IPageProps)
 		<ModalErrorMsg msg={errorMsg || null} />
 
 		<h1> Edit User </h1>
-
-		<form onSubmit={submitForm}>
+		<p>
+			<label>
+				<input type="checkbox" readOnly checked={!anyHasChange} />
+				Saved
+			</label>
+		</p>
+		<AutoSaveForm onSave={onSave} hasChange={anyHasChange}>
 		<input
 			className="vanish"
 			disabled={!anyHasChange}
@@ -249,17 +253,7 @@ function Page(props: IPageProps)
 			{plugins}
 		</div>
 
-		<div>
-			<input
-				className="clickable"
-				disabled={!anyHasChange}
-				type="submit"
-				name="action"
-				value="Save"
-			/>
-		</div>
-
-		</form>
+		</AutoSaveForm>
 	</React.Fragment>;
 }
 
