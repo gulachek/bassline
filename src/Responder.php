@@ -63,8 +63,12 @@ class RespondArg
 			return true;
 
 		$app = $app ?? $this->app_key;
+		$db = SecurityDatabase::fromConfig($this->config);
 
-		return false;
+		// should cache these
+		$caps = $db->loadUserAppCapabilities($this->user['id'], $app);
+
+		return in_array($cap, $caps);
 	}
 
 	public function renderPage(array $page_args): void

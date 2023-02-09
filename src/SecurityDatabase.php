@@ -263,6 +263,14 @@ class SecurityDatabase
 		return $this->db->queryRow('load-user-by-name', $username);
 	}
 
+	public function loadUserAppCapabilities(int $id, string $app): array
+	{
+		return $this->db->query('load-user-app-capabilities', [
+			':user_id' => $id,
+			':app' => $app
+		])->column('name');
+	}
+
 	public function loadGroups(): array
 	{
 		return $this->db->query('load-groups')->indexById();
