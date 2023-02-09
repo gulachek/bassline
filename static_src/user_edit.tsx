@@ -189,6 +189,12 @@ interface IPageJoinGroupAction
 	inGroup: boolean;
 }
 
+interface IPageChangePrimaryGroupAction
+{
+	type: 'changePrimaryGroup';
+	groupId: number;
+}
+
 interface IPageSetPluginDataAction
 {
 	type: 'setPluginData';
@@ -207,6 +213,7 @@ type PageAction =
 	| IPageSetPluginDataAction
 	| IPageUpdateSavedDataAction
 	| IPageJoinGroupAction
+	| IPageChangePrimaryGroupAction
 ;
 
 function reducer(state: IPageState, action: PageAction): IPageState
@@ -245,6 +252,13 @@ function reducer(state: IPageState, action: PageAction): IPageState
 		{
 			groupSet.delete(action.groupId);
 		}
+	}
+	else if (action.type === 'changePrimaryGroup')
+	{
+		if (!groupSet.has(action.groupId))
+			throw new Error('Must set primary group to already joined group');
+
+		primary_group = action.groupId;
 	}
 	else
 	{
@@ -357,6 +371,17 @@ function Page(props: IPageProps)
 		dispatch({ type: 'setUsername', username: e.target.value });
 	}, []);
 
+	const setPrimaryGroup = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
+		const val = parseInt(e.target.value);
+		dispatch({ type: 'changePrimaryGroup', groupId: val });
+	}, []);
+
+	const primaryGroupOptions = data.user.groups.map((gid) => {
+		return <option value={gid} key={gid}>
+			{groups[`${gid}`].groupname}
+		</option>;
+	});
+
 	return <React.Fragment>
 		<UserDispatchContext.Provider value={dispatch}>
 		<ModalErrorMsg msg={errorMsg || null} />
@@ -373,17 +398,30 @@ function Page(props: IPageProps)
 
 				<section className="section">
 					<h3> User Properties </h3>
-					<label> username:
-						<input type="text"
-							className="editable"
-							name="username"
-							title="Enter a username (letters, numbers, or underscores)"
-							pattern={patterns.username}
-							value={data.user.username}
-							onChange={setUsername}
-							required
-							/>
-					</label>
+					<div>
+						<label> username:
+							<input type="text"
+								className="editable"
+								name="username"
+								title="Enter a username (letters, numbers, or underscores)"
+								pattern={patterns.username}
+								value={data.user.username}
+								onChange={setUsername}
+								required
+								/>
+						</label>
+					</div>
+					<div>
+						<label> Primary Group:
+							<select
+								onChange={setPrimaryGroup}
+								value={data.user.primary_group}
+							>
+								{primaryGroupOptions}
+							</select>
+						</label>
+					</div>
+				
 				</section>
 
 				<GroupMembership
