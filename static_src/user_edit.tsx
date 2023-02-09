@@ -6,6 +6,8 @@ import {
 	useCallback,
 	useState,
 	useReducer,
+	useContext,
+	createContext,
 	useImperativeHandle,
 	FormEvent,
 	ChangeEvent,
@@ -27,6 +29,8 @@ interface ISaveReponse
 {
 	errorMsg?: string|null;
 }
+
+const UserDispatchContext = createContext(null);
 
 type PluginDataEqualFn = (data: any, savedData: any) => boolean;
 
@@ -138,13 +142,18 @@ function GroupMembership(props: IGroupMembershipProps)
 	const { groupMembership, allGroups } = props;
 	const groupIds = Object.keys(allGroups);
 
+	const dispatch = useContext(UserDispatchContext);
+
 	const switches = groupIds.map((gid) => {
 		const { groupname, id } = allGroups[gid];
 		const inGroup = groupMembership.includes(id);
+		const onCheck = (e: ChangeEvent<HTMLInputElement>) => {
+			dispatch({ type: 'joinGroup', groupId: id, inGroup: e.target.checked });
+		};
 
 		return <div key={gid}>
 			<label>
-				<input type="checkbox" readOnly checked={inGroup} />
+				<input type="checkbox" checked={inGroup} onChange={onCheck} />
 				{groupname}
 			</label>
 		</div>;
@@ -168,6 +177,13 @@ interface IPageSetUsernameAction
 	username: string;
 }
 
+interface IPageJoinGroupAction
+{
+	type: 'joinGroup';
+	groupId: number;
+	inGroup: boolean;
+}
+
 interface IPageSetPluginDataAction
 {
 	type: 'setPluginData';
@@ -185,6 +201,7 @@ type PageAction =
 	IPageSetUsernameAction
 	| IPageSetPluginDataAction
 	| IPageUpdateSavedDataAction
+	| IPageJoinGroupAction
 ;
 
 function reducer(state: IPageState, action: PageAction): IPageState
@@ -194,6 +211,8 @@ function reducer(state: IPageState, action: PageAction): IPageState
 	const { user } = data;
 	let { username, groups, primary_group, id, is_superuser  } = user;
 	const pluginData = {...data.pluginData};
+
+	const groupSet = new Set(groups);
 	
 	if (action.type === 'setUsername')
 	{
@@ -208,10 +227,35 @@ function reducer(state: IPageState, action: PageAction): IPageState
 	{
 		savedData = action.savedData;
 	}
+	else if (action.type === 'joinGroup')
+	{
+		if (action.inGroup)
+		{
+			groupSet.add(action.groupId);
+		}
+		else
+		{
+			groupSet.delete(action.groupId);
+
+			if (action.groupId === primary_group)
+			{
+				if (groupSet.size < 1)
+				{
+					groupSet.add(action.groupId);
+				}
+				else
+				{
+					primary_group = Array.from(groupSet)[0];
+				}
+			}
+		}
+	}
 	else
 	{
 		throw new Error('Unknown action type');
 	}
+
+	groups = Array.from(groupSet);
 
 	return { savedData, data: {
 		user: {
@@ -318,6 +362,7 @@ function Page(props: IPageProps)
 	}, []);
 
 	return <React.Fragment>
+		<UserDispatchContext.Provider value={dispatch}>
 		<ModalErrorMsg msg={errorMsg || null} />
 
 		<h1> Edit User </h1>
@@ -354,6 +399,7 @@ function Page(props: IPageProps)
 			</div>
 
 		</AutoSaveForm>
+		</UserDispatchContext.Provider>
 	</React.Fragment>;
 }
 
