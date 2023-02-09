@@ -387,10 +387,41 @@ class SecurityDatabase
 			}
 		}
 
+		$found_primary = false;
+		foreach ($user->groups as $gid)
+		{
+			$group = $this->loadGroup($gid);
+			if (!$group)
+			{
+				$error = "Invalid group id $gid";
+				return;
+			}
+
+			if ($gid === $user->primary_group)
+				$found_primary = true;
+		}
+
+		if (!$found_primary)
+		{
+			$error = "Expected user groups to contain primary group";
+			return;
+		}
+
 		$this->db->query('save-user', [
 			':id' => $id,
 			':username' => $name,
-			':is_superuser' => $is_super
+			':is_superuser' => $is_super,
+			':primary_group' => $user->primary_group
 		]);
+
+		$this->db->query('forget-user-groups', $id);
+
+		foreach ($user->groups as $gid)
+		{
+			$this->db->query('join-group', [
+				':user' => $id,
+				':group' => $gid
+			]);
+		}
 	}
 }
