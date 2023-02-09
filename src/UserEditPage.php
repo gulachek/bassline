@@ -228,7 +228,8 @@ class UserEditPage extends Responder
 					'patterns' => [
 						'username' => self::USERNAME_PATTERN
 					],
-					'authPlugins' => $pluginData
+					'authPlugins' => $pluginData,
+					'groups' => $db->loadGroups()
 				];
 
 				ReactPage::render($arg, [

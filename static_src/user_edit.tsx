@@ -81,6 +81,8 @@ interface IUser
 {
 	id: number;
 	username: string;
+	groups: number[];
+	primary_group: number;
 }
 
 interface IPatterns
@@ -93,6 +95,43 @@ interface IFormData
 	username: string;
 	user_id: number;
 	pluginData: { [key: string]: any };
+}
+
+interface IGroup
+{
+	id: number;
+	groupname: string;
+}
+
+type Groups = { [id: string]: IGroup };
+
+interface IGroupMembershipProps
+{
+	groupMembership: number[];
+	allGroups: Groups;
+}
+
+function GroupMembership(props: IGroupMembershipProps)
+{
+	const { groupMembership, allGroups } = props;
+	const groupIds = Object.keys(allGroups);
+
+	const switches = groupIds.map((gid) => {
+		const { groupname, id } = allGroups[gid];
+		const inGroup = groupMembership.includes(id);
+
+		return <div key={gid}>
+			<label>
+				<input type="checkbox" readOnly checked={inGroup} />
+				{groupname}
+			</label>
+		</div>;
+	});
+
+	return <section className="section">
+		<h3> Group Membership </h3>
+		{switches}
+	</section>;
 }
 
 interface IPageState
@@ -162,6 +201,7 @@ interface IPageModel
 	user: IUser;
 	patterns: IPatterns;
 	authPlugins: IAuthPluginData[];
+	groups: Groups;
 }
 
 interface IPageProps extends IPageModel
@@ -171,7 +211,7 @@ interface IPageProps extends IPageModel
 
 function Page(props: IPageProps)
 {
-	const { user, patterns, authPlugins, pluginModules } = props;
+	const { user, patterns, authPlugins, pluginModules, groups } = props;
 
 	const [errorMsg, setErrorMsg] = useState(props.errorMsg);
 
@@ -275,6 +315,8 @@ function Page(props: IPageProps)
 							/>
 					</label>
 				</section>
+
+				<GroupMembership allGroups={groups} groupMembership={user.groups} />
 
 				{plugins}
 			</div>
