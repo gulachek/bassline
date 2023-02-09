@@ -81,8 +81,31 @@ interface IUser
 {
 	id: number;
 	username: string;
+	is_superuser: boolean;
 	groups: number[];
 	primary_group: number;
+}
+
+function userEquals(left: IUser, right: IUser)
+{
+	if (left.id !== right.id)
+		return false;
+
+	if (left.username !== right.username)
+		return false;
+
+	if (left.primary_group !== right.primary_group)
+		return false;
+
+	if (left.groups.length !== right.groups.length)
+		return false;
+
+	const rightSet = new Set(right.groups);
+	for (const gid of left.groups)
+		if (!rightSet.has(gid))
+			return false;
+
+	return true;
 }
 
 interface IPatterns
@@ -92,8 +115,7 @@ interface IPatterns
 
 interface IFormData
 {
-	username: string;
-	user_id: number;
+	user: IUser;
 	pluginData: { [key: string]: any };
 }
 
@@ -169,7 +191,8 @@ function reducer(state: IPageState, action: PageAction): IPageState
 {
 	let { savedData } = state;
 	const { data } = state;
-	let { username } = data;
+	const { user } = data;
+	let { username, groups, primary_group, id, is_superuser  } = user;
 	const pluginData = {...data.pluginData};
 	
 	if (action.type === 'setUsername')
@@ -191,7 +214,14 @@ function reducer(state: IPageState, action: PageAction): IPageState
 	}
 
 	return { savedData, data: {
-		username, user_id: savedData.user_id, pluginData
+		user: {
+			username,
+			id,
+			groups,
+			primary_group,
+			is_superuser
+		},
+		pluginData
 	} };
 }
 
@@ -219,8 +249,7 @@ function Page(props: IPageProps)
 
 	const initState = useMemo(() => {
 		const data: IFormData = {
-			username: user.username,
-			user_id: userId,
+			user,
 			pluginData: {}
 		};
 
@@ -281,7 +310,7 @@ function Page(props: IPageProps)
 		
 	}, [data]);
 
-	const hasChange = data.username !== savedData.username
+	const hasChange = !userEquals(data.user, savedData.user)
 		|| pluginHasChange;
 
 	const setUsername = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -309,14 +338,17 @@ function Page(props: IPageProps)
 							name="username"
 							title="Enter a username (letters, numbers, or underscores)"
 							pattern={patterns.username}
-							value={data.username}
+							value={data.user.username}
 							onChange={setUsername}
 							required
 							/>
 					</label>
 				</section>
 
-				<GroupMembership allGroups={groups} groupMembership={user.groups} />
+				<GroupMembership
+					allGroups={groups}
+					groupMembership={data.user.groups}
+				/>
 
 				{plugins}
 			</div>

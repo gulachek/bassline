@@ -6,7 +6,7 @@ CREATE TABLE props (
 CREATE TABLE users (
 	id INTEGER PRIMARY KEY,
 	username TEXT UNIQUE NOT NULL,
-	is_superuser INTEGER, -- user can do anything
+	is_superuser INTEGER NOT NULL DEFAULT 0, -- user can do anything
 	primary_group INTEGER NOT NULL
 );
 

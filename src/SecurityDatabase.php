@@ -32,13 +32,14 @@ class SecurityDatabase
 		$group = $this->createGroup('staff', $err);
 		if (!$group) return $err;
 
-		$user = $this->createUser('admin', $group['id'], $err);
-		if (!$user) return $err;
+		$user = $this->createUser(
+			'admin',
+			$group['id'],
+			$err,
+			is_superuser: true,
+		);
 
-		// make super user
-		$user['is_superuser'] = true;
-		$this->saveUser($user, $err);
-		if ($err) return $err;
+		if (!$user) return $err;
 
 		// add gmail
 		$this->saveGmail($user['id'], [$email], $err);
@@ -320,7 +321,12 @@ class SecurityDatabase
 		}
 	}
 
-	public function createUser(string $username, int $group_id, ?string &$err): ?array
+	public function createUser(
+		string $username,
+		int $group_id,
+		?string &$err,
+		bool $is_superuser = false,
+	): ?array
 	{
 		$current = $this->loadUserByName($username);
 		if (!is_null($current))
@@ -338,13 +344,14 @@ class SecurityDatabase
 
 		$this->db->query('add-user', [
 			':username' => $username,
-			':group' => $group_id
+			':group' => $group_id,
+			':is_superuser' => $is_superuser
 		]);
 
 		$id = $this->db->lastInsertRowId();
 		$this->db->query('join-group', [
 			':user' => $id,
-			':group' => $group_id
+			':group' => $group_id,
 		]);
 
 		return $this->loadUser($id);
@@ -363,15 +370,13 @@ class SecurityDatabase
 		return $this->db->loadRowUnsafe('groups', $this->db->lastInsertRowId());
 	}
 
-	public function saveUser(array $user, ?string &$error): void
+	public function saveUser(User $user, ?string &$error): void
 	{
-		// TODO: this should be same name as column or at least consistent
-		$id = $user['id'];
-		$name = $user['name'] ?? $user['username'];
+		$id = $user->id;
+		$name = $user->username;
 
 		$current = $this->loadUser($id);
-		$is_super = $user['is_superuser'] ?? $current['is_superuser'];
-
+		$is_super = $user->is_superuser;
 
 		if ($current['username'] !== $name)
 		{
@@ -383,7 +388,7 @@ class SecurityDatabase
 		}
 
 		$this->db->query('save-user', [
-			':id' => $user['id'],
+			':id' => $id,
 			':username' => $name,
 			':is_superuser' => $is_super
 		]);

@@ -9,6 +9,16 @@ function is_json_obj(mixed $obj): bool
 	return is_array($obj) && !array_is_list($obj);
 }
 
+class UserSaveRequest
+{
+	public function __construct(
+		public User $user,
+		public array $pluginData
+	)
+	{
+	}
+}
+
 class UserEditPage extends Responder
 {
 	const USERNAME_PATTERN = "^[a-zA-Z0-9_]+$";
@@ -90,26 +100,6 @@ class UserEditPage extends Responder
 		];
 	}
 
-	private function parseJsonArray(?string &$error): ?array
-	{
-		$post = file_get_contents('php://input');
-		if (!$post)
-		{
-			$error = 'No post body';
-			return null;
-		}
-
-		$obj = json_decode($post, true);
-
-		if (!is_json_obj($obj))
-		{
-			$error = 'Invalid JSON object';
-			return null;
-		}
-
-		return $obj;
-	}
-
 	private function parsePluginSaveData(?string &$error, array $obj): ?array
 	{
 		$pdata = $obj['pluginData'];
@@ -138,31 +128,15 @@ class UserEditPage extends Responder
 		return $pdata;
 	}
 
-	private function parseSaveJson(?string &$error,
-		?array &$user, ?array &$plugin_data): bool
+	private function doSave(SecurityDatabase $db, UserSaveRequest $save): ?string
 	{
-		$obj = $this->parseJsonArray($error);
-		if (!$obj)
-			return false;
-
-		$user = $this->parseUser($error, $obj);
-		if (!$user) return false;
-		$plugin_data = $this->parsePluginSaveData($error, $obj);
-		return !!$plugin_data;
-	}
-
-	private function doSave(SecurityDatabase $db): ?string
-	{
-		if (!$this->parseSaveJson($error, $user, $plugin_data))
-			return $error;
-
-		$db->saveUser($user, $error);
+		$db->saveUser($save->user, $error);
 		if ($error) return $error;
 
-		foreach ($plugin_data as $key => $data)
+		foreach ($save->pluginData as $key => $data)
 		{
 			$p = $this->auth_plugins[$key];
-			if (!$p->invokeSaveUserEditData($user['id'], $data, $db, $error))
+			if (!$p->invokeSaveUserEditData($save->user->id, $data, $db, $error))
 				return $error;
 		}
 
@@ -263,7 +237,9 @@ class UserEditPage extends Responder
 		}
 		else if ($action === 'save')
 		{
-			$error = $this->doSave($db);
+			$save = $arg->parseBody(UserSaveRequest::class);
+
+			$error = $this->doSave($db, $save);
 
 			echo json_encode([
 				'errorMsg' => $error
