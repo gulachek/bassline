@@ -466,6 +466,7 @@ class ShellApp extends App
 			return null;
 		}
 
+		$name_pattern = UserEditPage::USERNAME_PATTERN;
 		$path = $arg->path;
 		$db = SecurityDatabase::fromConfig($this->config);
 
@@ -486,9 +487,23 @@ class ShellApp extends App
 				'template' => __DIR__ . '/../template/group_select.php',
 				'title' => 'Select a group',
 				'args' => [
-					'groups' => $groups
+					'groups' => $groups,
+					'name_pattern' => $name_pattern
 				]
 			]);
+		}
+		else if ($action === 'create')
+		{
+			$groupname = $_REQUEST['groupname'] ?? 'new_group';
+			if (!preg_match("/^$name_pattern$/", $groupname))
+			{
+				http_response_code(400);
+				echo "bad groupname";
+				return null;
+			}
+
+			$group = $db->createGroup($groupname, $err);
+			return new Redirect("/site/admin/groups/edit?id={$group['id']}");
 		}
 		else if ($action === 'edit')
 		{
