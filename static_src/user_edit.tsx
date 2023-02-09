@@ -135,11 +135,12 @@ interface IGroupMembershipProps
 {
 	groupMembership: number[];
 	allGroups: Groups;
+	primaryId: number;
 }
 
 function GroupMembership(props: IGroupMembershipProps)
 {
-	const { groupMembership, allGroups } = props;
+	const { groupMembership, allGroups, primaryId } = props;
 	const groupIds = Object.keys(allGroups);
 
 	const dispatch = useContext(UserDispatchContext);
@@ -153,7 +154,11 @@ function GroupMembership(props: IGroupMembershipProps)
 
 		return <div key={gid}>
 			<label>
-				<input type="checkbox" checked={inGroup} onChange={onCheck} />
+				<input type="checkbox"
+					checked={inGroup}
+					onChange={onCheck}
+					disabled={id === primaryId}
+				/>
 				{groupname}
 			</label>
 		</div>;
@@ -229,6 +234,9 @@ function reducer(state: IPageState, action: PageAction): IPageState
 	}
 	else if (action.type === 'joinGroup')
 	{
+		if (action.groupId === primary_group)
+			throw new Error('Cannot edit primary group membership');
+
 		if (action.inGroup)
 		{
 			groupSet.add(action.groupId);
@@ -236,18 +244,6 @@ function reducer(state: IPageState, action: PageAction): IPageState
 		else
 		{
 			groupSet.delete(action.groupId);
-
-			if (action.groupId === primary_group)
-			{
-				if (groupSet.size < 1)
-				{
-					groupSet.add(action.groupId);
-				}
-				else
-				{
-					primary_group = Array.from(groupSet)[0];
-				}
-			}
 		}
 	}
 	else
@@ -393,6 +389,7 @@ function Page(props: IPageProps)
 				<GroupMembership
 					allGroups={groups}
 					groupMembership={data.user.groups}
+					primaryId={data.user.primary_group}
 				/>
 
 				{plugins}
