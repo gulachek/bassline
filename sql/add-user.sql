@@ -1,1 +1,1 @@
-INSERT INTO users (username) VALUES (?);
+INSERT INTO users (username,primary_group) VALUES (:username,:group);

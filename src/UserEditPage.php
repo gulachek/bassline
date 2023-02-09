@@ -198,6 +198,7 @@ class UserEditPage extends Responder
 				'template' => __DIR__ . '/../template/user_edit_select.php',
 				'args' => [
 					'users' => $db->loadUsers(),
+					'groups' => $db->loadGroups(),
 					'error' => $ERROR,
 					'username_pattern' => self::USERNAME_PATTERN
 				]
@@ -246,13 +247,14 @@ class UserEditPage extends Responder
 		else if ($action === 'create')
 		{
 			$username = $this->parseUserName('username', $error);
+			$group_id = $this->parseId('group_id', $error);
 			if (is_null($username))
 			{
 				$error = $error ?? 'No username specified';
 			}
 			else
 			{
-				$user = $db->createUser($username, $error);
+				$user = $db->createUser($username, $group_id, $error);
 
 				if ($user)
 					$user_id = $user['id'];

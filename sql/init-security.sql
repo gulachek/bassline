@@ -6,7 +6,8 @@ CREATE TABLE props (
 CREATE TABLE users (
 	id INTEGER PRIMARY KEY,
 	username TEXT UNIQUE NOT NULL,
-	is_superuser INTEGER -- user can do anything
+	is_superuser INTEGER, -- user can do anything
+	primary_group INTEGER NOT NULL
 );
 
 CREATE TABLE groups (
@@ -14,6 +15,7 @@ CREATE TABLE groups (
 	groupname TEXT UNIQUE NOT NULL
 );
 
+-- Primary group is redundant for query simplicity
 CREATE TABLE group_membership (
 	user_id INTEGER NOT NULL,
 	group_id INTEGER NOT NULL

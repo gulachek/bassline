@@ -30,6 +30,12 @@
 	value="new_user"
 	required
 	/>
+
+<select name="group_id">
+<?php foreach ($TEMPLATE['groups'] as $id => $group): ?>
+	<option value="<?=$id?>"> <?=text($group['groupname'])?> </option>
+<?php endforeach; ?>
+</select>
 	
 <input type="submit" name="action" value="Create" class="clickable" />
 </form>

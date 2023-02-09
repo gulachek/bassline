@@ -29,8 +29,10 @@ class SecurityDatabase
 
 		$this->db->exec('init-security');
 
-		// create admin
-		$user = $this->createUser('admin', $err);
+		$group = $this->createGroup('staff', $err);
+		if (!$group) return $err;
+
+		$user = $this->createUser('admin', $group['id'], $err);
 		if (!$user) return $err;
 
 		// make super user
@@ -316,7 +318,7 @@ class SecurityDatabase
 		}
 	}
 
-	public function createUser(string $username, ?string &$err): ?array
+	public function createUser(string $username, int $group_id, ?string &$err): ?array
 	{
 		$current = $this->loadUserByName($username);
 		if (!is_null($current))
@@ -325,7 +327,18 @@ class SecurityDatabase
 			return null;
 		}
 
-		$this->db->query('add-user', $username);
+		$group = $this->loadGroup($group_id);
+		if (!$group)
+		{
+			$err = "Group $group_id does not exist";
+			return null;
+		}
+
+		$this->db->query('add-user', [
+			':username' => $username,
+			':group' => $group_id
+		]);
+
 		return $this->db->loadRowUnsafe('users', $this->db->lastInsertRowId());
 	}
 
