@@ -223,7 +223,9 @@ class SecurityDatabase
 
 	public function loadUser(int $user_id): ?array
 	{
-		return $this->db->queryRow('load-user', $user_id);
+		$user = $this->db->queryRow('load-user', $user_id);
+		$user['groups'] = $this->db->query('load-user-groups', $user_id)->column('group_id');
+		return $user;
 	}
 
 	public function loadGmail(int $user_id): array
@@ -339,7 +341,13 @@ class SecurityDatabase
 			':group' => $group_id
 		]);
 
-		return $this->db->loadRowUnsafe('users', $this->db->lastInsertRowId());
+		$id = $this->db->lastInsertRowId();
+		$this->db->query('join-group', [
+			':user' => $id,
+			':group' => $group_id
+		]);
+
+		return $this->loadUser($id);
 	}
 
 	public function createGroup(string $groupname, ?string &$err): ?array
