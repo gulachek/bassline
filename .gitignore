@@ -1,4 +1,5 @@
 vendor
 assets
 node_modules
+__pycache__
 *.swp
