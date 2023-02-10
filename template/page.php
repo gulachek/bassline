@@ -23,7 +23,7 @@
 
 <?php if (isset($USER)): ?>
 	<div class="menu">
-		<span><?= text($USERNAME) ?></span>
+		<span class="username"><?= text($USERNAME) ?></span>
 		<div class="items">
 			<a href="/site/admin/"> Admin </a>
 			<a href="/logout/"> Log out </a>

@@ -8,9 +8,9 @@
 
 <p> Choose an authentication method. </p>
 
-<nav-tab>
+<nav-tab class="tab-strip">
 <?php foreach ($TEMPLATE['plugins'] as $key => $plugin): ?>
-	<tab-item title="<?=text($plugin->title())?>">
+	<tab-item key="<?=text($key)?>" title="<?=text($plugin->title())?>">
 		<?php $plugin->invokeRenderLoginForm($key); ?>
 	</tab-item>
 <?php endforeach; ?>

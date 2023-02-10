@@ -19,6 +19,7 @@ class NavigationTab extends HTMLElement
 
 	panels;
 	tabs;
+	keyToIndex;
 	cachedSelection;
 
 	constructor()
@@ -28,6 +29,7 @@ class NavigationTab extends HTMLElement
 		this.mut = new MutationObserver(this.onMutation.bind(this));
 		this.panels = [];
 		this.tabs = [];
+		this.keyToIndex = new Map();
 	}
 
 	connectedCallback()
@@ -87,12 +89,21 @@ class NavigationTab extends HTMLElement
 		}
 	}
 
+	activateTab(key)
+	{
+		if (!this.keyToIndex.has(key))
+			throw new Error(`Invalid tab key ${key}`);
+
+		this.onClick(this.keyToIndex.get(key));
+	}
+
 	addTabItem(tabItem)
 	{
 		if (!(tabItem instanceof TabItem))
 			throw new Error('nav-tab only supports tab-item children');
 
 		const index = this.tabs.length;
+		this.keyToIndex.set(tabItem.key, index);
 
 		const option = document.createElement('option');
 		option.value = index;
@@ -213,6 +224,11 @@ class TabItem extends HTMLElement
 	get title()
 	{
 		return this.getAttribute('title');
+	}
+
+	get key()
+	{
+		return this.getAttribute('key');
 	}
 }
 
