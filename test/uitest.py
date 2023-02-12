@@ -22,12 +22,19 @@ class TestLogin(unittest.TestCase):
         cls._driver = webdriver.Chrome()
 
     @classmethod
+    def currentUri(cls):
+        return cls._driver.current_url
+
+    @classmethod
     def tearDownClass(cls):
         cls._driver.close()
 
     def setUp(self):
         self.site = Site(uri, TestLogin._driver)
         self.site.logOut()
+
+    def assertUri(self, uri):
+        self.assertEqual(TestLogin.currentUri(), uri)
 
     def test_username_matches_user(self):
         self.site.logInAsUser('gulachek')
@@ -37,6 +44,13 @@ class TestLogin(unittest.TestCase):
         self.site.logInAsUser('gulachek')
         self.site.logOut()
         self.assertIsNone(self.site.currentUsername())
+
+    def test_login_redirects_to_original_page(self):
+        self.site.gotoHelloPage()
+        uri = TestLogin.currentUri()
+        self.site.clickLoginLink()
+        self.site.logInAsUser('gulachek')
+        self.assertUri(uri)
 
 if __name__ == '__main__':
     unittest.main()

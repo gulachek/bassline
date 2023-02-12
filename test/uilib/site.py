@@ -9,6 +9,14 @@ class Site:
     def gotoLoginPage(self):
         self.driver.get(f"{self.uri}/login/")
 
+    def clickLoginLink(self):
+        login = self.driver.find_elements(By.CLASS_NAME, 'login')
+        assert len(login) > 0
+        login[0].click()
+
+    def gotoHelloPage(self):
+        self.driver.get(f"{self.uri}/hello/")
+
     def currentUsername(self):
         unames = self.driver.find_elements(By.CLASS_NAME, 'username')
         return unames[0].text if len(unames) > 0 else None
@@ -17,7 +25,8 @@ class Site:
         self.driver.get(f"{self.uri}/logout/")
 
     def logInAsUser(self, username):
-        self.gotoLoginPage()
+        if self.driver.current_url != f"{self.uri}/login/":
+            self.gotoLoginPage()
 
         # TODO: put this in a LoginPage class
 
