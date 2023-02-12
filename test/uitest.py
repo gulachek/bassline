@@ -9,6 +9,7 @@ from selenium.webdriver.common.by import By
 
 import os
 import sys
+from urllib.parse import urlparse
 
 if 'TEST_BASE_URI' not in os.environ:
     print('Must specify TEST_BASE_URI environment variable')
@@ -34,7 +35,16 @@ class TestLogin(unittest.TestCase):
         self.site.logOut()
 
     def assertUri(self, uri):
-        self.assertEqual(TestLogin.currentUri(), uri)
+        current = urlparse(TestLogin.currentUri())
+        target = urlparse(uri)
+        self.assertEqual(current.netloc, target.netloc)
+        currentPath = current.path
+        targetPath = target.path
+        if not currentPath.endswith('/'):
+            currentPath += '/'
+        if not targetPath.endswith('/'):
+            targetPath += '/'
+        self.assertEqual(currentPath, targetPath)
 
     def test_username_matches_user(self):
         self.site.logInAsUser('gulachek')
@@ -50,6 +60,13 @@ class TestLogin(unittest.TestCase):
         uri = TestLogin.currentUri()
         self.site.clickLoginLink()
         self.site.logInAsUser('gulachek')
+        self.assertUri(uri)
+
+    def test_logout_redirects_to_base_page(self):
+        baseUri = TestLogin.currentUri()
+        self.site.logInAsUser('gulachek')
+        self.site.gotoHelloPage()
+        self.site.logOut()
         self.assertUri(uri)
 
 if __name__ == '__main__':

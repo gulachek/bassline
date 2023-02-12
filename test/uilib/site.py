@@ -25,7 +25,7 @@ class Site:
         self.driver.get(f"{self.uri}/logout/")
 
     def logInAsUser(self, username):
-        if self.driver.current_url != f"{self.uri}/login/":
+        if not self.driver.current_url.endswith('/login/'):
             self.gotoLoginPage()
 
         # TODO: put this in a LoginPage class
