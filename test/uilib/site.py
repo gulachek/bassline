@@ -10,8 +10,11 @@ class Site:
         self.driver.get(f"{self.uri}/login/")
 
     def currentUsername(self):
-        uname = self.driver.find_element(By.CLASS_NAME, 'username')
-        return uname.text
+        unames = self.driver.find_elements(By.CLASS_NAME, 'username')
+        return unames[0].text if len(unames) > 0 else None
+
+    def logOut(self):
+        self.driver.get(f"{self.uri}/logout/")
 
     def logInAsUser(self, username):
         self.gotoLoginPage()
