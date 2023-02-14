@@ -9,6 +9,8 @@ from selenium.webdriver.common.by import By
 
 import os
 import sys
+import subprocess
+from pathlib import Path
 from urllib.parse import urlparse
 
 if 'TEST_BASE_URI' not in os.environ:
@@ -16,19 +18,39 @@ if 'TEST_BASE_URI' not in os.environ:
     sys.exit(1)
 
 uri = os.environ['TEST_BASE_URI']
+dirname = os.path.dirname(__file__)
+rootDir = os.path.dirname(dirname) # we know the source structure 😂
+testData = Path(dirname) / 'data'
 
 class TestLogin(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls._driver = webdriver.Chrome()
+        [os.remove(p) for p in testData.iterdir()]
 
-    @classmethod
-    def currentUri(cls):
-        return cls._driver.current_url
+        # Init database
+        subprocess.run([
+            'php', 
+            f"{rootDir}/entry/init.php",
+            f"{rootDir}/test/config.php"
+            ]) 
+
+        # Spawn web server
+        netloc = urlparse(uri).netloc
+        cls._webServer = subprocess.Popen(
+            args=['php', '-S', netloc, f"{rootDir}/test/server.php"],
+            stderr=subprocess.PIPE
+            )
+        
+        cls._driver = webdriver.Chrome()
 
     @classmethod
     def tearDownClass(cls):
         cls._driver.close()
+        cls._webServer.kill()
+
+    @classmethod
+    def currentUri(cls):
+        return cls._driver.current_url
 
     def setUp(self):
         self.site = Site(uri, TestLogin._driver)
@@ -47,11 +69,11 @@ class TestLogin(unittest.TestCase):
         self.assertEqual(currentPath, targetPath)
 
     def test_username_matches_user(self):
-        self.site.logInAsUser('gulachek')
-        self.assertEqual(self.site.currentUsername(), 'gulachek')
+        self.site.logInAsUser('admin')
+        self.assertEqual(self.site.currentUsername(), 'admin')
 
     def test_logout_eliminates_user(self):
-        self.site.logInAsUser('gulachek')
+        self.site.logInAsUser('admin')
         self.site.logOut()
         self.assertIsNone(self.site.currentUsername())
 
@@ -59,12 +81,12 @@ class TestLogin(unittest.TestCase):
         self.site.gotoHelloPage()
         uri = TestLogin.currentUri()
         self.site.clickLoginLink()
-        self.site.logInAsUser('gulachek')
+        self.site.logInAsUser('admin')
         self.assertUri(uri)
 
     def test_logout_redirects_to_base_page(self):
         baseUri = TestLogin.currentUri()
-        self.site.logInAsUser('gulachek')
+        self.site.logInAsUser('admin')
         self.site.gotoHelloPage()
         self.site.logOut()
         self.assertUri(uri)
