@@ -1,6 +1,8 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
+from .login import LoginPage
+
 class Site:
     def __init__(self, uri, driver):
         self.uri = uri
@@ -8,6 +10,7 @@ class Site:
 
     def gotoLoginPage(self):
         self.driver.get(f"{self.uri}/login/")
+        return LoginPage(self.driver)
 
     def clickLoginLink(self):
         login = self.driver.find_elements(By.CLASS_NAME, 'login')
@@ -28,15 +31,5 @@ class Site:
         if not self.driver.current_url.endswith('/login/'):
             self.gotoLoginPage()
 
-        # TODO: put this in a LoginPage class
-
-        # Select proper tab
-        s = 'document.querySelector(".tab-strip").activateTab("noauth");'
-        self.driver.execute_script(s)
-
-        # Submit user info
-        tabItem = self.driver.find_element(By.CSS_SELECTOR, 'tab-item[key="noauth"]')
-
-        select = Select(tabItem.find_element(By.TAG_NAME, 'select'))
-        select.select_by_visible_text(username)
-        tabItem.find_element(By.CSS_SELECTOR, 'input[type="submit"]').click()
+        page = LoginPage(self.driver)
+        page.logInAsUser(username)
