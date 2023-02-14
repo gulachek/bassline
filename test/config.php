@@ -36,6 +36,10 @@ class Config extends \Shell\Config
 
 	public function dataDir(): string
 	{
+		$dir = getenv('DATA_DIR');
+		if ($dir)
+			return $dir;
+
 		return $this->json->{'data-directory'};
 	}
 
