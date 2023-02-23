@@ -49,15 +49,27 @@ class TestLogin(unittest.TestCase):
         site.logOut()
         self.assertUri(baseUri)
 
+class TestGroups(unittest.TestCase):
+    def setUp(self):
+        site.logInAsUser('admin')
+
+    def test_created_group_is_visible_on_select_page(self):
+        select = site.gotoGroupSelectPage()
+        self.assertTrue(select.hasGroupname('designers'))
+
+    def test_not_created_group_is_not_visible_on_select_page(self):
+        select = site.gotoGroupSelectPage()
+        self.assertFalse(select.hasGroupname('foo'))
+
 class TestUsers(unittest.TestCase):
     def setUp(self):
         site.logInAsUser('admin')
 
-    def test_created_user_visible_select_page(self):
+    def test_created_user_is_visible_on_select_page(self):
         select = site.gotoUserSelectPage()
-        self.assertTrue(select.hasUsername('test'))
+        self.assertTrue(select.hasUsername('designer'))
 
-    def test_not_created_user_not_visible_select_page(self):
+    def test_not_created_user_is_not_visible_on_select_page(self):
         select = site.gotoUserSelectPage()
         self.assertFalse(select.hasUsername('foo'))
 

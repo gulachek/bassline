@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import Select
 
 from .login import LoginPage
 from .users import UserSelectPage
+from .groups import GroupSelectPage
 
 from pathlib import Path
 import subprocess
@@ -21,7 +22,8 @@ class Site:
 
     def setup(self):
         self.logInAsUser('admin')
-        self.createUser('test')
+        self.createGroup('designers')
+        self.createUser('designer')
         self.logOut()
 
     def close():
@@ -89,6 +91,10 @@ class Site:
         self.driver.get(f"{self.uri}/site/admin/users/")
         return UserSelectPage(self.driver)
 
+    def gotoGroupSelectPage(self):
+        self.driver.get(f"{self.uri}/site/admin/groups/")
+        return GroupSelectPage(self.driver)
+
     def currentUsername(self):
         unames = self.driver.find_elements(By.CLASS_NAME, 'username')
         return unames[0].text if len(unames) > 0 else None
@@ -109,3 +115,11 @@ class Site:
 
         page = UserSelectPage(self.driver)
         page.createUser(username)
+
+    def createGroup(self, groupname):
+        # TODO: move these checks to goto*Page
+        if not self.currentUri().endswith('/site/admin/groups/'):
+            self.gotoGroupSelectPage()
+
+        page = GroupSelectPage(self.driver)
+        page.createGroup(groupname)
