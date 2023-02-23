@@ -31,13 +31,17 @@ export function AutoSaveForm(props: PropsWithChildren<IAutoSaveFormProps>)
 		onSave();
 	}, [onSave]);
 
+	const formElem = useRef<HTMLFormElement>(null);
+
 	useEffect(() => {
 		window.removeEventListener('beforeunload', preventUnload);
+		delete formElem.current.dataset.isBusy;
 
 		if (hasChange)
 		{
 			timer.current.restart(() => onSave());
 			window.addEventListener('beforeunload', preventUnload);
+			formElem.current.dataset.isBusy = '';
 		}
 		else
 		{
@@ -45,7 +49,7 @@ export function AutoSaveForm(props: PropsWithChildren<IAutoSaveFormProps>)
 		}
 	}); // debounce every render
 
-	return <form onSubmit={onSubmit}>
+	return <form ref={formElem} className="autosave" onSubmit={onSubmit}>
 		<input type="submit" style={{display: 'none'}} />
 		{props.children}
 	</form>;

@@ -76,6 +76,9 @@ class Site:
     def currentUri(self):
         return self.driver.current_url
 
+    def refresh(self):
+        self.driver.get(self.driver.current_url)
+
     def gotoLoginPage(self):
         self._navigate('/login/')
         return LoginPage(self.driver)
@@ -125,4 +128,4 @@ class Site:
 
     def createGroup(self, groupname):
         page = self.gotoGroupSelectPage()
-        page.createGroup(groupname)
+        return page.createGroup(groupname)

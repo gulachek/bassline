@@ -78,6 +78,14 @@ class TestGroups(unittest.TestCase):
         page = site.gotoGroupSelectPage()
         self.assertIsNone(page)
 
+    def test_groupname_is_editable(self):
+        edit = site.createGroup('edit_me')
+        self.assertEqual(edit.groupname(), 'edit_me')
+        edit.setGroupname('edit_me_test')
+        edit.waitSave()
+        site.refresh()
+        self.assertEqual(edit.groupname(), 'edit_me_test')
+
 class TestUsers(unittest.TestCase):
     def setUp(self):
         site.logInAsUser('admin')
