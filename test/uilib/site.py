@@ -19,6 +19,11 @@ class Site:
         self.driver = driver
         self.webServer = webServer
 
+    def setup(self):
+        self.logInAsUser('admin')
+        self.createUser('test')
+        self.logOut()
+
     def close():
         self.driver.close()
         self.webServer.kill()
@@ -62,6 +67,7 @@ class Site:
         driver = webdriver.Chrome()
 
         cls._instance = Site(uri, driver, webServer)
+        cls._instance.setup()
         return cls._instance
 
     def currentUri(self):
@@ -96,3 +102,10 @@ class Site:
 
         page = LoginPage(self.driver)
         page.logInAsUser(username)
+
+    def createUser(self, username):
+        if not self.currentUri().endswith('/site/admin/users/'):
+            self.gotoUserSelectPage()
+
+        page = UserSelectPage(self.driver)
+        page.createUser(username)

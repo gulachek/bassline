@@ -53,16 +53,13 @@ class TestUsers(unittest.TestCase):
     def setUp(self):
         site.logInAsUser('admin')
 
-    def test_admin_visible_select_page(self):
+    def test_created_user_visible_select_page(self):
         select = site.gotoUserSelectPage()
-        self.assertTrue(select.hasUsername('admin'))
+        self.assertTrue(select.hasUsername('test'))
 
-    def test_create_user_makes_user_on_select_screen(self):
+    def test_not_created_user_not_visible_select_page(self):
         select = site.gotoUserSelectPage()
         self.assertFalse(select.hasUsername('foo'))
-        select.createUser('foo')
-        select = site.gotoUserSelectPage()
-        self.assertTrue(select.hasUsername('foo'))
 
 if __name__ == '__main__':
     unittest.main()
