@@ -76,7 +76,7 @@ class Site:
         return self.driver.current_url
 
     def gotoLoginPage(self):
-        self.driver.get(f"{self.uri}/login/")
+        self._navigate('/login/')
         return LoginPage(self.driver)
 
     def clickLoginLink(self):
@@ -84,15 +84,19 @@ class Site:
         assert len(login) > 0
         login[0].click()
 
+    def _navigate(self, path):
+        if not self.currentUri().endswith(path):
+            self.driver.get(f"{self.uri}{path}")
+
     def gotoHelloPage(self):
-        self.driver.get(f"{self.uri}/hello/")
+        self._navigate('/hello/')
 
     def gotoUserSelectPage(self):
-        self.driver.get(f"{self.uri}/site/admin/users/")
+        self._navigate('/site/admin/users/')
         return UserSelectPage(self.driver)
 
     def gotoGroupSelectPage(self):
-        self.driver.get(f"{self.uri}/site/admin/groups/")
+        self._navigate('/site/admin/groups/')
         return GroupSelectPage(self.driver)
 
     def currentUsername(self):
@@ -100,26 +104,16 @@ class Site:
         return unames[0].text if len(unames) > 0 else None
 
     def logOut(self):
-        self.driver.get(f"{self.uri}/logout/")
+        self._navigate('/logout/')
 
     def logInAsUser(self, username):
-        if not self.driver.current_url.endswith('/login/'):
-            self.gotoLoginPage()
-
-        page = LoginPage(self.driver)
+        page = self.gotoLoginPage()
         page.logInAsUser(username)
 
     def createUser(self, username):
-        if not self.currentUri().endswith('/site/admin/users/'):
-            self.gotoUserSelectPage()
-
-        page = UserSelectPage(self.driver)
+        page = self.gotoUserSelectPage()
         page.createUser(username)
 
     def createGroup(self, groupname):
-        # TODO: move these checks to goto*Page
-        if not self.currentUri().endswith('/site/admin/groups/'):
-            self.gotoGroupSelectPage()
-
-        page = GroupSelectPage(self.driver)
+        page = self.gotoGroupSelectPage()
         page.createGroup(groupname)
