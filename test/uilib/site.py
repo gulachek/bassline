@@ -5,6 +5,7 @@ from selenium.webdriver.support.ui import Select
 from .login import LoginPage
 from .users import UserSelectPage
 from .groups import GroupSelectPage
+from .admin import AdminPage
 
 from pathlib import Path
 import subprocess
@@ -23,7 +24,7 @@ class Site:
     def setup(self):
         self.logInAsUser('admin')
         self.createGroup('designers')
-        self.createUser('designer')
+        self.createUser('designer', 'designers')
         self.logOut()
 
     def close():
@@ -79,6 +80,10 @@ class Site:
         self._navigate('/login/')
         return LoginPage(self.driver)
 
+    def gotoAdminPage(self):
+        self._navigate('/site/admin/')
+        return AdminPage(self.driver)
+
     def clickLoginLink(self):
         login = self.driver.find_elements(By.CLASS_NAME, 'login')
         assert len(login) > 0
@@ -93,11 +98,11 @@ class Site:
 
     def gotoUserSelectPage(self):
         self._navigate('/site/admin/users/')
-        return UserSelectPage(self.driver)
+        return UserSelectPage.fromDriver(self.driver)
 
     def gotoGroupSelectPage(self):
         self._navigate('/site/admin/groups/')
-        return GroupSelectPage(self.driver)
+        return GroupSelectPage.fromDriver(self.driver)
 
     def currentUsername(self):
         unames = self.driver.find_elements(By.CLASS_NAME, 'username')
@@ -110,9 +115,13 @@ class Site:
         page = self.gotoLoginPage()
         page.logInAsUser(username)
 
-    def createUser(self, username):
+    def createUser(self, username, groupname):
         page = self.gotoUserSelectPage()
-        page.createUser(username)
+        page.createUser(username, groupname)
+
+    def editUser(self, username):
+        page = self.gotoUserSelectPage()
+        return page.selectUser(username)
 
     def createGroup(self, groupname):
         page = self.gotoGroupSelectPage()

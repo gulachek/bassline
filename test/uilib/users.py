@@ -2,6 +2,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
 class UserSelectPage:
+    @classmethod
+    def fromDriver(cls, driver):
+        h1s = driver.find_elements(By.TAG_NAME, 'h1')
+        mainHeading = next((h for h in h1s if h.text == 'Select a user'), None)
+        return None if mainHeading is None else UserSelectPage(driver)
+
     def __init__(self, driver):
         self.driver = driver
 
@@ -20,8 +26,13 @@ class UserSelectPage:
         uname.clear()
         uname.send_keys(username)
 
-    def createUser(self, username):
+    def selectGroup(self, groupname):
+        select = Select(self.driver.find_element(By.TAG_NAME, 'select'))
+        select.select_by_visible_text(groupname)
+
+    def createUser(self, username, groupname):
         self.enterUsername(username)
+        self.selectGroup(groupname)
         btn = self.driver.find_element(By.CSS_SELECTOR, 'input[value="Create"]')
         btn.click()
 

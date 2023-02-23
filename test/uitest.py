@@ -49,6 +49,18 @@ class TestLogin(unittest.TestCase):
         site.logOut()
         self.assertUri(baseUri)
 
+    def test_admin_can_see_users_groups_page_on_admin_screen(self):
+        site.logInAsUser('admin')
+        page = site.gotoAdminPage()
+        self.assertTrue(page.hasUsersSection())
+        self.assertTrue(page.hasGroupsSection())
+
+    def test_designer_cannot_see_users_groups_page_on_admin_screen(self):
+        site.logInAsUser('designer')
+        page = site.gotoAdminPage()
+        self.assertFalse(page.hasUsersSection())
+        self.assertFalse(page.hasGroupsSection())
+
 class TestGroups(unittest.TestCase):
     def setUp(self):
         site.logInAsUser('admin')
@@ -61,6 +73,11 @@ class TestGroups(unittest.TestCase):
         select = site.gotoGroupSelectPage()
         self.assertFalse(select.hasGroupname('foo'))
 
+    def test_designer_cannot_edit_group(self):
+        site.logInAsUser('designer')
+        page = site.gotoGroupSelectPage()
+        self.assertIsNone(page)
+
 class TestUsers(unittest.TestCase):
     def setUp(self):
         site.logInAsUser('admin')
@@ -72,6 +89,11 @@ class TestUsers(unittest.TestCase):
     def test_not_created_user_is_not_visible_on_select_page(self):
         select = site.gotoUserSelectPage()
         self.assertFalse(select.hasUsername('foo'))
+
+    def test_designer_cannot_edit_user(self):
+        site.logInAsUser('designer')
+        page = site.gotoUserSelectPage()
+        self.assertIsNone(page)
 
 if __name__ == '__main__':
     unittest.main()

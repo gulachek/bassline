@@ -2,6 +2,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 
 class GroupSelectPage:
+    @classmethod
+    def fromDriver(cls, driver):
+        h1s = driver.find_elements(By.TAG_NAME, 'h1')
+        mainHeading = next((h for h in h1s if h.text == 'Select a group'), None)
+        return None if mainHeading is None else GroupSelectPage(driver)
+
     def __init__(self, driver):
         self.driver = driver
 
