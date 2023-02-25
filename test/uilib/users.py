@@ -1,5 +1,6 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.wait import WebDriverWait
 
 class UserSelectPage:
     @classmethod
@@ -35,4 +36,31 @@ class UserSelectPage:
         self.selectGroup(groupname)
         btn = self.driver.find_element(By.CSS_SELECTOR, 'input[value="Create"]')
         btn.click()
+        return UserEditPage.fromDriver(self.driver)
 
+def edit_page_is_saved(driver):
+    return driver.execute_script('return !("isBusy" in document.querySelector(".autosave").dataset)')
+
+class UserEditPage:
+    @classmethod
+    def fromDriver(cls, driver):
+        h1s = driver.find_elements(By.TAG_NAME, 'h1')
+        mainHeading = next((h for h in h1s if h.text == 'Edit User'), None)
+        return None if mainHeading is None else UserEditPage(driver)
+
+    def __init__(self, driver):
+        self.driver = driver
+
+    def _usernameInput(self):
+        return self.driver.find_element(By.CSS_SELECTOR, 'input[name="username"]')
+
+    def setUsername(self, username):
+        elem = self._usernameInput()
+        elem.clear()
+        elem.send_keys(username)
+
+    def username(self):
+        return self._usernameInput().get_attribute('value')
+
+    def waitSave(self):
+        WebDriverWait(self.driver, timeout=10).until(edit_page_is_saved)

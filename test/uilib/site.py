@@ -120,7 +120,7 @@ class Site:
 
     def createUser(self, username, groupname):
         page = self.gotoUserSelectPage()
-        page.createUser(username, groupname)
+        return page.createUser(username, groupname)
 
     def editUser(self, username):
         page = self.gotoUserSelectPage()

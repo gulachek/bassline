@@ -117,5 +117,19 @@ class TestUsers(unittest.TestCase):
         page = site.gotoUserSelectPage()
         self.assertIsNone(page)
 
+    def test_user_is_editable(self):
+        edit = site.createUser('edit_me', 'designers')
+
+        # Defaults
+        self.assertEqual(edit.username(), 'edit_me')
+
+        # Now edit
+        edit.setUsername('edit_me_test')
+
+        edit.waitSave()
+        site.refresh()
+
+        self.assertEqual(edit.username(), 'edit_me_test')
+
 if __name__ == '__main__':
     unittest.main()
