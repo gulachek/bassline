@@ -6,8 +6,6 @@
 
 <h1> Log in </h1>
 
-<p> Choose an authentication method. </p>
-
 <nav-tab class="tab-strip">
 <?php foreach ($TEMPLATE['plugins'] as $key => $plugin): ?>
 	<tab-item key="<?=text($key)?>" title="<?=text($plugin->title())?>">
