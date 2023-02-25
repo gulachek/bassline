@@ -8,6 +8,7 @@ abstract class AuthPlugin
 {
 	abstract function title(): string;
 	abstract function authenticate(): ?int;
+	abstract function enabled(): bool;
 	abstract protected function renderLoginForm(string $post_uri): void;
 
 	final public function invokeRenderLoginForm(string $key): void
@@ -78,6 +79,53 @@ abstract class AuthPlugin
 			'title' => $this->title(),
 			'script' => $props['script'],
 			'data' => $props['data']
+		];
+	}
+
+	protected function configEditData(
+		SecurityDatabase $db
+	): ?array
+	{
+		return null;
+	}
+
+	protected function saveConfigEditData(
+		array $data,
+		SecurityDatabase $db,
+		?string &$error
+	): bool
+	{
+		$error = 'not supported';
+		return false;
+	}
+
+	final public function invokeSaveConfigEditData(
+		array $data,
+		SecurityDatabase $db,
+		?string &$error
+	): bool
+	{
+		return $this->saveConfigEditData($data, $db, $error);
+	}
+
+	final public function getConfigEditData(
+		string $key,
+		SecurityDatabase $db
+	): ?array
+	{
+		$props = $this->configEditData($db);
+		if (!$props)
+			return null;
+
+		foreach (['script', 'data'] as $prop)
+			if (!isset($props[$prop]))
+				throw new \Exception("configEditData must have a '$prop' property");
+
+		return [
+			'title' => $this->title(),
+			'script' => $props['script'],
+			'data' => $props['data'],
+			'key' => $key
 		];
 	}
 }

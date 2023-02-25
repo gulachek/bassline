@@ -18,6 +18,15 @@ Create and edit groups to assign membership to users and grand security capabili
 </a>
 <?php endif; ?>
 
+<?php if ($TEMPLATE['access_auth_config']): ?>
+<a class="card" href="/site/admin/auth_config">
+<h2> Authentication </h2>
+<p>
+Edit configuration for different ways to authenticate on this site.
+</p>
+</a>
+<?php endif; ?>
+
 <a class="card" href="/shell/theme">
 <h2> Theme </h2>
 <p>

@@ -13,13 +13,6 @@ module.exports = {
 			filename: '[name].js',
 			dependOn: ['react']
 		},
-		no_auth_edit: {
-			import: resolve('static_src/no_auth_edit.tsx'),
-			library: {
-				type: 'amd'
-			},
-			dependOn: ['react']
-		},
 		siwg_edit: {
 			import: resolve('static_src/siwg_edit.tsx'),
 			library: {
@@ -31,7 +24,19 @@ module.exports = {
 			import: resolve('static_src/group_edit.tsx'),
 			filename: '[name].js',
 			dependOn: ['react']
-		}
+		},
+		authConfigEdit: {
+			import: resolve('static_src/authConfigEdit/authConfigEdit.tsx'),
+			filename: '[name].js',
+			dependOn: ['react']
+		},
+		noauthConfigEdit: {
+			import: resolve('static_src/noauth/noauthConfigEdit.tsx'),
+			library: {
+				type: 'amd'
+			},
+			dependOn: ['react']
+		},
 	},
 	module: {
 		rules: [

@@ -17,6 +17,11 @@ class NoncePlugin extends AuthPlugin
 		return 'Nonce';
 	}
 
+	public function enabled(): bool
+	{
+		return true;
+	}
+
 	protected function renderLoginForm(string $post_uri): void
 	{
 		$POST_URI = $post_uri;

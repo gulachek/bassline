@@ -18,6 +18,12 @@ class SignInWithGoogle extends AuthPlugin
 		return 'Sign in with Google';
 	}
 
+	public function enabled(): bool
+	{
+		// TODO: implement this
+		return true;//$this->db->authPluginEnabled('siwg');
+	}
+
 	protected function renderLoginForm(string $post_uri): void
 	{
 		$GOOGLE_CLIENT_ID = $this->google_client_id;

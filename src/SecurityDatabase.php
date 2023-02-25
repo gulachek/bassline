@@ -461,4 +461,26 @@ class SecurityDatabase
 
 		return base64_encode($token);
 	}
+
+	function authPluginEnabled(string $key): bool
+	{
+		return !is_null($this->db->queryValue('get-prop', "auth-plugin-$key-enabled"));
+	}
+
+	function setAuthPluginEnabled(string $key, bool $enabled): void
+	{
+		$prop = "auth-plugin-$key-enabled";
+
+		if ($enabled)
+		{
+			$this->db->query('set-prop', [
+				':name' => $prop,
+				':value' => '1'
+			]);
+		}
+		else
+		{
+			$this->db->query('delete-prop', $prop);
+		}
+	}
 }

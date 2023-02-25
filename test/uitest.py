@@ -38,8 +38,8 @@ class TestLogin(unittest.TestCase):
     def test_login_redirects_to_original_page(self):
         site.gotoHelloPage()
         uri = site.currentUri()
-        site.clickLoginLink()
-        site.logInAsUser('admin')
+        page = site.clickLoginLink()
+        page.logInAsUser('admin')
         self.assertUri(uri)
 
     def test_logout_redirects_to_base_page(self):

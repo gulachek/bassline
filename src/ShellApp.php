@@ -61,6 +61,7 @@ class ShellApp extends App
 				'admin' => [
 					'.' => new AdminPage($this->config),
 					'users' => new UserEditPage($this->config, $this->authPlugins()),
+					'auth_config' => $this->handler('renderAuthConfig'),
 					'groups' => $this->handler('renderGroups'),
 				]
 			],
@@ -169,7 +170,7 @@ class ShellApp extends App
 		$db->syncCapabilities();
 	}
 
-	private function authPlugins(): array
+	private function allAuthPlugins(): array
 	{
 		$db = SecurityDatabase::fromConfig($this->config);
 
@@ -178,6 +179,19 @@ class ShellApp extends App
 			'noauth' => new NoAuthPlugin($db),
 			'nonce' => new NoncePlugin($db)
 		];
+	}
+
+	private function authPlugins(): array
+	{
+		$all = $this->allAuthPlugins();
+		$enabled = [];
+		foreach ($all as $key => $plugin)
+		{
+			if ($plugin->enabled())
+				$enabled[$key] = $plugin;
+		}
+
+		return $enabled;
 	}
 
 	private function allApps(): array
@@ -278,6 +292,9 @@ class ShellApp extends App
 			],
 			'edit_groups' => [
 				'description' => 'Create/delete/modify group records. Edit membership and group capabilities.'
+			],
+			'edit_auth' => [
+				'description' => 'Change site-wide authentication configuration.'
 			]
 		];
 	}
@@ -301,7 +318,10 @@ class ShellApp extends App
 
 	public function attemptLogin(): mixed
 	{
-		$plugin_key = $_REQUEST['auth'];
+		$plugin_key = $_REQUEST['auth'] ?? null;
+		if (!$plugin_key)
+			return new NotFound();
+
 		$redir = $_REQUEST['redirect_uri'] ?? '/';
 
 		$plugins = $this->authPlugins();
@@ -542,5 +562,79 @@ class ShellApp extends App
 		}
 
 		return null;
+	}
+
+	public function renderAuthConfig(RespondArg $arg): mixed
+	{
+		if (!$arg->userCan('edit_auth'))
+		{
+			http_response_code(401);
+			echo "Not authorized";
+			return null;
+		}
+
+		$path = $arg->path;
+		$db = SecurityDatabase::fromConfig($this->config);
+
+		if ($path->count() > 1)
+			return new NotFound();
+
+		$action = $path->isRoot() ? 'edit' : $path->at(0);
+
+		$plugins = $this->allAuthPlugins();
+
+		if ($action === 'edit')
+		{
+			$pluginData = [];
+			foreach ($plugins as $key => $plugin)
+			{
+				if ($data = $plugin->getConfigEditData($key, $db))
+				{
+					array_push($pluginData, $data);
+				}
+			}
+
+			$model = [
+				'errorMsg' => null,
+				'authPlugins' => $pluginData
+			];
+
+			ReactPage::render($arg, [
+				'title' => 'Authentication Configuration',
+				'scripts' => [
+					'/static/require.js',
+					'/assets/authConfigEdit.js'
+				],
+				'model' => $model
+			]);
+			return null;
+		}
+		else if ($action === 'save')
+		{
+			$save = $arg->parseBody(AuthConfigSaveRequest::class);
+
+			foreach ($save->pluginData as $key => $data)
+			{
+				$p = $plugins[$key];
+				if (!$p->invokeSaveConfigEditData($data, $db, $error))
+					break;
+			}
+
+			echo json_encode([
+				'errorMsg' => $error
+			]);
+			return null;
+		}
+
+		return null;
+	}
+}
+
+class AuthConfigSaveRequest
+{
+	public function __construct(
+		public array $pluginData
+	)
+	{
 	}
 }
