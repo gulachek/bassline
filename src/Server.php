@@ -109,6 +109,21 @@ class Server
 		return !$has_err;
 	}
 
+	public function issueNonce(string $username): bool
+	{
+		$db = SecurityDatabase::fromConfig($this->config);
+		$nonce = $db->issueNonce($username, $err);
+		if (!$nonce)
+		{
+			echo "Failed to issue nonce for user '$username'.\n"
+				. "Reason: $err";
+			return false;
+		}
+
+		echo "$nonce\n";
+		return true;
+	}
+
 	// return true if static content was served, false otherwise
 	// if the URI matches what *should* be a file but it could not be served, an error
 	// response should be emitted and the function should return true

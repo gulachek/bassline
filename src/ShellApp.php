@@ -175,7 +175,8 @@ class ShellApp extends App
 
 		return [
 			'siwg' => new SignInWithGoogle($db, $this->config->googleClientId()),
-			'noauth' => new NoAuthPlugin($db)
+			'noauth' => new NoAuthPlugin($db),
+			'nonce' => new NoncePlugin($db)
 		];
 	}
 

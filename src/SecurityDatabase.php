@@ -432,4 +432,33 @@ class SecurityDatabase
 			]);
 		}
 	}
+
+	function nonceAuthUserId(string $b64token): ?int
+	{
+		$token = base64_decode($b64token);
+		$user_id = $this->db->queryValue('load-nonce', $token);
+
+		if (is_int($user_id))
+			$this->db->query('clear-nonce', $token);
+
+		return $user_id;
+	}
+
+	function issueNonce(string $username, ?string &$err): ?string
+	{
+		$user = $this->loadUserByName($username);
+		if (!$user)
+		{
+			$err = "User '$username' does not exist";
+			return null;
+		}
+
+		$token = random_bytes(256);
+		$this->db->query('issue-nonce', [
+			':user_id' => $user['id'],
+			':nonce' => $token
+		]);
+
+		return base64_encode($token);
+	}
 }

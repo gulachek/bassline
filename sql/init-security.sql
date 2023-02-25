@@ -39,6 +39,12 @@ CREATE TABLE google_auth (
 	user_id INTEGER NOT NULL
 );
 
+CREATE TABLE nonce_auth (
+	user_id INTEGER NOT NULL,
+	nonce TEXT UNIQUE NOT NULL,
+	expiration TEXT NOT NULL
+);
+
 CREATE TABLE login (
 	id INTEGER NOT NULL, -- user id
 	token TEXT UNIQUE NOT NULL,
