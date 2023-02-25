@@ -6,8 +6,6 @@ abstract class Config
 {
 	abstract public function apps(): array;
 
-	abstract public function adminEmail(): string;
-	abstract public function googleClientId(): string;
 	abstract public function dataDir(): string;
 	abstract public function siteName(): string;
 

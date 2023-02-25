@@ -77,9 +77,7 @@ class ShellApp extends App
 	{
 		$sec = SecurityDatabase::fromConfig($this->config);
 
-		if ($err = $sec->initReentrant(
-			$this->config->adminEmail()
-		))
+		if ($err = $sec->initReentrant())
 		{
 			return "Failed to initialize security database: $err";
 		}
@@ -175,7 +173,7 @@ class ShellApp extends App
 		$db = SecurityDatabase::fromConfig($this->config);
 
 		return [
-			'siwg' => new SignInWithGoogle($db, $this->config->googleClientId()),
+			'siwg' => new SignInWithGoogle($db),
 			'noauth' => new NoAuthPlugin($db),
 			'nonce' => new NoncePlugin($db)
 		];

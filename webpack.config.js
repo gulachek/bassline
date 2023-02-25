@@ -37,6 +37,13 @@ module.exports = {
 			},
 			dependOn: ['react']
 		},
+		siwgConfigEdit: {
+			import: resolve('static_src/siwg/siwgConfigEdit.tsx'),
+			library: {
+				type: 'amd'
+			},
+			dependOn: ['react']
+		},
 	},
 	module: {
 		rules: [

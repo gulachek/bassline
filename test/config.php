@@ -42,16 +42,6 @@ class Config extends \Shell\Config
 
 		return $this->json->{'data-directory'};
 	}
-
-	public function adminEmail(): string
-	{
-		return $this->json->{'admin-email'};
-	}
-
-	public function googleClientId(): string
-	{
-		return $this->json->{'google-client-id'};
-	}
 }
 
 return new Config();

@@ -19,7 +19,7 @@ class SecurityDatabase
 		return new SecurityDatabase(new Database( new \Sqlite3($path)));
 	}
 
-	public function initReentrant(string $email): ?string
+	public function initReentrant(): ?string
 	{
 		if ($this->db->queryValue('table-exists', 'props'))
 		{
@@ -41,8 +41,6 @@ class SecurityDatabase
 
 		if (!$user) return $err;
 
-		// add gmail
-		$this->saveGmail($user['id'], [$email], $err);
 		if ($err) return $err;
 
 		return null;
@@ -92,9 +90,22 @@ class SecurityDatabase
 		return $this->db->queryRow('load-user', $id);
 	}
 
+	public function googleClientId(): ?string
+	{
+		return $this->db->queryValue('get-prop', 'google-client-id');
+	}
+
+	public function setGoogleClientId(string $id): void
+	{
+		$this->db->query('set-prop', [
+			':name' => 'google-client-id',
+			':value' => $id
+		]);
+	}
+
 	// handle a "sign in with google" request
 	// https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
-	public function signInWithGoogle(string $google_client_id, ?string &$err = null): ?int
+	public function signInWithGoogle(?string &$err = null): ?int
 	{
 		if (empty($_POST["g_csrf_token"]))
 		{
@@ -120,6 +131,7 @@ class SecurityDatabase
 			return null;
 		}
 
+		$google_client_id = $this->googleClientId();
 		$client = new \Google_Client(['client_id' => $google_client_id]);
 
 		$old_leeway = \Firebase\JWT\JWT::$leeway;

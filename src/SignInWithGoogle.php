@@ -7,8 +7,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 class SignInWithGoogle extends AuthPlugin
 {
 	public function __construct(
-		private SecurityDatabase $db,
-		private string $google_client_id
+		private SecurityDatabase $db
 	)
 	{
 	}
@@ -20,13 +19,13 @@ class SignInWithGoogle extends AuthPlugin
 
 	public function enabled(): bool
 	{
-		// TODO: implement this
-		return true;//$this->db->authPluginEnabled('siwg');
+		return $this->db->authPluginEnabled('siwg') &&
+			strlen($this->db->googleClientId()) > 0;
 	}
 
 	protected function renderLoginForm(string $post_uri): void
 	{
-		$GOOGLE_CLIENT_ID = $this->google_client_id;
+		$GOOGLE_CLIENT_ID = $this->db->googleClientId();
 		$SIWG_REQUEST_URI = $post_uri;
 
 		require(__DIR__ . '/../template/siwg_login_form.php');
@@ -34,7 +33,7 @@ class SignInWithGoogle extends AuthPlugin
 
 	function authenticate(): ?int
 	{
-		return $this->db->signInWithGoogle($this->google_client_id);
+		return $this->db->signInWithGoogle();
 	}
 
 	protected function saveUserEditData(
@@ -59,6 +58,38 @@ class SignInWithGoogle extends AuthPlugin
 		return [
 			'script' => '/assets/siwg_edit.js',
 			'data' => $gmails
+		];
+	}
+
+	protected function saveConfigEditData(
+		array $data,
+		SecurityDatabase $db,
+		?string &$error
+	): bool
+	{
+		$enabled = boolval($data['enabled'] ?? '');
+		$clientId = $data['clientId'] ?? '';
+		if (strlen($clientId) > 256)
+		{
+			$error = "Invalid clientId. Too long.";
+			return false;
+		}
+
+		$db->setAuthPluginEnabled('siwg', $enabled);
+		$db->setGoogleClientId($clientId);
+		return true;
+	}
+
+	protected function configEditData(
+		SecurityDatabase $db
+	): ?array
+	{
+		return [
+			'script' => '/assets/siwgConfigEdit.js',
+			'data' => [
+				'enabled' => $this->db->authPluginEnabled('siwg'),
+				'clientId' => $db->googleClientId()
+			]
 		];
 	}
 }
