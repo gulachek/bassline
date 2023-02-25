@@ -25,7 +25,7 @@ class Site:
 
     def setup(self):
         self.logInAsUser('admin')
-        self.enableNoauth()
+        self.enableAuth()
         self.createGroup('designers')
         self.createUser('designer', 'designers')
         self.logOut()
@@ -141,9 +141,11 @@ class Site:
         query = urlencode({ 'auth': 'nonce', 'nonce': nonce })
         self._navigate(f"/login/attempt?{query}")
 
-    def enableNoauth(self):
+    def enableAuth(self):
         page = self.gotoAuthConfigEditPage()
         page.enableNoauth(True)
+        page.setGoogleClientId('dummy')
+        page.enableSignInWithGoogle(True)
         page.waitSave()
 
     def createUser(self, username, groupname):
