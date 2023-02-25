@@ -1,2 +1,2 @@
 DELETE FROM nonce_auth
-WHERE nonce=? OR (unixepoch(expiration) - unixepoch() <= 0);
+WHERE nonce=? OR (unixepoch(expiration) <= unixepoch());

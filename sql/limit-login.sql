@@ -5,4 +5,4 @@ WHERE rowid NOT IN (
 	WHERE id = :id
 	ORDER BY expiration DESC
 	LIMIT :limit
-);
+) OR (unixepoch(expiration) <= unixepoch());
