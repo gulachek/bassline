@@ -78,13 +78,27 @@ class TestGroups(unittest.TestCase):
         page = site.gotoGroupSelectPage()
         self.assertIsNone(page)
 
-    def test_groupname_is_editable(self):
+    def test_group_is_editable(self):
         edit = site.createGroup('edit_me')
+
+        # Defaults
         self.assertEqual(edit.groupname(), 'edit_me')
+        self.assertFalse(edit.hasSecurity('shell', 'edit_groups'))
+        self.assertFalse(edit.hasSecurity('shell', 'edit_users'))
+        self.assertFalse(edit.hasSecurity('hello', 'edit_greeting'))
+
+        # Now edit
         edit.setGroupname('edit_me_test')
+        edit.toggleSecurity('shell', 'edit_groups')
+        edit.toggleSecurity('hello', 'edit_greeting')
+
         edit.waitSave()
         site.refresh()
+
         self.assertEqual(edit.groupname(), 'edit_me_test')
+        self.assertTrue(edit.hasSecurity('shell', 'edit_groups'))
+        self.assertFalse(edit.hasSecurity('shell', 'edit_users'))
+        self.assertTrue(edit.hasSecurity('hello', 'edit_greeting'))
 
 class TestUsers(unittest.TestCase):
     def setUp(self):

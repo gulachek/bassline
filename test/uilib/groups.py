@@ -59,5 +59,22 @@ class GroupEditPage:
     def groupname(self):
         return self._groupnameInput().get_attribute('value')
 
+    def _capSelector(self, app, capName):
+        return f"div[data-app=\"{app}\"] input[data-capability=\"{capName}\"]"
+
+    def selectApp(self, app):
+        select = Select(self.driver.find_element(By.TAG_NAME, 'select'))
+        select.select_by_visible_text(app)
+
+    def hasSecurity(self, app, capName):
+        self.selectApp(app)
+        sel = self._capSelector(app, capName)
+        return self.driver.execute_script(f"return !!document.querySelector('{sel}').checked")
+
+    def toggleSecurity(self, app, capName):
+        self.selectApp(app)
+        cbox = self.driver.find_element(By.CSS_SELECTOR, self._capSelector(app, capName))
+        cbox.click()
+
     def waitSave(self):
         WebDriverWait(self.driver, timeout=10).until(edit_page_is_saved)

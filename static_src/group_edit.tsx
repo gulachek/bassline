@@ -204,12 +204,14 @@ function Capabilities(props: ICapabilitiesProps)
 				<input type="checkbox"
 					checked={groupCapabilities.includes(cap.id)}
 					onChange={changeCap(cap.id)}
+					data-capability={cap.name}
 				/> {cap.name}
 			</label></div>;
 		});
 
 		capCheckboxes.push(<div
 				key={app}
+				data-app={app}
 				className={app === currentApp ? 'ovc-visible' : ''}
 			> {inputs} </div>);
 	}
