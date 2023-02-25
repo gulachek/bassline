@@ -122,14 +122,26 @@ class TestUsers(unittest.TestCase):
 
         # Defaults
         self.assertEqual(edit.username(), 'edit_me')
+        self.assertEqual(edit.primaryGroup(), 'designers')
+        self.assertFalse(edit.isGroupMember('staff'))
+        self.assertTrue(edit.isGroupMember('designers'))
+        self.assertSetEqual(edit.emails(), set())
 
         # Now edit
         edit.setUsername('edit_me_test')
+        edit.toggleGroup('staff')
+        edit.setPrimaryGroup('staff')
+        emails = {'test@example.com', 'test@example.org'}
+        [edit.addEmail(e) for e in emails]
 
         edit.waitSave()
         site.refresh()
 
         self.assertEqual(edit.username(), 'edit_me_test')
+        self.assertEqual(edit.primaryGroup(), 'staff')
+        self.assertTrue(edit.isGroupMember('staff'))
+        self.assertTrue(edit.isGroupMember('designers'))
+        self.assertSetEqual(edit.emails(), emails)
 
 if __name__ == '__main__':
     unittest.main()

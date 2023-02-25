@@ -155,6 +155,7 @@ function GroupMembership(props: IGroupMembershipProps)
 		return <div key={gid}>
 			<label>
 				<input type="checkbox"
+					data-groupname={groupname}
 					checked={inGroup}
 					onChange={onCheck}
 					disabled={id === primaryId}
