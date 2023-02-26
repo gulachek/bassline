@@ -1,5 +1,8 @@
+<link rel="stylesheet" href="/assets/nonce_login_form.css" />
+
 <form method="POST" action="<?=text($POST_URI)?>">
-	<input type="text" name="nonce" size="128" />
+	<textarea name="nonce" maxlength="345" rows="4" cols="32"
+	></textarea> <br />
 	<input type="submit" value="Log in" />
 </form>
 <p>

@@ -1,5 +1,5 @@
 <?php require_once $UTIL; ?>
-<link rel="stylesheet" href="/static/login_page.css" />
+<link rel="stylesheet" href="/assets/login_page.css" />
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="/static/nav_tab.js"></script>

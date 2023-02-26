@@ -20,7 +20,9 @@ main.dependsOn(requirejs);
 
 const styles = [
 	'group_select',
-	'admin_page'
+	'admin_page',
+	'login_page',
+	'nonce/nonce_login_form'
 ];
 
 for (const style of styles)
