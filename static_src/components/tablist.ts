@@ -10,17 +10,23 @@
  * </nav-tab>
  */
 
-class NavigationTab extends HTMLElement
+interface ISelection
 {
-	mut;
-	tabList;
-	tabPanelContainer;
-	dropdown;
+	tab: HTMLButtonElement;
+	panel: HTMLDivElement;
+}
 
-	panels;
-	tabs;
-	keyToIndex;
-	cachedSelection;
+export class NavigationTab extends HTMLElement
+{
+	private mut: MutationObserver;
+	private tabList: HTMLDivElement;
+	private tabPanelContainer: HTMLDivElement;
+	private dropdown: HTMLSelectElement;
+
+	private panels: HTMLDivElement[];
+	private tabs: HTMLButtonElement[];
+	private keyToIndex: Map<string, number>;
+	private cachedSelection: ISelection;
 
 	constructor()
 	{
@@ -29,7 +35,7 @@ class NavigationTab extends HTMLElement
 		this.mut = new MutationObserver(this.onMutation.bind(this));
 		this.panels = [];
 		this.tabs = [];
-		this.keyToIndex = new Map();
+		this.keyToIndex = new Map<string, number>();
 	}
 
 	connectedCallback()
@@ -39,7 +45,7 @@ class NavigationTab extends HTMLElement
 
 		// absolute path is a bit unfortunate
 		styleLink.setAttribute('rel', 'stylesheet');
-		styleLink.setAttribute('href', '/static/nav_tab.css');
+		styleLink.setAttribute('href', '/assets/tablist.css');
 		shadow.appendChild(styleLink);
 
 		const fixture = document.createElement('div');
@@ -74,7 +80,7 @@ class NavigationTab extends HTMLElement
 		this.mut.disconnect();
 	}
 
-	onMutation(records)
+	onMutation(records: MutationRecord[])
 	{
 		for (const record of records)
 		{
@@ -89,7 +95,7 @@ class NavigationTab extends HTMLElement
 		}
 	}
 
-	activateTab(key)
+	activateTab(key: string)
 	{
 		if (!this.keyToIndex.has(key))
 			throw new Error(`Invalid tab key ${key}`);
@@ -97,7 +103,7 @@ class NavigationTab extends HTMLElement
 		this.onClick(this.keyToIndex.get(key));
 	}
 
-	addTabItem(tabItem)
+	addTabItem(tabItem: Node)
 	{
 		if (!(tabItem instanceof TabItem))
 			throw new Error('nav-tab only supports tab-item children');
@@ -106,7 +112,7 @@ class NavigationTab extends HTMLElement
 		this.keyToIndex.set(tabItem.key, index);
 
 		const option = document.createElement('option');
-		option.value = index;
+		option.value = index.toString();
 		option.innerText = tabItem.title;
 		this.dropdown.appendChild(option);
 
@@ -133,24 +139,24 @@ class NavigationTab extends HTMLElement
 		this.redraw();
 	}
 
-	onTabListKeyDown(e)
+	onTabListKeyDown(e: KeyboardEvent)
 	{
-		const t = e.target;
+		const t = e.target as HTMLElement;
 		const p = t.parentElement;
 
 		if (e.key === 'ArrowLeft')
 		{
 			if (t.previousElementSibling)
-				t.previousElementSibling.focus();
+				(t.previousElementSibling as HTMLElement).focus();
 			else if (p.lastElementChild !== t)
-				p.lastElementChild.focus();
+				(p.lastElementChild as HTMLElement).focus();
 		}
 		else if (e.key === 'ArrowRight')
 		{
 			if (t.nextElementSibling)
-				t.nextElementSibling.focus();
+				(t.nextElementSibling as HTMLElement).focus();
 			else if (p.firstElementChild !== t)
-				p.firstElementChild.focus();
+				(p.firstElementChild as HTMLElement).focus();
 		}
 	}
 
@@ -159,7 +165,7 @@ class NavigationTab extends HTMLElement
 		this.redraw();
 	}
 
-	onClick(index)
+	onClick(index: number)
 	{
 		this.dropdown.selectedIndex = index;
 		this.redraw();

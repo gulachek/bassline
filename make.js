@@ -23,7 +23,8 @@ const styles = [
 	'group_select',
 	'admin_page',
 	'login_page',
-	'nonce/nonce_login_form'
+	'nonce/nonce_login_form',
+	'components/tablist'
 ];
 
 for (const style of styles)
