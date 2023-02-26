@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title> <?=text($TITLE)?> </title>
 
-<script src="/static/loading_overlay.js"></script>
+<script src="/assets/components.js"></script>
 
 <link rel="stylesheet" type="text/css" href="/shell/theme.css?app=shell" />
 <link rel="stylesheet" type="text/css" href="/assets/main.css" />

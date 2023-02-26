@@ -44,6 +44,10 @@ module.exports = {
 			},
 			dependOn: ['react']
 		},
+		components: {
+			import: [resolve('static_src/components/loading_overlay.ts')],
+			filename: 'components.js',
+		},
 	},
 	module: {
 		rules: [

@@ -1,27 +1,28 @@
-class LoadingOverlay extends HTMLElement
+export class LoadingOverlay extends HTMLElement
 {
-	_handler;
-	_displayValue;
+	private _handler: (e: Event) => any;
+	private _displayValue: string;
 
-	constructor()
+	public constructor()
 	{
 		super();
 		this._handler = this.onLoad.bind(this);
+		this._displayValue = 'initial';
 	}
 
-	connectedCallback()
+	public connectedCallback()
 	{
 		this._displayValue = window.getComputedStyle(this).display;
 		this.style.display = 'none';
 		window.addEventListener('load', this._handler);
 	}
 
-	disconnectedCallback()
+	public disconnectedCallback()
 	{
 		window.removeEventListener('load', this._handler);
 	}
 
-	onLoad()
+	public onLoad(e: Event): void
 	{
 		this.style.display = this._displayValue;
 	}
