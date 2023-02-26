@@ -600,7 +600,7 @@ class ShellApp extends App
 			ReactPage::render($arg, [
 				'title' => 'Authentication Configuration',
 				'scripts' => [
-					'/static/require.js',
+					'/assets/require.js',
 					'/assets/authConfigEdit.js'
 				],
 				'model' => $model

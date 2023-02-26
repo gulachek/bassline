@@ -209,7 +209,7 @@ class UserEditPage extends Responder
 				ReactPage::render($arg, [
 					'title' => 'Edit User',
 					'scripts' => [
-						'/static/require.js',
+						'/assets/require.js',
 						'/assets/user_edit.js'
 					],
 					'model' => $MODEL
