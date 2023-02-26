@@ -58,7 +58,7 @@ class Site:
         # Init database
         subprocess.run([
             'php', 
-            f"{rootDir}/entry/init.php",
+            f"{rootDir}/bin/init.php",
             f"{rootDir}/test/config.php"
             ], env=testEnv) 
 
@@ -129,7 +129,7 @@ class Site:
         testEnv['DATA_DIR'] = str(testData.absolute())
         proc = subprocess.run(
             args=['php',
-                  f"{self.rootDir}/entry/issue_nonce.php",
+                  f"{self.rootDir}/bin/issue_nonce.php",
                   f"{self.rootDir}/test/config.php",
                   username
                   ],
