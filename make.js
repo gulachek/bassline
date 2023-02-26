@@ -19,6 +19,7 @@ const main = new Target(sys);
 main.dependsOn(requirejs);
 
 const styles = [
+	'main',
 	'group_select',
 	'admin_page',
 	'login_page',

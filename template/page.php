@@ -9,7 +9,7 @@
 <script src="/static/loading_overlay.js"></script>
 
 <link rel="stylesheet" type="text/css" href="/shell/theme.css?app=shell" />
-<link rel="stylesheet" type="text/css" href="/static/main.css" />
+<link rel="stylesheet" type="text/css" href="/assets/main.css" />
 </head>
 
 <body>
