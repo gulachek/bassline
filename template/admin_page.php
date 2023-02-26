@@ -1,4 +1,6 @@
-<link rel="stylesheet" href="/static/admin_page.css" />
+<link rel="stylesheet" href="/assets/admin_page.css" />
+
+<div class="card-container">
 
 <?php if ($TEMPLATE['access_users']): ?>
 <a class="card" href="/site/admin/users">
@@ -13,7 +15,7 @@ Create user accounts on the site and edit authentication configuration.
 <a class="card" href="/site/admin/groups">
 <h2> Groups </h2>
 <p>
-Create and edit groups to assign membership to users and grand security capabilities.
+Create and edit groups to assign membership to users and grant security capabilities.
 </p>
 </a>
 <?php endif; ?>
@@ -41,3 +43,5 @@ Map colors from a color palette to application-defined colors to style your site
 which colors a theme can use. 
 </p>
 </a>
+
+</div>

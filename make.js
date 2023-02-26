@@ -13,10 +13,20 @@ function resolve(p)
 
 const sys = new BuildSystem({ buildDir: resolve('assets') });
 
-const groupSelectStyle = new ScssTarget(sys, 'static_src/group_select.scss');
 const requirejs = new TerserTarget(sys, 'static_src/require.js');
 
 const main = new Target(sys);
-main.dependsOn(groupSelectStyle, requirejs);
+main.dependsOn(requirejs);
+
+const styles = [
+	'group_select',
+	'admin_page'
+];
+
+for (const style of styles)
+{
+	const target = new ScssTarget(sys, `static_src/${style}.scss`);
+	main.dependsOn(target);
+}
 
 main.build();
