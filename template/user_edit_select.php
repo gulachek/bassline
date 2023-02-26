@@ -1,5 +1,5 @@
 <?php require_once $UTIL; ?>
-<link rel="stylesheet" href="/static/clickable.css" />
+<link rel="stylesheet" href="/assets/clickable.css" />
 
 <?php if ($err = $TEMPLATE['error']): ?>
 	<dialog open>
