@@ -10,5 +10,10 @@
 		"google/apiclient": "^2.12",
 		"symfony/serializer": "^6.2",
 		"symfony/property-access": "^6.2"
-	}
+	},
+	"bin": [
+		"bin/serve.php",
+		"bin/issue_nonce.php",
+		"bin/init.php"
+	]
 }
