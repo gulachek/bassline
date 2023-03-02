@@ -630,9 +630,5 @@ class ShellApp extends App
 
 class AuthConfigSaveRequest
 {
-	public function __construct(
-		public array $pluginData
-	)
-	{
-	}
+	public mixed $pluginData;
 }

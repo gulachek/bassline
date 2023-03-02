@@ -14,14 +14,14 @@ abstract class Config
 		$path = $path ?? $_SERVER['SITE_CONFIG_PATH'];
 		if (!$path)
 		{
-			throw new Exception('SITE_PATH_CONFIG not configured on server');
+			throw new \Exception('SITE_PATH_CONFIG not configured on server');
 		}
 
 		$config = require_once($path);
 
 		if (!($config instanceof Config))
 		{
-			throw new Exception('SITE_PATH_CONFIG does not return a Config instance');
+			throw new \Exception('SITE_PATH_CONFIG does not return a Config instance');
 		}
 
 		return $config;

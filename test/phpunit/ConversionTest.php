@@ -34,10 +34,16 @@ class ObjProp
 class ArrayProp
 {
 	#[ArrayProperty('string')]
-	public array $strs;
+	public array $strs = [];
 
 	#[ArrayProperty(ScalarProps::class)]
-	public array $objs;
+	public array $objs = [];
+}
+
+class NoCtor
+{
+	public string $required;
+	public string $optional = 'default';
 }
 
 final class ConversionTest extends TestCase
@@ -137,5 +143,29 @@ final class ConversionTest extends TestCase
 		$this->assertEquals(2, count($obj->objs));
 		$this->assertEquals('hello', $obj->objs[0]->str);
 		$this->assertEquals('world', $obj->objs[1]->str);
+	}
+
+	public function testRequiredPropertyNotSpecifiedIsNull(): void
+	{
+		$obj = Conversion::fromAssoc(NoCtor::class, []);
+		$this->assertNull($obj);
+	}
+
+	public function testBoolCanBeOneForTrue(): void
+	{
+		$obj = Conversion::fromAssoc(ScalarProps::class, [
+			'bool' => 1
+		]);
+
+		$this->assertTrue($obj->bool);
+	}
+
+	public function testBoolCanBeZeroForFalse(): void
+	{
+		$obj = Conversion::fromAssoc(ScalarProps::class, [
+			'bool' => 0
+		]);
+
+		$this->assertTrue($obj->bool);
 	}
 }

@@ -151,7 +151,22 @@ class RespondArg
 		$normalizer = new ObjectNormalizer();
 		$serializer = new Serializer([$normalizer], [new JsonEncoder()]);
 
-		return $serializer->deserialize($json, $class, 'json');
+		$assoc = json_decode($json, associative: true);
+		if (!is_array($assoc))
+			return null;
+
+		$obj = Conversion::fromAssoc($class, $assoc, $err);
+
+		/* Useful debugging
+		if (!$obj)
+		{
+			var_dump($err);
+			exit;
+		}
+		 */
+
+		return $obj;
+		//return $serializer->deserialize($json, $class, 'json');
 	}
 }
 

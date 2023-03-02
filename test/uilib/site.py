@@ -41,17 +41,14 @@ class Site:
         if cls._instance is not None:
             return csl._instance
 
-        if 'TEST_BASE_URI' not in os.environ:
-            print('Must specify TEST_BASE_URI environment variable')
-            sys.exit(1)
-
-        uri = os.environ['TEST_BASE_URI']
+        uri = os.environ.get('TEST_BASE_URI', 'http://localhost:9998' )
         testDir = Path(__file__).parent.parent
         testData = testDir / 'data' / 'uitest'
 
         [os.remove(p) for p in testData.iterdir()]
         testEnv = dict(os.environ)
         testEnv['DATA_DIR'] = str(testData.absolute())
+        testEnv['SITE_CONFIG_PATH'] = str(testDir / 'config.php')
 
         rootDir = testDir.parent
 
@@ -65,7 +62,7 @@ class Site:
         # Spawn web server
         netloc = urlparse(uri).netloc
         webServer = subprocess.Popen(
-            args=['php', '-S', netloc, f"{rootDir}/test/server.php"],
+            args=['php', '-S', netloc, f"{rootDir}/bin/serve.php"],
             stderr=subprocess.PIPE,
             env=testEnv
             )
@@ -127,6 +124,7 @@ class Site:
         testDir = Path(__file__).parent.parent
         testData = testDir / 'data' / 'uitest'
         testEnv['DATA_DIR'] = str(testData.absolute())
+        testEnv['SITE_CONFIG_PATH'] = str(testDir / 'config.php')
         proc = subprocess.run(
             args=['php',
                   f"{self.rootDir}/bin/issue_nonce.php",

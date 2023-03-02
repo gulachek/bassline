@@ -11,12 +11,9 @@ function is_json_obj(mixed $obj): bool
 
 class UserSaveRequest
 {
-	public function __construct(
-		public User $user,
-		public array $pluginData
-	)
-	{
-	}
+	public User $user;
+
+	public mixed $pluginData;
 }
 
 class UserEditPage extends Responder
