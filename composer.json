@@ -7,9 +7,7 @@
 		}
 	},
 	"require": {
-		"google/apiclient": "^2.12",
-		"symfony/serializer": "^6.2",
-		"symfony/property-access": "^6.2"
+		"google/apiclient": "^2.12"
 	},
 	"bin": [
 		"bin/serve.php",

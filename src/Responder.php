@@ -4,10 +4,6 @@ namespace Shell;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
-
 class ResponderDelegate
 {
 	public function __construct(
@@ -148,9 +144,6 @@ class RespondArg
 			throw new \Exception('Failed to read request body');
 		}
 
-		$normalizer = new ObjectNormalizer();
-		$serializer = new Serializer([$normalizer], [new JsonEncoder()]);
-
 		$assoc = json_decode($json, associative: true);
 		if (!is_array($assoc))
 			return null;
@@ -166,7 +159,6 @@ class RespondArg
 		 */
 
 		return $obj;
-		//return $serializer->deserialize($json, $class, 'json');
 	}
 }
 
