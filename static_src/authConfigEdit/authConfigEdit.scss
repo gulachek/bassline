@@ -1,18 +1,8 @@
+@use '../editor.scss';
 @import '/assets/clickable.css';
 
 .main {
 	text-align: center;
-}
-
-.section-container {
-	display: flex;
-	justify-content: center;
-}
-
-.section {
-	border: solid 1px;
-	padding: 1em;
-	margin: 1em;
 }
 
 .vanish {

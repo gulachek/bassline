@@ -11,6 +11,8 @@ import { renderReactPage } from '../renderReactPage';
 import { postJson } from '../postJson';
 import { AutoSaveForm } from '../autosave/AutoSaveForm';
 
+import './colorPaletteEdit.scss';
+
 interface IPaletteColor
 {
 	id: number;
