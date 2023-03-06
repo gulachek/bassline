@@ -135,54 +135,12 @@ class ColorPalettePage extends Responder
 		{
 			$AVAILABLE_PALETTES = $this->db->availablePalettes();
 		}
-		else if ($action === 'edit')
-		{
-			$id = $this->postPaletteId();
-			$PALETTE = $this->db->loadPalette($id);
-		}
 		else if ($action === 'create')
 		{
 			$name = $this->postPaletteName();
 			$PALETTE = $this->db->createPalette($name);
-		}
-		else if ($action === 'new color')
-		{
-			$id = $this->postPaletteId();
-			$name = $this->postPaletteName();
-			$colors = $this->postColors($id);
-
-			$color_id = $this->db->createPaletteColor($id);
-
-			$colors[$color_id] = [
-				'id' => $color_id,
-				'name' => 'New Color',
-				'hex' => '#000000'
-			];
-
-			$PALETTE = [
-				'id' => $id,
-				'name' => $name,
-				'colors' => $colors
-			];
-		}
-		else if ($action === 'save')
-		{
-			$id = $this->postPaletteId();
-			$name = $this->postPaletteName();
-			$colors = $this->postColors($id);
-
-			$PALETTE = [
-				'id' => $id,
-				'name' => $name,
-				'colors' => $colors
-			];
-
-			if (!$this->db->savePalette($PALETTE))
-			{
-				http_response_code(500);
-				echo "Failed to save palette\n";
-				exit;
-			}
+			$id = $PALETTE['id'];
+			return new Redirect("/site/admin/color_palette/edit?id=$id");
 		}
 		else
 		{

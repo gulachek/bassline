@@ -12,6 +12,66 @@ final class ArrayProperty
 	)
 	{
 	}
+
+	public static function getElemType(\ReflectionProperty $prop): ?string
+	{
+		$attrs = $prop->getAttributes(ArrayProperty::class);
+		if (count($attrs) < 1)
+			return null;
+
+		if (count($attrs) > 1)
+		{
+			$nm = $prop->getName();
+			throw new \Exception("Only one ArrayProperty can be defined on property {$nm}");
+		}
+
+		$args = $attrs[0]->getArguments();
+		if (count($args) !== 1)
+		{
+			$nm = $prop->getName();
+			throw new \Exception("Exactly one type must be declared in ArrayProperty {$nm}");
+		}
+
+		return $args[0];
+	}
+}
+
+#[Attribute]
+final class AssocProperty
+{
+	public function __construct(
+		public string $keyClass,
+		public string $valueClass
+	)
+	{
+	}
+
+	public static function getKeyValType(\ReflectionProperty $prop, ?string &$key, ?string &$val): bool
+	{
+		$key = null;
+		$val = null;
+
+		$attrs = $prop->getAttributes();
+		if (count($attrs) < 1)
+			return false;
+
+		if (count($attrs) > 1)
+		{
+			$nm = $prop->getName();
+			throw new \Exception("Only one AssocProperty can be defined on property {$nm}");
+		}
+
+		$args = $attrs[0]->getArguments();
+		if (count($args) !== 2)
+		{
+			$nm = $prop->getName();
+			throw new \Exception("Exactly one key/value type must be declared in AssocProperty {$nm}");
+		}
+
+		$key = $args[0];
+		$val = $args[1];
+		return true;
+	}
 }
 
 class Conversion
@@ -68,7 +128,7 @@ class Conversion
 
 		if (count($obj) < 1 || !\array_is_list($obj))
 		{
-			return self::fromAssoc($class, $obj);
+			return self::fromAssoc($class, $obj, $err);
 		}
 
 		$err = 'array value cannot be list';
@@ -129,41 +189,54 @@ class Conversion
 			$typeName = $t->getName();
 			if ($typeName === 'array')
 			{
-				if (!\array_is_list($a[$nm]))
-				{
-					$err = "assoc array being set to ArrayProperty {$class}.{$nm}";
-					return null;
-				}
-
-				$aprops = $prop->getAttributes(ArrayProperty::class);
-				if (count($aprops) !== 1)
-				{
-					if (count($aprops) < 1)
-						throw new \Exception("An ArrayProperty must be defined on property {$nm}");
-					else
-						throw new \Exception("Only one ArrayProperty can be defined on property {$nm}");
-				}
-
-				$args = $aprops[0]->getArguments();
-				if (count($args) !== 1)
-				{
-					throw new \Exception("Only one type can be declared in ArrayProperty {$nm}");
-				}
-
-				$elemTypeName = $args[0];
 				$propVal = [];
-				$i = 0;
-				foreach ($a[$nm] as $elem)
+
+				if ($elemTypeName = ArrayProperty::getElemType($prop))
 				{
-					$elemVal = self::fromValue($elemTypeName, $elem, $elemErr);
-					if (\is_null($elemVal))
+					if (!\array_is_list($a[$nm]))
 					{
-						$err = "Array property {$class}.{$nm}[$i]: $elemErr";
+						$err = "assoc array being set to ArrayProperty {$class}.{$nm}";
 						return null;
 					}
 
-					array_push($propVal, $elemVal);
-					++$i;
+					$i = 0;
+					foreach ($a[$nm] as $elem)
+					{
+						$elemVal = self::fromValue($elemTypeName, $elem, $elemErr);
+						if (\is_null($elemVal))
+						{
+							$err = "Array property {$class}.{$nm}[$i]: $elemErr";
+							return null;
+						}
+
+						array_push($propVal, $elemVal);
+						++$i;
+					}
+				}
+				else if (AssocProperty::getKeyValType($prop, $keyType, $valType))
+				{
+					foreach ($a[$nm] as $key => $val)
+					{
+						$keyVal = self::fromValue($keyType, $key, $keyErr);
+						if (\is_null($keyVal))
+						{
+							$err = "Assoc property key {$class}.{$nm}[$key]: $keyErr";
+							return null;
+						}
+
+						$parsedVal = self::fromValue($valType, $val, $valErr);
+						if (\is_null($parsedVal))
+						{
+							$err = "Assoc property value {$class}.{$nm}[$key]: $valErr";
+							return null;
+						}
+
+						$propVal[$keyVal] = $parsedVal;
+					}
+				}
+				else
+				{
+					throw new \Exception("array property {$class}.{$nm} must have a type annotation for Conversion::fromAssoc");
 				}
 
 				$prop->setValue($obj, $propVal);

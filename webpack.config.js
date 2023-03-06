@@ -25,6 +25,11 @@ module.exports = {
 			filename: '[name].js',
 			dependOn: ['react']
 		},
+		colorPaletteEdit: {
+			import: resolve('static_src/colorPalette/colorPaletteEdit.tsx'),
+			filename: '[name].js',
+			dependOn: ['react']
+		},
 		authConfigEdit: {
 			import: resolve('static_src/authConfigEdit/authConfigEdit.tsx'),
 			filename: '[name].js',

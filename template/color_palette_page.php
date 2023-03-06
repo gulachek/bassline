@@ -75,12 +75,12 @@
 <?php if (count($TEMPLATE['available_palettes'])): ?>
 	<fieldset>
 	<legend> Select an existing palette </legend>
-	<select name="palette-id">
+	<select name="id">
 	<?php foreach ($TEMPLATE['available_palettes'] as $id => $palette): ?>
 		<option value="<?=$id?>"> <?= text($palette['name']) ?> </option> 
 	<?php endforeach; ?>
 	</select>
-	<input type="submit" name="action" value="Edit" />
+	<input type="submit" formmethod="GET" formaction="/site/admin/color_palette/edit" value="Edit" />
 	</fieldset>
 <?php endif; ?>
 

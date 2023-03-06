@@ -3,6 +3,7 @@
 use PHPUnit\Framework\TestCase;
 use Shell\Conversion;
 use Shell\ArrayProperty;
+use Shell\AssocProperty;
 
 class NoProps
 {
@@ -38,6 +39,9 @@ class ArrayProp
 
 	#[ArrayProperty(ScalarProps::class)]
 	public array $objs = [];
+
+	#[AssocProperty('string', 'string')]
+	public array $assoc = [];
 }
 
 class NoCtor
@@ -126,6 +130,42 @@ final class ConversionTest extends TestCase
 	{
 		$obj = Conversion::fromAssoc(ArrayProp::class, [
 			'strs' => ['hello', 3]
+		]);
+
+		$this->assertNull($obj);
+	}
+
+	public function testAssocArrayForArrayPropIsNull(): void
+	{
+		$obj = Conversion::fromAssoc(ArrayProp::class, [
+			'strs' => ['key' => 'value']
+		]);
+
+		$this->assertNull($obj);
+	}
+
+	public function testAssocProp(): void
+	{
+		$obj = Conversion::fromAssoc(ArrayProp::class, [
+			'assoc' => ['hello' => 'world']
+		]);
+
+		$this->assertSame(['hello' => 'world'], $obj->assoc);
+	}
+
+	public function testWrongKeyTypeAssocPropIsNull(): void
+	{
+		$obj = Conversion::fromAssoc(ArrayProp::class, [
+			'assoc' => [1 => 'int']
+		]);
+
+		$this->assertNull($obj);
+	}
+
+	public function testWrongValTypeAssocPropIsNull(): void
+	{
+		$obj = Conversion::fromAssoc(ArrayProp::class, [
+			'assoc' => ['int' => 3]
 		]);
 
 		$this->assertNull($obj);

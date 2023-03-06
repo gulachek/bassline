@@ -150,13 +150,11 @@ class RespondArg
 
 		$obj = Conversion::fromAssoc($class, $assoc, $err);
 
-		/* Useful debugging
 		if (!$obj)
 		{
 			var_dump($err);
 			exit;
 		}
-		 */
 
 		return $obj;
 	}

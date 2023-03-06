@@ -4,6 +4,12 @@ namespace Shell;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+function isName(string $name): bool
+{
+	$name_pattern = UserEditPage::USERNAME_PATTERN;
+	return preg_match("/^$name_pattern$/", $name);
+}
+
 class LandingPage extends Responder
 {
 	public function respond(RespondArg $arg): mixed
@@ -63,6 +69,7 @@ class ShellApp extends App
 					'users' => new UserEditPage($this->config, $this->authPlugins()),
 					'auth_config' => $this->handler('renderAuthConfig'),
 					'groups' => $this->handler('renderGroups'),
+					'color_palette' => $this->handler('renderColorPalette'),
 				]
 			],
 			'shell' => [
@@ -293,7 +300,10 @@ class ShellApp extends App
 			],
 			'edit_auth' => [
 				'description' => 'Change site-wide authentication configuration.'
-			]
+			],
+			'edit_themes' => [
+				'description' => 'Create and edit color palettes and site themes'
+			],
 		];
 	}
 
@@ -514,7 +524,7 @@ class ShellApp extends App
 		else if ($action === 'create')
 		{
 			$groupname = $_REQUEST['groupname'] ?? 'new_group';
-			if (!preg_match("/^$name_pattern$/", $groupname))
+			if (!isName($groupname))
 			{
 				http_response_code(400);
 				echo "bad groupname";
@@ -626,9 +636,138 @@ class ShellApp extends App
 
 		return null;
 	}
+
+	public function renderColorPalette(RespondArg $arg): mixed
+	{
+		if (!$arg->userCan('edit_themes'))
+		{
+			http_response_code(401);
+			echo "Not authorized";
+			return null;
+		}
+
+		$name_pattern = UserEditPage::USERNAME_PATTERN;
+		$path = $arg->path;
+		$db = ColorDatabase::fromConfig($this->config);
+
+		if ($path->count() > 1)
+			return new NotFound();
+
+		$action = $path->isRoot() ? 'select' : $path->at(0);
+
+		if ($action === 'select')
+		{
+			http_response_code(500);
+			echo "Not implemented";
+			return null;
+		}
+		else if ($action === 'create')
+		{
+			http_response_code(500);
+			echo "Not implemented";
+			return null;
+		}
+		else if ($action === 'edit')
+		{
+			$id = intval($_REQUEST['id']);
+			$palette = $db->loadPalette($id);
+			if (!$palette)
+				return new NotFound();
+
+			$model = [
+				'palette' => $palette,
+			];
+
+			ReactPage::render($arg, [
+				'title' => "Edit {$palette['name']}",
+				'scripts' => ['/assets/colorPaletteEdit.js'],
+				'model' => $model
+			]);
+		}
+		else if ($action === 'save')
+		{
+			$palette = $arg->parseBody(ColorPaletteSaveRequest::class);
+			if (!$palette)
+			{
+				http_response_code(400);
+				echo json_encode(['error' => 'Bad palette encoding']);
+				return null;
+			}
+
+			$pattern = ColorPalettePage::NAME_PATTERN;
+			if (!preg_match("/$pattern/", $palette->name))
+			{
+				http_response_code(400);
+				echo json_encode(['error' => 'Invalid name format']);
+				return null;
+			}
+
+			$paletteToSave = [
+				'id' => $palette->id,
+				'name' => $palette->name,
+				'colors' => []
+			];
+
+			$mappedColors = [];
+
+			foreach ($palette->colors->newItems as $tempId => $color)
+			{
+				$colorId = $db->createPaletteColor($palette->id);
+				$color->id = $colorId;
+				$mappedColors[$tempId] = $colorId;
+				$palette->colors->items[$colorId] = $color;
+			}
+
+			foreach ($palette->colors->items as $id => $color)
+			{
+				$paletteToSave['colors'][$id] = [
+					'id' => $id,
+					'name' => $color->name,
+					'hex' => $color->hex
+				];
+			}
+
+			if ($db->savePalette($paletteToSave))
+			{
+				echo json_encode(['mappedColors' => $mappedColors]);
+			}
+			else
+			{
+				http_response_code(400);
+				echo json_encode(['error' => 'Failed to save palette']);
+			}
+
+			return null;
+		}
+
+		return null;
+	}
 }
 
 class AuthConfigSaveRequest
 {
 	public mixed $pluginData;
+}
+
+class PaletteColor
+{
+	public int $id;
+	public string $name;
+	public string $hex;
+}
+
+class EditablePaletteColorMap
+{
+	#[AssocProperty('int', PaletteColor::class)]
+	public array $items;
+
+	#[AssocProperty('string', PaletteColor::class)]
+	public array $newItems;
+}
+
+class ColorPaletteSaveRequest
+{
+	public int $id;
+	public string $name;
+	public EditablePaletteColorMap $colors;
 }
