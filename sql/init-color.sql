@@ -14,7 +14,7 @@ CREATE TABLE palette (
 
 CREATE TABLE color (
 	id INTEGER PRIMARY KEY,
-	name TEXT NOT NULL DEFAULT "New Palette Color",
+	name TEXT NOT NULL DEFAULT "New Color",
 	hex TEXT NOT NULL DEFAULT "#000000", -- #rrggbb
 	palette INTEGER NOT NULL
 );
@@ -35,7 +35,7 @@ CREATE TABLE theme (
 
 CREATE TABLE theme_color (
 	id INTEGER PRIMARY KEY,
-	name TEXT NOT NULL DEFAULT "New Theme Color",
+	name TEXT NOT NULL DEFAULT "New Color",
 	theme INTEGER NOT NULL,
 	bg_color INTEGER, -- id in color table
 	bg_lightness REAL DEFAULT 0.95,

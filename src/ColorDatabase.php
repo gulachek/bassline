@@ -80,6 +80,13 @@ class ColorDatabase
 		return $this->db->lastInsertRowID();
 	}
 
+	public function deletePaletteColor(int $id): void
+	{
+		$this->db->query('unlink-fg-color', $id);
+		$this->db->query('unlink-bg-color', $id);
+		$this->db->query('delete-palette-color', $id);
+	}
+
 	public function getPaletteFromColor(int $color_id): int
 	{
 		return $this->db->queryValue('get-color-palette', $color_id);

@@ -107,6 +107,12 @@ interface IAddColorAction
 	type: 'addColor';
 }
 
+interface IDeleteColorAction
+{
+	type: 'deleteColor';
+	id: string;
+}
+
 interface ISelectColorAction
 {
 	type: 'selectColor';
@@ -119,6 +125,7 @@ type EditAction = ISetNameAction
 	| ISetColorNameAction
 	| ISetColorHexAction
 	| IAddColorAction
+	| IDeleteColorAction
 	| ISelectColorAction
 ;
 
@@ -162,6 +169,14 @@ function reducer(state: IEditState, action: EditAction)
 				request.colors.items[mappedId] = request.colors.newItems[tempId];
 			}
 
+			const deletedItems = [];
+			const actuallyDeleted = new Set(request.colors.deletedItems);
+			for (const id of palette.colors.deletedItems)
+			{
+				if (!actuallyDeleted.has(id)) deletedItems.push(id);
+			}
+			palette.colors.deletedItems = deletedItems;
+
 			savedPalette.colors = request.colors.items;
 		}
 
@@ -192,6 +207,28 @@ function reducer(state: IEditState, action: EditAction)
 		palette.colors.newItems[tempId] = newColor;
 		selectedColorId = tempId;
 	}
+	else if (action.type === 'deleteColor')
+	{
+		const { id } = action;
+		const { items, newItems, deletedItems } = palette.colors;
+		const allIds = [...Object.keys(items), ...Object.keys(newItems)];
+		if (allIds.length > 1)
+		{
+			if (id === selectedColorId)
+			{
+				const index = allIds.indexOf(id);
+				const prevIndex = Math.max(0, index - 1);
+				selectedColorId = allIds[prevIndex];
+			}
+
+			if (id in items)
+			{
+				deletedItems.push(id);
+				delete items[id];
+			}
+			if (id in newItems) delete newItems[id];
+		}
+	}
 
 	return {
 		palette,
@@ -219,6 +256,9 @@ function paletteHasChange(edit: IPaletteEdit, saved: IPalette): boolean
 	}
 
 	for (const tempId in edit.colors.newItems)
+		return true;
+
+	for (const id in edit.colors.deletedItems)
 		return true;
 
 	return false;
@@ -317,6 +357,10 @@ function PaletteColors(props: IPaletteColorsProperties)
 		dispatch({ type: 'addColor' });
 	}, []);
 
+	const deleteColor = useCallback(() => {
+		dispatch({ type: 'deleteColor', id: selectedId });
+	}, [selectedId]);
+
 	const ids = Object.keys(items);
 	if (ids.length < 1)
 		throw new Error('Expected at least one palette color');
@@ -358,6 +402,7 @@ function PaletteColors(props: IPaletteColorsProperties)
 			<input type="color" value={selectedColor.hex} onChange={setHex} />
 			</label>
 			<button onClick={addColor}> + </button>
+			<button onClick={deleteColor}> - </button>
 		</div>
 		{colorEdits}
 	</section>;

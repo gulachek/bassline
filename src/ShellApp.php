@@ -718,6 +718,11 @@ class ShellApp extends App
 				$palette->colors->items[$colorId] = $color;
 			}
 
+			foreach ($palette->colors->deletedItems as $id)
+			{
+				$db->deletePaletteColor($id);
+			}
+
 			foreach ($palette->colors->items as $id => $color)
 			{
 				$paletteToSave['colors'][$id] = [
@@ -763,6 +768,9 @@ class EditablePaletteColorMap
 
 	#[AssocProperty('string', PaletteColor::class)]
 	public array $newItems;
+
+	#[ArrayProperty('string')]
+	public array $deletedItems;
 }
 
 class ColorPaletteSaveRequest
