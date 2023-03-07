@@ -25,7 +25,8 @@ const styles = [
 	'admin_page',
 	'login_page',
 	'nonce/nonce_login_form',
-	'components/tablist'
+	'components/tablist',
+	'colorPalette/colorPaletteSelect'
 ];
 
 for (const style of styles)

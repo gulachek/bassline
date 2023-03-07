@@ -20,7 +20,8 @@ class AdminPage extends Responder
 			'args' => [
 				'access_users' => $arg->userCan('edit_users'),
 				'access_groups' => $arg->userCan('edit_groups'),
-				'access_auth_config' => $arg->userCan('edit_auth')
+				'access_auth_config' => $arg->userCan('edit_auth'),
+				'access_themes' => $arg->userCan('edit_themes')
 			]
 		]);
 

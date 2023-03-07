@@ -6,15 +6,13 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 class ColorPalettePage extends Responder
 {
-	private ColorDatabase $db;
 	const NAME_PATTERN =  "^[a-zA-Z0-9 ]+$";
 	const HEX_PATTERN = '^#[0-9a-fA-F]{6}$';
 
 	public function __construct(
-		private Config $config
+		private ColorDatabase $db
 	)
 	{
-		$this->db = ColorDatabase::fromConfig($config);
 	}
 
 	private function postPaletteId()
@@ -124,42 +122,167 @@ class ColorPalettePage extends Responder
 
 	public function respond(RespondArg $arg): mixed
 	{
-		$AVAILABLE_PALETTES = [];
-		$PALETTE = null;
-		$NAME_PATTERN = self::NAME_PATTERN;
-		$SHADE_COUNT = ColorDatabase::SHADE_COUNT;
+		if (!$arg->userCan('edit_themes'))
+		{
+			http_response_code(401);
+			echo "Not authorized";
+			return null;
+		}
 
-		$action = strtolower($_POST['action'] ?? 'select');
+		$path = $arg->path;
+
+		if ($path->count() > 1)
+			return new NotFound();
+
+		$action = $path->isRoot() ? 'select' : $path->at(0);
 
 		if ($action === 'select')
 		{
-			$AVAILABLE_PALETTES = $this->db->availablePalettes();
+			return $this->select($arg);
 		}
 		else if ($action === 'create')
 		{
-			$name = $this->postPaletteName();
-			$PALETTE = $this->db->createPalette($name);
-			$id = $PALETTE['id'];
-			return new Redirect("/site/admin/color_palette/edit?id=$id");
+			return $this->create($arg);
+		}
+		else if ($action === 'edit')
+		{
+			return $this->edit($arg);
+		}
+		else if ($action === 'save')
+		{
+			return $this->save($arg);
+		}
+
+		return null;
+	}
+
+	private function save(RespondArg $arg): mixed
+	{
+		$db = $this->db;
+
+		$palette = $arg->parseBody(ColorPaletteSaveRequest::class);
+		if (!$palette)
+		{
+			http_response_code(400);
+			echo json_encode(['error' => 'Bad palette encoding']);
+			return null;
+		}
+
+		$pattern = self::NAME_PATTERN;
+		if (!preg_match("/$pattern/", $palette->name))
+		{
+			http_response_code(400);
+			echo json_encode(['error' => 'Invalid name format']);
+			return null;
+		}
+
+		$paletteToSave = [
+			'id' => $palette->id,
+			'name' => $palette->name,
+			'colors' => []
+		];
+
+		$mappedColors = [];
+
+		foreach ($palette->colors->newItems as $tempId => $color)
+		{
+			$colorId = $db->createPaletteColor($palette->id);
+			$color->id = $colorId;
+			$mappedColors[$tempId] = $colorId;
+			$palette->colors->items[$colorId] = $color;
+		}
+
+		foreach ($palette->colors->deletedItems as $id)
+		{
+			$db->deletePaletteColor($id);
+		}
+
+		foreach ($palette->colors->items as $id => $color)
+		{
+			$paletteToSave['colors'][$id] = [
+				'id' => $id,
+				'name' => $color->name,
+				'hex' => $color->hex
+			];
+		}
+
+		if ($db->savePalette($paletteToSave))
+		{
+			echo json_encode(['mappedColors' => $mappedColors]);
 		}
 		else
 		{
 			http_response_code(400);
-			echo "Invalid action\n";
-			exit;
+			echo json_encode(['error' => 'Failed to save palette']);
 		}
 
+		return null;
+	}
+
+	private function edit(RespondArg $arg): mixed
+	{
+		$id = intval($_REQUEST['id']);
+		$palette = $this->db->loadPalette($id);
+		if (!$palette)
+			return new NotFound();
+
+		$model = [
+			'palette' => $palette,
+		];
+
+		ReactPage::render($arg, [
+			'title' => "Edit {$palette['name']}",
+			'scripts' => ['/assets/colorPaletteEdit.js'],
+			'model' => $model
+		]);
+		return null;
+	}
+
+	private function select(RespondArg $arg): mixed
+	{
 		$arg->renderPage([
-			'title' => 'Edit Color Palette',
-			'template' => __DIR__ . '/../template/color_palette_page.php',
+			'title' => 'Select Color Palette',
+			'template' => __DIR__ . '/../template/color_palette_select.php',
 			'args' => [
-				'palette' => $PALETTE,
-				'name_pattern' => $NAME_PATTERN,
-				'shade_count' => $SHADE_COUNT,
-				'available_palettes' => $AVAILABLE_PALETTES
+				'name_pattern' => self::NAME_PATTERN,
+				'available_palettes' => $this->db->availablePalettes()
 			]
 		]);
 
 		return null;
 	}
+
+	private function create(RespondArg $arg): mixed
+	{
+		$name = $this->postPaletteName();
+		$PALETTE = $this->db->createPalette($name);
+		$id = $PALETTE['id'];
+		return new Redirect("/site/admin/color_palette/edit?id=$id");
+	}
+}
+
+class PaletteColor
+{
+	public int $id;
+	public string $name;
+	public string $hex;
+}
+
+class EditablePaletteColorMap
+{
+	#[AssocProperty('int', PaletteColor::class)]
+	public array $items;
+
+	#[AssocProperty('string', PaletteColor::class)]
+	public array $newItems;
+
+	#[ArrayProperty('string')]
+	public array $deletedItems;
+}
+
+class ColorPaletteSaveRequest
+{
+	public int $id;
+	public string $name;
+	public EditablePaletteColorMap $colors;
 }
