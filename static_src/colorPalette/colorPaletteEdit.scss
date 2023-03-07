@@ -20,9 +20,7 @@
 	width: 16em;
 	height: 1em;
 	background: linear-gradient(to right,
-		black,
-		var(--hex),
-		white
+		gradient(var(--hue), var(--saturation))
 		);
 	margin: auto;
 	position: relative;

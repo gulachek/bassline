@@ -13,6 +13,7 @@ import {
 import { renderReactPage } from '../renderReactPage';
 import { postJson } from '../postJson';
 import { AutoSaveForm } from '../autosave/AutoSaveForm';
+import { SRGB } from '../srgb';
 
 import './colorPaletteEdit.scss';
 
@@ -279,7 +280,12 @@ function PaletteColorEdit(props: IPaletteColorEditProps)
 	const elem = useRef<HTMLFieldSetElement>(null);
 
 	useEffect(() => {
-		elem.current.style.setProperty('--hex', hex);
+		const srgb = SRGB.fromHex(hex);
+		const [h, s, l] = srgb.toHSL();
+		const hStr = Math.round(h) + 'deg';
+		const sStr = Math.round(100 * s) + '%';
+		elem.current.style.setProperty('--hue', hStr);
+		elem.current.style.setProperty('--saturation', sStr);
 	});
 
 	const select = useCallback(() => {
