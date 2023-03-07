@@ -1,1 +1,36 @@
 @use '../editor.scss';
+@use 'sass:list';
+@use 'sass:math';
+
+/// gradient function to go from 0% to 100% [0, 10] (play around)
+@function lightness($x) {
+	@return 10% * $x;
+}
+
+@function gradient($h, $s) {
+	$colors: ();
+	@for $i from 0 through 10 {
+		$colors: list.append($colors, hsl($h, $s, lightness($i)), $separator: comma);
+	}
+
+	@return $colors;
+}
+
+.color-indicator {
+	width: 16em;
+	height: 1em;
+	background: linear-gradient(to right,
+		black,
+		var(--hex),
+		white
+		);
+	margin: auto;
+	position: relative;
+
+	&.selected::before {
+		content: '→';
+		position: relative;
+		left: -2em;
+		top: -1em;
+	}
+}

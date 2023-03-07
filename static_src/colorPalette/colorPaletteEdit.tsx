@@ -4,6 +4,9 @@ import {
 	createContext,
 	useContext,
 	useCallback,
+	useState,
+	useEffect,
+	useRef,
 	ChangeEvent
 } from 'react';
 
@@ -21,6 +24,7 @@ interface IPaletteColor
 }
 
 type JsonMap<TValue> = { [key: string]: TValue };
+type InputChangeEvent = ChangeEvent<HTMLInputElement>;
 
 interface IEditableMap<TValue>
 {
@@ -54,6 +58,7 @@ interface IEditState
 	savedPalette: IPalette;
 	isSaving: boolean;
 	tempIdCounter: number;
+	selectedColorId: string;
 }
 
 const PaletteDispatchContext = createContext(null);
@@ -101,19 +106,26 @@ interface IAddColorAction
 	type: 'addColor';
 }
 
+interface ISelectColorAction
+{
+	type: 'selectColor';
+	id: string;
+}
+
 type EditAction = ISetNameAction
 	| IBeginSaveAction
 	| IEndSaveAction
 	| ISetColorNameAction
 	| ISetColorHexAction
 	| IAddColorAction
+	| ISelectColorAction
 ;
 
 function reducer(state: IEditState, action: EditAction)
 {
 	const palette = {...state.palette};
 	let savedPalette = { ...state.savedPalette };
-	let { isSaving, tempIdCounter } = state;
+	let { isSaving, tempIdCounter, selectedColorId } = state;
 
 	if (action.type === 'setName')
 	{
@@ -143,6 +155,9 @@ function reducer(state: IEditState, action: EditAction)
 				items[mappedId] = newItems[tempId];
 				delete newItems[tempId]; 
 
+				if (tempId === selectedColorId)
+					selectedColorId = `${mappedId}`;
+
 				request.colors.items[mappedId] = request.colors.newItems[tempId];
 			}
 
@@ -165,14 +180,25 @@ function reducer(state: IEditState, action: EditAction)
 		if (id in items) items[id].hex = hex;
 		if (id in newItems) newItems[id].hex = hex;
 	}
+	else if (action.type === 'selectColor')
+	{
+		selectedColorId = action.id;
+	}
 	else if (action.type === 'addColor')
 	{
 		const newColor = { id: -1, name: 'New Color', hex: '#000000' };
 		const tempId = `temp${tempIdCounter++}`;
 		palette.colors.newItems[tempId] = newColor;
+		selectedColorId = tempId;
 	}
 
-	return { palette, savedPalette, isSaving, tempIdCounter };
+	return {
+		palette,
+		savedPalette,
+		isSaving,
+		tempIdCounter,
+		selectedColorId
+	};
 }
 
 function paletteHasChange(edit: IPaletteEdit, saved: IPalette): boolean
@@ -208,7 +234,7 @@ function PaletteName(props: IPaletteNameProps)
 
 	const dispatch = useContext(PaletteDispatchContext);
 
-	const onChangeName = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+	const onChangeName = useCallback((e: InputChangeEvent) => {
 		dispatch({ type: 'setName', value: e.target.value });
 	}, []);
 
@@ -240,36 +266,43 @@ interface IPaletteColorEditProps
 {
 	id: string;
 	color: IPaletteColor;
+	selected: boolean;
 }
 
 function PaletteColorEdit(props: IPaletteColorEditProps)
 {
-	const { id, color } = props;
+	const { id, color, selected } = props;
 	const { name, hex } = color;
+
 	const dispatch = useContext(PaletteDispatchContext);
 
-	const changeName = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-		dispatch({ type: 'setColorName', id, name: e.target.value });
+	const elem = useRef<HTMLFieldSetElement>(null);
+
+	useEffect(() => {
+		elem.current.style.setProperty('--hex', hex);
+	});
+
+	const select = useCallback(() => {
+		dispatch({ type: 'selectColor', id });
 	}, [id]);
 
-	const changeHex = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-		dispatch({ type: 'setColorHex', id, hex: e.target.value });
-	}, [id]);
+	let className = 'color-indicator';
+	if (selected) className += ' selected';
 
-	return <div>
-		<label> name: <input type="text" onChange={changeName} value={name} /> </label>
-		<label> color: <input type="color" onChange={changeHex} value={hex} /> </label>
-	</div>;
+	return <fieldset onClick={select} className={className} ref={elem}>
+		<legend> {name} </legend>
+	</fieldset>;
 }
 
 interface IPaletteColorsProperties
 {
 	colors: IEditableMap<IPaletteColor>;
+	selectedId: string;
 }
 
 function PaletteColors(props: IPaletteColorsProperties)
 {
-	const { colors } = props;
+	const { colors, selectedId } = props;
 	const { items, newItems, deletedItems } = colors;
 
 	const dispatch = useContext(PaletteDispatchContext);
@@ -278,20 +311,48 @@ function PaletteColors(props: IPaletteColorsProperties)
 		dispatch({ type: 'addColor' });
 	}, []);
 
+	const ids = Object.keys(items);
+	if (ids.length < 1)
+		throw new Error('Expected at least one palette color');
+
 	const colorEdits = [];
+	let selectedColor: IPaletteColor | null = null;
+
 	for (const id in items)
 	{
-		colorEdits.push(<PaletteColorEdit key={id} id={id} color={items[id]} />);
+		const selected = id === selectedId;
+		if (selected) selectedColor = items[id];
+		colorEdits.push(<PaletteColorEdit
+			key={id} id={id} color={items[id]} selected={selected} />);
 	}
 
 	for (const id in newItems)
 	{
-		colorEdits.push(<PaletteColorEdit key={id} id={id} color={newItems[id]} />);
+		const selected = id === selectedId;
+		if (selected) selectedColor = newItems[id];
+		colorEdits.push(<PaletteColorEdit
+			key={id} id={id} color={newItems[id]} selected={selected} />);
 	}
+
+	const setName = useCallback((e: InputChangeEvent) => {
+		dispatch({ type: 'setColorName', id: selectedId, name: e.target.value });
+	}, [selectedId]);
+
+	const setHex = useCallback((e: InputChangeEvent) => {
+		dispatch({ type: 'setColorHex', id: selectedId, hex: e.target.value });
+	}, [selectedId]);
 
 	return <section className="section">
 		<h3> Colors </h3>
-		<div> <button onClick={addColor}> New Color </button> </div>
+		<div> 
+			<label> name:
+			<input type="text" value={selectedColor.name} onChange={setName} />
+			</label>
+			<label> color:
+			<input type="color" value={selectedColor.hex} onChange={setHex} />
+			</label>
+			<button onClick={addColor}> + </button>
+		</div>
 		{colorEdits}
 	</section>;
 }
@@ -307,12 +368,13 @@ function Page(props: IPageModel)
 			colors: {
 				newItems: {},
 				deletedItems: [],
-				items: Array.isArray(colors) ? {} : structuredClone(colors)
+				items: structuredClone(colors)
 			}
 		},
 		savedPalette: props.palette,
 		isSaving: false,
-		tempIdCounter: 1
+		tempIdCounter: 1,
+		selectedColorId: Object.keys(colors)[0]
 	};
 
 	const [state, dispatch] = useReducer(reducer, initialState);
@@ -343,7 +405,7 @@ function Page(props: IPageModel)
 
 			<div className="section-container">
 				<PaletteProperties name={palette.name} />
-				<PaletteColors colors={palette.colors} />
+				<PaletteColors selectedId={state.selectedColorId} colors={palette.colors} />
 			</div>
 		</PaletteDispatchContext.Provider>
 	</AutoSaveForm>;

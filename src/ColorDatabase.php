@@ -55,10 +55,10 @@ class ColorDatabase
 	public function createPalette(string $name): array
 	{
 		$this->db->query('create-palette', $name);
-		$rowid = $this->db->lastInsertRowID();
-		$palette = $this->db->loadRowUnsafe('palette', $rowid);
-		$palette['colors'] = [];
-		return $palette;
+		$id = $this->db->lastInsertRowID();
+		// empty palette would never be useful
+		$this->createPaletteColor($id);
+		return $this->loadPalette($id);
 	}
 
 	public function loadPalette(int $id): ?array
