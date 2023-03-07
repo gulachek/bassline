@@ -18,7 +18,6 @@ interface ISelection
 
 export class NavigationTab extends HTMLElement
 {
-	private mut: MutationObserver;
 	private tabList: HTMLDivElement;
 	private tabPanelContainer: HTMLDivElement;
 	private dropdown: HTMLSelectElement;
@@ -32,7 +31,6 @@ export class NavigationTab extends HTMLElement
 	{
 		super();
 
-		this.mut = new MutationObserver(this.onMutation.bind(this));
 		this.panels = [];
 		this.tabs = [];
 		this.keyToIndex = new Map<string, number>();
@@ -71,28 +69,10 @@ export class NavigationTab extends HTMLElement
 		this.tabPanelContainer = document.createElement('div');
 		this.tabPanelContainer.classList.add('tab-panel-container');
 		fixture.appendChild(this.tabPanelContainer);
-
-		this.mut.observe(this, { childList: true });
 	}
 
 	disconnectedCallback()
 	{
-		this.mut.disconnect();
-	}
-
-	onMutation(records: MutationRecord[])
-	{
-		for (const record of records)
-		{
-			for (let i = 0; i < record.addedNodes.length; ++i)
-			{
-				const node = record.addedNodes[i];
-				if (node.nodeType !== Node.ELEMENT_NODE)
-					continue;
-
-				this.addTabItem(node);
-			}
-		}
 	}
 
 	activateTab(key: string)
@@ -225,6 +205,10 @@ class TabItem extends HTMLElement
 
 	connectedCallback()
 	{
+		if (!(this.parentElement instanceof NavigationTab))
+			throw new Error('<tab-item/> can only be child of <nav-tab/>');
+
+		this.parentElement.addTabItem(this);
 	}
 
 	get title()
