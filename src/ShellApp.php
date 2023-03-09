@@ -70,10 +70,10 @@ class ShellApp extends App
 					'auth_config' => $this->handler('renderAuthConfig'),
 					'groups' => $this->handler('renderGroups'),
 					'color_palette' => $this->handler('renderColorPalette'),
+					'theme' => $this->handler('serveThemeEdit'),
 				]
 			],
 			'shell' => [
-				'theme' => $this->handler('serveThemeEdit'),
 				'theme.css' => $this->handler('serveThemeCss'),
 			]
 		]);

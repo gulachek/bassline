@@ -30,7 +30,7 @@ Edit configuration for different ways to authenticate on this site.
 <?php endif; ?>
 
 <?php if ($TEMPLATE['access_themes']): ?>
-<a class="card" href="/shell/theme">
+<a class="card" href="/site/admin/theme">
 <h2> Theme </h2>
 <p>
 Map colors from a color palette to application-defined colors to style your site.
