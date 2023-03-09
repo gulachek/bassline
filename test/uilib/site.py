@@ -7,6 +7,7 @@ from .users import UserSelectPage
 from .groups import GroupSelectPage
 from .admin import AdminPage
 from .auth import AuthConfigEditPage
+from .color_palette import ColorPaletteSelectPage
 
 from pathlib import Path
 import subprocess
@@ -26,8 +27,14 @@ class Site:
     def setup(self):
         self.logInAsUser('admin')
         self.enableAuth()
-        self.createGroup('designers')
+        # Designers
+        groupPage = self.createGroup('designers')
+        groupPage.toggleSecurity('shell', 'edit_themes')
+        groupPage.waitSave()
         self.createUser('designer', 'designers')
+        # Plebs
+        self.createGroup('plebs')
+        self.createUser('pleb', 'plebs')
         self.logOut()
 
     def close():
@@ -108,6 +115,10 @@ class Site:
         self._navigate('/site/admin/groups/')
         return GroupSelectPage.fromDriver(self.driver)
 
+    def gotoColorPaletteSelectPage(self):
+        self._navigate('/site/admin/color_palette/')
+        return ColorPaletteSelectPage.fromDriver(self.driver)
+
     def gotoAuthConfigEditPage(self):
         self._navigate('/site/admin/auth_config/')
         return AuthConfigEditPage.fromDriver(self.driver)
@@ -157,3 +168,7 @@ class Site:
     def createGroup(self, groupname):
         page = self.gotoGroupSelectPage()
         return page.createGroup(groupname)
+
+    def createPalette(self, name):
+        page = self.gotoColorPaletteSelectPage()
+        return page.createPalette(name)

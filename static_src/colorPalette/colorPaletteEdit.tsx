@@ -282,6 +282,7 @@ function PaletteName(props: IPaletteNameProps)
 	return <label> name:
 		<input
 			type="text"
+			className="palette-name"
 			value={name}
 			onChange={onChangeName}
 			/>
@@ -335,7 +336,13 @@ function PaletteColorEdit(props: IPaletteColorEditProps)
 	let className = 'color-indicator';
 	if (selected) className += ' selected';
 
-	return <fieldset onClick={select} className={className} ref={elem}>
+	return <fieldset 
+		ref={elem}
+		data-hex={hex}
+		data-name={name}
+		onClick={select}
+		className={className}
+		>
 		<legend> {name} </legend>
 	</fieldset>;
 }
@@ -392,17 +399,28 @@ function PaletteColors(props: IPaletteColorsProperties)
 		dispatch({ type: 'setColorHex', id: selectedId, hex: e.target.value });
 	}, [selectedId]);
 
+	useEffect(() => {
+		(window as any)._setPaletteColorHex = (hex: string) => {
+			dispatch({ type: 'setColorHex', id: selectedId, hex });
+		};
+	}, [selectedId]);
+
 	return <section className="section">
 		<h3> Colors </h3>
 		<div> 
 			<label> name:
-			<input type="text" value={selectedColor.name} onChange={setName} />
+			<input
+				type="text"
+				className="current-color-name"
+				value={selectedColor.name}
+				onChange={setName}
+			/>
 			</label>
 			<label> color:
 			<input type="color" value={selectedColor.hex} onChange={setHex} />
 			</label>
-			<button onClick={addColor}> + </button>
-			<button onClick={deleteColor}> - </button>
+			<button className="add-color" onClick={addColor}> + </button>
+			<button className="del-color" onClick={deleteColor}> - </button>
 		</div>
 		{colorEdits}
 	</section>;

@@ -143,5 +143,46 @@ class TestUsers(unittest.TestCase):
         self.assertTrue(edit.isGroupMember('designers'))
         self.assertSetEqual(edit.emails(), emails)
 
+class TestColorPalette(unittest.TestCase):
+    def setUp(self):
+        site.logInAsUser('designer')
+
+    def test_created_palette_is_visible_on_select_page(self):
+        site.createPalette('Can Create')
+        select = site.gotoColorPaletteSelectPage()
+        self.assertTrue(select.hasPalette('Can Create'))
+
+    def test_pleb_cannot_edit_palette(self):
+        site.logInAsUser('pleb')
+        page = site.gotoColorPaletteSelectPage()
+        self.assertIsNone(page)
+
+    def test_palette_is_editable(self):
+        edit = site.createPalette('Edit me')
+
+        # Defaults
+        self.assertEqual(edit.paletteName(), 'Edit me')
+        self.assertDictEqual(edit.colors(), {
+            'New Color': '#000000'
+            })
+
+        # Now edit
+        edit.setPaletteName('Edited Name')
+        edit.setColor('New Color', name='Red', color='#ff0000')
+        edit.addColor(name='Green', color='#00ff00')
+        edit.addColor(name='Yellow', color='#ffff00')
+        edit.addColor(name='Blue', color='#0000ff')
+        edit.deleteColor('Yellow')
+
+        edit.waitSave()
+        site.refresh()
+
+        self.assertEqual(edit.paletteName(), 'Edited Name')
+        self.assertEqual(edit.colors(), {
+            'Red': '#ff0000',
+            'Green': '#00ff00',
+            'Blue': '#0000ff'
+            })
+
 if __name__ == '__main__':
     unittest.main()
