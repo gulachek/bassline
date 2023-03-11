@@ -25,23 +25,24 @@ class ColorDatabase
 	{
 		if ($this->db->queryValue('table-exists', 'props'))
 		{
-			$db_version = $this->db->queryValue('get-prop', 'version');
-			$db_consumer = new Semver(0,1,0); // this is server
-
-			if (!$db_version)
-				return 'Expected a database that was set up to have a version listed in props';
-
-			$db_semver = Semver::parse($db_version);
-
-			// this means, "will all of the queries in my source branch work on the DB?"
-			if (!$db_semver->canSupport($db_consumer))
-				return "DB version ($db_semver) is incompatible with server software ($db_consumer)";
-
-			return null; // this means the DB is set up and can support us
+			// assume this was already created and we just need to update
+			return null;
 		}
 
-		if (!$this->db->exec('init-color'))
-			return 'failed to initialize database';
+		$this->db->exec('init-color');
+
+		$palette = $this->createPalette('Default');
+		foreach ($palette['colors'] as $id => $color)
+		{
+			$palette['colors'][$id]['name'] = 'Default';
+			$palette['colors'][$id]['hex'] = '#0000ff';
+			break;
+		}
+		$this->savePalette($palette);
+
+		$theme = $this->createTheme();
+		$theme['name'] = 'Default';
+		$this->saveTheme($theme);
 
 		return null;
 	}
@@ -115,7 +116,11 @@ class ColorDatabase
 	{
 		$this->db->query('create-theme');
 		$id = $this->db->lastInsertRowID();
-		$this->db->query('init-theme-color-map', $id);
+		$color = $this->createThemeColor($id);
+		$this->db->query('init-theme-color-map', [
+			':theme' => $id,
+			':theme_color' => $color['id']
+		]);
 		return $this->loadTheme($id);
 	}
 
@@ -139,7 +144,7 @@ class ColorDatabase
 
 		// load theme colors
 		$result = $this->db->query('load-theme-colors', $theme_id);
-		$theme['theme-colors'] = $result->indexById();
+		$theme['themeColors'] = $result->indexById();
 
 		// load color mappings
 		$result = $this->db->query('load-theme-color-map', $theme_id);
@@ -155,7 +160,7 @@ class ColorDatabase
 			':name' => $theme['name']
 		]);
 
-		foreach ($theme['theme-colors'] as $id => $theme_color)
+		foreach ($theme['themeColors'] as $id => $theme_color)
 		{
 			$this->db->query('save-theme-color', [
 				':theme' => $theme['id'],
@@ -192,6 +197,12 @@ class ColorDatabase
 		$this->db->query('create-theme-color', $theme_id);
 		$id = $this->db->lastInsertRowID();
 		return $this->db->loadRowUnsafe('theme_color', $id);
+	}
+
+	public function deleteThemeColor(int $theme_color_id): void
+	{
+		$this->db->query('delete-theme-color', $theme_color_id);
+		$this->db->query('clear-theme-color-mappings', $theme_color_id);
 	}
 
 	public function createColorMapping(int $theme_id, string $app, string $semantic_color): array

@@ -1,1 +1,2 @@
-INSERT INTO theme DEFAULT VALUES;
+INSERT INTO theme (palette)
+SELECT id FROM palette LIMIT 1;

@@ -1,7 +1,10 @@
-body {
-	margin: 0;
+body, dialog {
 	color: var(--theme-page-fg);
 	background-color: var(--theme-page-bg);
+}
+
+body {
+	margin: 0;
 }
 
 .nav-bar {

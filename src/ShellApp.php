@@ -313,11 +313,19 @@ class ShellApp extends App
 		$colors = [];
 		foreach ($this->allApps() as $key => $app)
 		{
-			if (!isset($colors[$key]))
-				$colors[$key] = [];
+			$appColors = $app->colors();
+			if (!count($appColors))
+				continue;
 
-			foreach ($app->colors() as $name => $def)
-				$colors[$key][$name] = new Color($key, $name, $def);
+			$colors[$key] = [];
+
+			foreach ($appColors as $name => $def)
+			{
+				$color = new Color($key, $name, $def);
+				$colors[$key][$name] = [
+					'desc' => $color->desc()
+				];
+			}
 		}
 
 		return new ThemeEditPage($db, $colors);
@@ -404,7 +412,7 @@ class ShellApp extends App
 			if (array_key_exists($name, $by_name))
 			{
 				$theme_color_id = $by_name[$name];
-				$theme_color = $theme['theme-colors'][$theme_color_id];
+				$theme_color = $theme['themeColors'][$theme_color_id];
 
 				if (is_int($theme_color['bg_color']))
 				{

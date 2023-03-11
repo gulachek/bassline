@@ -105,6 +105,14 @@ class Conversion
 			$err = 'not int';
 			return null;
 		}
+		if ($class === 'float')
+		{
+			if (\is_float($obj) || \is_int($obj))
+				return $obj;
+
+			$err = 'not float';
+			return null;
+		}
 		if ($class === 'bool')
 		{
 			if (\is_bool($obj))

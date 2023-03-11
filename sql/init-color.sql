@@ -30,16 +30,16 @@ CREATE TABLE semantic_color (
 CREATE TABLE theme (
 	id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL DEFAULT "New Theme",
-	palette INTEGER
+	palette INTEGER NOT NULL
 );
 
 CREATE TABLE theme_color (
 	id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL DEFAULT "New Color",
 	theme INTEGER NOT NULL,
-	bg_color INTEGER, -- id in color table
+	bg_color INTEGER NOT NULL, -- id in color table
 	bg_lightness REAL DEFAULT 0.95,
-	fg_color INTEGER, -- id in color table
+	fg_color INTEGER NOT NULL, -- id in color table
 	fg_lightness REAL DEFAULT 0.05
 );
 
@@ -48,5 +48,5 @@ CREATE TABLE theme_color_map (
 	id INTEGER PRIMARY KEY,
 	theme INTEGER NOT NULL,
 	semantic_color INTEGER NOT NULL,
-	theme_color INTEGER
+	theme_color INTEGER NOT NULL
 );

@@ -1,10 +1,13 @@
-INSERT OR IGNORE INTO theme_color_map (theme, semantic_color)
+INSERT OR IGNORE INTO theme_color_map (theme, semantic_color, theme_color)
 SELECT
-	T.id as theme,
-	S.id as semantic_color
+	T.id,
+	S.id,
+	MIN(TC.id)
 FROM theme as T
 CROSS JOIN semantic_color as S
-WHERE semantic_color NOT IN (
+INNER JOIN theme_color as TC ON TC.theme = T.id
+GROUP BY T.id, S.id
+HAVING S.id NOT IN (
 	SELECT semantic_color FROM theme_color_map
 );
 

@@ -234,6 +234,18 @@ class ThemeEditPage extends Responder
 
 	public function respond(RespondArg $arg): mixed
 	{
+		if (!$arg->userCan('edit_themes'))
+		{
+			http_response_code(401);
+			echo "Not authorized";
+			return null;
+		}
+
+		$path = $arg->path;
+
+		if ($path->count() > 1)
+			return new NotFound();
+
 		$THEME = null;
 		$AVAILABLE_THEMES = $this->db->availableThemes();
 		$AVAILABLE_PALETTES = $this->db->availablePalettes();
@@ -241,14 +253,17 @@ class ThemeEditPage extends Responder
 		$THEME_COLOR_HEX = [];
 		$STATUS = 'inactive';
 
-		$action = strtolower($_REQUEST['action'] ?? 'select');
+		$action = strtolower($_REQUEST['action'] ?? '');
+		if (!$action)
+			$action = $path->isRoot() ? 'select' : $path->at(0);
 
 		if ($action === 'create')
 		{
-			$THEME = $this->db->createTheme();
+			return $this->createTheme($arg);
 		}
 		else if ($action === 'select')
 		{
+			return $this->selectTheme($arg);
 		}
 		else if ($action === 'add color')
 		{
@@ -257,44 +272,17 @@ class ThemeEditPage extends Responder
 			$this->db->createThemeColor($id);
 			$THEME = $this->db->loadTheme($id);
 		}
-		else if ($action === 'change palette')
+		else if ($action === 'change_palette')
 		{
-			$id = $this->parseId('theme-id');
-			$palette = $this->parseId('theme-palette');
-
-			$this->db->changeThemePalette($id, $palette);
-
-			$THEME = $this->db->loadTheme($id);
+			return $this->changePalette($arg);
 		}
 		else if ($action === 'save')
 		{
-			$id = $this->parseId('theme-id');
-			$name = $this->parseName('theme-name');
-			$theme_colors = $this->parseThemeColors();
-			$mappings = $this->parseColorMappings();
-			$status = $this->parseStatus();
-
-			$this->db->saveTheme([
-				'id' => $id,
-				'name' => $name,
-				'theme-colors' => $theme_colors,
-				'mappings' => $mappings
-			]);
-
-			if ($status === 'inactive')
-			{
-				$this->db->deactivateTheme($id);
-			}
-			else
-			{
-				$this->db->activateTheme($status, $id);
-			}
-
-			$THEME = $this->db->loadTheme($id);
+			return $this->saveTheme($arg);
 		}
 		else if ($action === 'edit')
 		{
-			$THEME = $this->db->loadTheme($this->parseId('theme-id'));
+			return $this->editTheme($arg);
 		}
 		else
 		{
@@ -305,7 +293,7 @@ class ThemeEditPage extends Responder
 
 		if (isset($THEME))
 		{
-			foreach ($THEME['theme-colors'] as $id => $theme_color)
+			foreach ($THEME['themeColors'] as $id => $theme_color)
 			{
 				$THEME_COLOR_HEX[$id] = [
 					'bg' => '#ffffff',
@@ -360,4 +348,264 @@ class ThemeEditPage extends Responder
 
 		return null;
 	}
+
+	private function createTheme(RespondArg $arg): mixed
+	{
+		$theme = $this->db->createTheme();
+		$id = $theme['id'];
+		return new Redirect("/site/admin/theme/edit?id=$id");
+	}
+
+	private function selectTheme(RespondArg $arg): mixed
+	{
+		$THEME = null;
+		$AVAILABLE_THEMES = $this->db->availableThemes();
+		$AVAILABLE_PALETTES = $this->db->availablePalettes();
+		$NAME_PATTERN = self::NAME_PATTERN;
+		$THEME_COLOR_HEX = [];
+
+		$arg->renderPage([
+			'title' => 'Edit Theme',
+			'template' => __DIR__ . '/../template/theme_page.php',
+			'args' => [
+				'theme' => $THEME,
+				'name_pattern' => $NAME_PATTERN,
+				'available_palettes' => $AVAILABLE_PALETTES,
+				'hex' => $THEME_COLOR_HEX,
+				'available_themes' => $AVAILABLE_THEMES,
+				'self' => $this
+			]
+		]);
+
+		return null;
+	}
+
+	private function editTheme(RespondArg $arg): mixed
+	{
+		$THEME = null;
+		$AVAILABLE_THEMES = $this->db->availableThemes();
+		$AVAILABLE_PALETTES = $this->db->availablePalettes();
+		$NAME_PATTERN = self::NAME_PATTERN;
+		$THEME_COLOR_HEX = [];
+		$STATUS = 'inactive';
+
+		$THEME = $this->db->loadTheme($this->parseId('id'));
+
+		if (isset($THEME))
+		{
+			foreach ($THEME['themeColors'] as $id => $theme_color)
+			{
+				$THEME_COLOR_HEX[$id] = [
+					'bg' => '#ffffff',
+					'fg' => '#000000'
+				];
+
+				if (empty($THEME['palette']))
+				{
+					continue;
+				}
+
+				$palette_colors = $THEME['palette']['colors'];
+
+				if (isset($theme_color['bg_color']))
+				{
+					$bg = SRGB::fromHex($palette_colors[$theme_color['bg_color']]['hex']);
+					list($h, $s, $l) = $bg->toHSL();
+					$l = $theme_color['bg_lightness'];
+					$THEME_COLOR_HEX[$id]['bg'] = SRGB::fromHSL([$h,$s,$l])->toHex();
+				}
+
+				if (isset($theme_color['fg_color']))
+				{
+					$fg = SRGB::fromHex($palette_colors[$theme_color['fg_color']]['hex']);
+					list($h, $s, $l) = $fg->toHSL();
+					$l = $theme_color['fg_lightness'];
+					$THEME_COLOR_HEX[$id]['fg'] = SRGB::fromHSL([$h,$s,$l])->toHex();
+				}
+			}
+
+			$active_themes = $this->db->getActiveThemes();
+			foreach ($active_themes as $type => $id)
+			{
+				if ($id === $THEME['id'])
+					$STATUS = $type;
+			}
+		}
+
+		$model = [
+			'theme' => $THEME,
+			'name_pattern' => $NAME_PATTERN,
+			'available_palettes' => $AVAILABLE_PALETTES,
+			'status' => $STATUS,
+			'hex' => $THEME_COLOR_HEX,
+			'semantic_colors' => $this->colors
+		];
+
+		ReactPage::render($arg, [
+			'title' => "Edit {$THEME['name']}",
+			'scripts' => ['/assets/themeEdit.js'],
+			'model' => $model
+		]);
+		return null;
+	}
+
+	private function saveTheme(RespondArg $arg): mixed
+	{
+		// TODO: scrutinize client input
+		$req = $arg->parseBody(ThemeSaveRequest::class);
+		if (!$req)
+		{
+			http_response_code(400);
+			echo json_encode(['error' => 'Bad request encoding']);
+			return null;
+		}
+
+		$theme = $req->theme;
+		$id = $theme->id;
+
+		$currentTheme = $this->db->loadTheme($id);
+
+		$themeToSave = [
+			'id' => $id,
+			'name' => $theme->name,
+			'themeColors' => [],
+			'mappings' => []
+		];
+
+		foreach ($theme->themeColors->deletedItems as $colorId)
+		{
+			if (!array_key_exists($colorId, $currentTheme['themeColors']))
+			{
+				http_response_code(400);
+				echo json_encode(['error' => 'Theme color not part of theme']);
+				return null;
+			}
+
+			$this->db->deleteThemeColor($colorId);
+		}
+
+		$mappedColors = [];
+		foreach ($theme->themeColors->newItems as $tempId => $color)
+		{
+			$newColor = $this->db->createThemeColor($id);
+			$mappedColors[$tempId] = $newColor['id'];
+			$currentTheme['themeColors'][$newColor['id']] = $newColor;
+			$theme->themeColors->items[$newColor['id']] = $color;
+		}
+
+		foreach ($theme->themeColors->items as $colorId => $color)
+		{
+			if (!array_key_exists($colorId, $currentTheme['themeColors']))
+			{
+				http_response_code(400);
+				echo json_encode(['error' => 'Theme color not part of theme']);
+				return null;
+			}
+
+			$themeToSave['themeColors'][$colorId] = [
+				'id' => $colorId,
+				'name' => $color->name,
+				'fg_color' => $color->fg_color,
+				'fg_lightness' => $color->fg_lightness,
+				'bg_color' => $color->bg_color,
+				'bg_lightness' => $color->bg_lightness
+			];
+		}
+
+		foreach ($theme->mappings as $mappingId => $mapping)
+		{
+			if (!array_key_exists($mappingId, $currentTheme['mappings']))
+			{
+				http_response_code(400);
+				echo json_encode(['error' => 'Mapping not part of theme']);
+				return null;
+			}
+
+			if (!array_key_exists($mapping->theme_color, $currentTheme['themeColors']))
+			{
+				http_response_code(400);
+				echo json_encode(['error' => 'Mapping theme color not part of theme']);
+				return null;
+			}
+
+			$currentMapping = $currentTheme['mappings'][$mappingId];
+
+			$themeToSave['mappings'][$mappingId] = [
+				'id' => $mappingId,
+				'app' => $currentMapping['app'],
+				'name' => $currentMapping['name'],
+				'theme_color' => $mapping->theme_color
+			];
+		}
+
+		$this->db->saveTheme($themeToSave);
+
+		if ($req->status === 'inactive')
+		{
+			$this->db->deactivateTheme($id);
+		}
+		else
+		{
+			$this->db->activateTheme($req->status, $id);
+		}
+
+		echo json_encode(['mappedColors' => $mappedColors]);
+		return null;
+	}
+
+	private function changePalette(RespondArg $arg): mixed
+	{
+		$id = $this->parseId('theme-id');
+		$palette = $this->parseId('palette-id');
+
+		$this->db->changeThemePalette($id, $palette);
+
+		return new Redirect("/site/admin/theme/edit?id=$id");
+	}
+}
+
+class ThemeColor
+{
+	public int $id;
+	public string $name;
+	public ?int $bg_color;
+	public float $bg_lightness;
+	public ?int $fg_color;
+	public float $fg_lightness;
+}
+
+class ThemeMapping
+{
+	public int $id;
+	public string $app;
+	public string $name;
+	public int $theme_color;
+}
+
+class EditableThemeColorMap
+{
+	#[AssocProperty('int', ThemeColor::class)]
+	public array $items;
+
+	#[AssocProperty('string', ThemeColor::class)]
+	public array $newItems;
+
+	#[ArrayProperty('string')]
+	public array $deletedItems;
+}
+
+class EditedTheme
+{
+	public int $id;
+	public string $name;
+	public EditableThemeColorMap $themeColors;
+
+	#[AssocProperty('int', ThemeMapping::class)]
+	public array $mappings;
+}
+
+class ThemeSaveRequest
+{
+	public EditedTheme $theme;
+	public string $status;
 }

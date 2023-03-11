@@ -18,6 +18,7 @@ class ScalarProps
 		public ?string $nullableStr = 'default',
 		public int $int = 0,
 		public bool $bool = false,
+		public float $float = 1.5,
 		public mixed $null = 'not null'
 	)
 	{
@@ -64,12 +65,14 @@ final class ConversionTest extends TestCase
 			'str' => 'hello',
 			'int' => 3,
 			'bool' => true,
+			'float' => 2.0,
 			'null' => null
 		]);
 
 		$this->assertEquals('hello', $obj->str);
 		$this->assertEquals(3, $obj->int);
 		$this->assertEquals(true, $obj->bool);
+		$this->assertEquals(2.0, $obj->float);
 		$this->assertEquals(null, $obj->null);
 	}
 

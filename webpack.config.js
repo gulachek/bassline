@@ -30,6 +30,11 @@ module.exports = {
 			filename: '[name].js',
 			dependOn: ['react']
 		},
+		themeEdit: {
+			import: resolve('static_src/themeEdit/themeEdit.tsx'),
+			filename: '[name].js',
+			dependOn: ['react']
+		},
 		authConfigEdit: {
 			import: resolve('static_src/authConfigEdit/authConfigEdit.tsx'),
 			filename: '[name].js',
