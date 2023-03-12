@@ -8,6 +8,7 @@ from .groups import GroupSelectPage
 from .admin import AdminPage
 from .auth import AuthConfigEditPage
 from .color_palette import ColorPaletteSelectPage
+from .theme import ThemeSelectPage
 
 from pathlib import Path
 import subprocess
@@ -119,6 +120,10 @@ class Site:
         self._navigate('/site/admin/color_palette/')
         return ColorPaletteSelectPage.fromDriver(self.driver)
 
+    def gotoThemeSelectPage(self):
+        self._navigate('/site/admin/theme/')
+        return ThemeSelectPage.fromDriver(self.driver)
+
     def gotoAuthConfigEditPage(self):
         self._navigate('/site/admin/auth_config/')
         return AuthConfigEditPage.fromDriver(self.driver)
@@ -172,3 +177,7 @@ class Site:
     def createPalette(self, name):
         page = self.gotoColorPaletteSelectPage()
         return page.createPalette(name)
+
+    def createTheme(self):
+        page = self.gotoThemeSelectPage()
+        return page.createTheme()

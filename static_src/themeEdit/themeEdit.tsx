@@ -365,6 +365,16 @@ function reducer(state: IEditState, action: EditAction)
 				delete items[id];
 			}
 			if (id in newItems) delete newItems[id];
+
+			// TODO: only allow mapping to real items (not newItems)
+			const replaceId = Object.keys(items).find(elem => elem !== id);
+			for (const mappingId in theme.mappings)
+			{
+				if (theme.mappings[mappingId].theme_color === parseInt(id))
+				{
+					theme.mappings[mappingId].theme_color = parseInt(replaceId);
+				}
+			}
 		}
 	}
 	else if (action.type === 'changePaletteVisible')
@@ -515,7 +525,7 @@ function PaletteChangePopup(props: IPaletteChangePopupProps)
 				Changing your palette will permanently clear all mapped theme colors for this theme.
 			</p>
 			<label> Palette:
-				<select name="palette-id">
+				<select className="palette-select" name="palette-id">
 					{paletteOptions}
 				</select>
 			</label>
@@ -568,6 +578,7 @@ function ThemeProperties(props: IThemePropertiesProps)
 		<div>
 			<label> palette:
 			<button
+				className="change-palette"
 				title="Change palette"
 				onClick={() => dispatch({ type: 'changePaletteVisible', visible: true })}
 			> {currentPaletteName} </button>
@@ -585,11 +596,13 @@ interface IThemeColorEditProps
 	id: string;
 	selected: boolean;
 	palette: Map<number, SRGB>;
+	fgColorName: string;
+	bgColorName: string;
 }
 
 function ThemeColorEdit(props: IThemeColorEditProps)
 {
-	const { color, id, selected, palette } = props;
+	const { color, id, selected, palette, fgColorName, bgColorName } = props;
 	const { name, fg_color, fg_lightness, bg_color, bg_lightness } = color;
 
 	const dispatch = useContext(ThemeDispatchContext);
@@ -604,7 +617,15 @@ function ThemeColorEdit(props: IThemeColorEditProps)
 
 	let className = 'theme-color-edit';
 	if (selected) className += ' selected';
-	return <button className={className} style={style} onClick={selectColor}>
+	return <button
+		className={className}
+		style={style}
+		data-fg_color={fgColorName}
+		data-bg_color={bgColorName}
+		data-fg_lightness={fg_lightness}
+		data-bg_lightness={bg_lightness}
+		onClick={selectColor}
+	>
 		{name}
 	</button>;
 }
@@ -666,6 +687,25 @@ function ThemeColors(props: IThemeColorsProps)
 		});
 	}, [selectedColorId]);
 
+	// make this selenium-testable
+	useEffect(() => {
+		(window as any)._setThemeColorLightness = (fg: number, bg: number): void => {
+			dispatch({
+				type: 'setColorLightness',
+				id: selectedColorId,
+				lightness: fg,
+				isBackground: false
+			});
+
+			dispatch({
+				type: 'setColorLightness',
+				id: selectedColorId,
+				lightness: bg,
+				isBackground: true
+			});
+		};
+	}, [selectedColorId]);
+
 	const addColor = useCallback(() => {
 		dispatch({ type: 'addColor' });
 	}, []);
@@ -700,8 +740,12 @@ function ThemeColors(props: IThemeColorsProps)
 	{
 		const selected = id === selectedColorId; 
 		if (selected) selectedColor = item;
-		names.push(<ThemeColorEdit palette={paletteSrgb}
-			key={id} color={item} id={id} selected={selected} />);
+		names.push(<ThemeColorEdit
+			palette={paletteSrgb}
+			key={id} color={item} id={id} selected={selected}
+			fgColorName={palette.colors[`${item.fg_color}`].name}
+			bgColorName={palette.colors[`${item.bg_color}`].name}
+			/>);
 	}
 
 	const fgSRGB = withLightness(
@@ -768,7 +812,7 @@ function ThemeColors(props: IThemeColorsProps)
 		</fieldset>
 		</div>
 		<div>
-			<input type="text"
+			<input type="text" className="current-theme-color-name"
 				value={selectedColor.name}
 				onChange={setName}
 			/>
@@ -854,7 +898,12 @@ function ThemeMappings(props: IThemeMappingsProps)
 			<label>
 				<strong title={colors[name].desc}> ⓘ {name}:</strong>
 			</label>
-			<select value={mapping.theme_color} onChange={selectColor}>
+			<select
+				className="mapping-select"
+				data-mapping-name={name}
+				value={mapping.theme_color}
+				onChange={selectColor}
+			>
 				{themeColorOpts}
 			</select>
 		</div>);
@@ -863,7 +912,11 @@ function ThemeMappings(props: IThemeMappingsProps)
 	return <Section title="Theme mappings">
 		<div>
 			<label> app:
-			<select onChange={selectApp} value={selectedAppName}>
+			<select
+				onChange={selectApp}
+				value={selectedAppName}
+				className="app-select"
+			>
 				{appOptions}
 			</select>
 			</label>

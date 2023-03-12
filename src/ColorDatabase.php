@@ -185,11 +185,11 @@ class ColorDatabase
 
 	public function changeThemePalette(int $theme_id, int $palette_id): void
 	{
-		$this->db->query('clear-theme-color', $theme_id);
 		$this->db->query('change-palette', [
 			':theme' => $theme_id,
 			':palette' => $palette_id
 		]);
+		$this->db->query('reset-theme-color', $theme_id);
 	}
 
 	public function createThemeColor(int $theme_id): array

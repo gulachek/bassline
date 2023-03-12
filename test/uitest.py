@@ -178,11 +178,88 @@ class TestColorPalette(unittest.TestCase):
         site.refresh()
 
         self.assertEqual(edit.paletteName(), 'Edited Name')
-        self.assertEqual(edit.colors(), {
+        self.assertDictEqual(edit.colors(), {
             'Red': '#ff0000',
             'Green': '#00ff00',
             'Blue': '#0000ff'
             })
+
+class TestTheme(unittest.TestCase):
+    def setUp(self):
+        site.logInAsUser('designer')
+
+    def test_created_theme_is_visible_on_select_page(self):
+        edit = site.createTheme()
+        edit.setThemeName('Can Create')
+        edit.waitSave()
+        select = site.gotoThemeSelectPage()
+        self.assertTrue(select.hasTheme('Can Create'))
+
+    def test_pleb_cannot_edit_theme(self):
+        site.logInAsUser('pleb')
+        page = site.gotoThemeSelectPage()
+        self.assertIsNone(page)
+
+    def test_theme_is_editable(self):
+        # Set up palette
+        palette = site.createPalette('For theme')
+        palette.setColor('New Color', name='Red', color='#ff0000')
+        palette.addColor(name='Green', color='#00ff00')
+        palette.addColor(name='Blue', color='#0000ff')
+        palette.waitSave()
+
+        # Create theme
+        edit = site.createTheme()
+        edit.changePalette('For theme')
+
+        # Defaults
+        self.assertEqual(edit.themeName(), 'New Theme')
+
+        # Now edit
+        edit.setThemeName('Edited Name')
+        edit.setThemeColor('New Color', name='First',
+                        fgName='Red', fgLightness=0.8,
+                        bgName='Blue', bgLightness=0.2,
+                           )
+        edit.addThemeColor(name='Delete me',
+                      fgName='Blue', fgLightness=0.5,
+                      bgName='Red', bgLightness=0.99
+                      )
+        edit.addThemeColor(name='Christmas',
+                      fgName='Green', fgLightness=0.9,
+                      bgName='Red', bgLightness=0.25
+                      )
+
+        edit.mapColor('shell', 'page', 'First')
+        edit.mapColor('shell', 'clickable', 'Christmas')
+        edit.mapColor('hello', 'greeting', 'Christmas')
+        edit.mapColor('hello', 'title', 'Delete me') # don't care about result, just that we handle it
+
+        edit.deleteThemeColor('Delete me')
+
+        edit.waitSave()
+        site.refresh()
+
+        self.assertEqual(edit.themeName(), 'Edited Name')
+        self.assertDictEqual(edit.themeColors(), {
+            'First': {
+                'fgName': 'Red',
+                'fgLightness': 0.8,
+                'bgName': 'Blue',
+                'bgLightness': 0.2
+                },
+            'Christmas': {
+                'fgName': 'Green',
+                'fgLightness': 0.9,
+                'bgName': 'Red',
+                'bgLightness': 0.25
+                }
+            })
+
+        mappings = edit.mappings()
+        self.assertEqual('First', mappings['shell']['page'])
+        self.assertEqual('Christmas', mappings['shell']['clickable'])
+        self.assertEqual('Christmas', mappings['hello']['greeting'])
 
 if __name__ == '__main__':
     unittest.main()

@@ -68,7 +68,20 @@ class App extends \Shell\App
 
 	public function colors(): array
 	{
-		return [];
+		return [
+			'greeting' => [
+				'description' => 'Color for a greeting, duh?',
+				'example-uri' => '/',
+				'default-system-bg' => \Shell\SystemColor::CANVAS,
+				'default-system-fg' => \Shell\SystemColor::CANVAS_TEXT
+			],
+			'title' => [
+				'description' => 'Color for someone\'s title',
+				'example-uri' => '/',
+				'default-system-bg' => \Shell\SystemColor::CANVAS,
+				'default-system-fg' => \Shell\SystemColor::CANVAS_TEXT
+			],
+		];
 	}
 
 	public function capabilities(): array
