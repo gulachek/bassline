@@ -396,7 +396,6 @@ class SecurityDatabase
 		$name = $user->username;
 
 		$current = $this->loadUser($id);
-		$is_super = $user->is_superuser;
 
 		if ($current['username'] !== $name)
 		{
@@ -427,10 +426,11 @@ class SecurityDatabase
 			return;
 		}
 
+		// do not allow changing super user from browser
 		$this->db->query('save-user', [
 			':id' => $id,
 			':username' => $name,
-			':is_superuser' => $is_super,
+			':is_superuser' => $current['is_superuser'],
 			':primary_group' => $user->primary_group
 		]);
 

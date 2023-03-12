@@ -209,6 +209,6 @@ final class ConversionTest extends TestCase
 			'bool' => 0
 		]);
 
-		$this->assertTrue($obj->bool);
+		$this->assertFalse($obj->bool);
 	}
 }

@@ -122,7 +122,7 @@ class Conversion
 				return true;
 
 			if ($obj === 0)
-				return true;
+				return false;
 
 			$err = 'not bool';
 			return null;
