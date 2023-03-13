@@ -159,5 +159,20 @@ class ThemeEditPage:
         self._selectApp(appName)
         self._selectMapping(mappingName, themeColorName)
 
+    def activeStatus(self):
+        elems = self.driver.find_elements(By.CSS_SELECTOR, 'input[name="theme-status"]')
+        for elem in elems:
+            if elem.get_attribute('checked') is not None:
+                return elem.get_attribute('value')
+        raise Exception('no checked theme-status found')
+
+    def setActiveStatus(self, status):
+        elems = self.driver.find_elements(By.CSS_SELECTOR, 'input[name="theme-status"]')
+        for elem in elems:
+            if elem.get_attribute('value') == status:
+                elem.click()
+                return
+        raise Exception(f"status '{status}' radio button not found")
+
     def waitSave(self):
         WebDriverWait(self.driver, timeout=10).until(edit_page_is_saved)

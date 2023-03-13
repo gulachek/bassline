@@ -214,9 +214,11 @@ class TestTheme(unittest.TestCase):
 
         # Defaults
         self.assertEqual(edit.themeName(), 'New Theme')
+        self.assertEqual(edit.activeStatus(), 'inactive')
 
         # Now edit
         edit.setThemeName('Edited Name')
+        edit.setActiveStatus('dark')
         edit.setThemeColor('New Color', name='First',
                         fgName='Red', fgLightness=0.8,
                         bgName='Blue', bgLightness=0.2,
@@ -241,6 +243,7 @@ class TestTheme(unittest.TestCase):
         site.refresh()
 
         self.assertEqual(edit.themeName(), 'Edited Name')
+        self.assertEqual(edit.activeStatus(), 'dark')
         self.assertDictEqual(edit.themeColors(), {
             'First': {
                 'fgName': 'Red',
