@@ -2,8 +2,6 @@
 
 namespace Shell;
 
-require_once __DIR__ . '/../vendor/autoload.php';
-
 function isName(string $name): bool
 {
 	$name_pattern = UserEditPage::USERNAME_PATTERN;

@@ -157,6 +157,7 @@ class Site:
 
     def enableAuth(self):
         page = self.gotoAuthConfigEditPage()
+        input('waiting...')
         page.enableNoauth(True)
         page.setGoogleClientId('dummy')
         page.enableSignInWithGoogle(True)

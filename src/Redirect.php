@@ -2,8 +2,6 @@
 
 namespace Shell;
 
-require_once __DIR__ . '/../vendor/autoload.php';
-
 class Redirect extends Responder
 {
 	public function __construct(

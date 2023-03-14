@@ -2,8 +2,6 @@
 
 namespace Shell;
 
-require_once __DIR__ . '/../vendor/autoload.php';
-
 function origin(string $uri): ?string
 {
 	$parsed = parse_url($uri);

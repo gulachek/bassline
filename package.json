@@ -1,5 +1,5 @@
 {
-  "name": "gulachek-dot-com-webshell",
+  "name": "bassline",
   "version": "1.0.0",
   "description": "Web shell for gulachek.com",
   "main": "index.js",
@@ -12,15 +12,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gulachek/gulachek-dot-com-webshell.git"
+    "url": "git+https://github.com/gulachek/bassline.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/gulachek/gulachek-dot-com-webshell/issues"
+    "url": "https://github.com/gulachek/bassline/issues"
   },
-  "homepage": "https://github.com/gulachek/gulachek-dot-com-webshell#readme",
+  "homepage": "https://github.com/gulachek/bassline#readme",
   "devDependencies": {
     "@types/react-dom": "^18.0.10",
     "@types/requirejs": "^2.1.34",

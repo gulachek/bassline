@@ -2,8 +2,6 @@
 
 namespace Shell;
 
-require_once __DIR__ . '/../vendor/autoload.php';
-
 class NoncePlugin extends AuthPlugin
 {
 	public function __construct(

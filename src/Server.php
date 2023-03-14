@@ -2,8 +2,6 @@
 
 namespace Shell;
 
-require __DIR__ . '/../vendor/autoload.php';
-
 class Server
 {
 	private Config $config;

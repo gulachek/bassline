@@ -2,8 +2,6 @@
 
 namespace Shell;
 
-require_once __DIR__ . '/../vendor/autoload.php';
-
 function is_json_obj(mixed $obj): bool
 {
 	return is_array($obj) && !array_is_list($obj);

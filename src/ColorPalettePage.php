@@ -2,8 +2,6 @@
 
 namespace Shell;
 
-require_once __DIR__ . '/../vendor/autoload.php';
-
 class ColorPalettePage extends Responder
 {
 	const NAME_PATTERN =  "^[a-zA-Z0-9 ]+$";

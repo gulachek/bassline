@@ -2,7 +2,6 @@
 
 namespace Shell;
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/mime_type.php';
 
 class App extends Responder
