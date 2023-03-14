@@ -9,7 +9,6 @@
 		"google/apiclient": "^2.12"
 	},
 	"bin": [
-		"bin/serve.php",
 		"bin/issue_nonce.php",
 		"bin/init.php"
 	],

@@ -1,6 +1,25 @@
 <?php
 
-include $_composer_autoload_path ?? __DIR__ . '/../vendor/autoload.php';
+# Do this for better performance
+if (isset($_SERVER['AUTOLOAD_PATH']))
+{
+	require_once $_SERVER['AUTOLOAD_PATH'];
+}
+else # nicer for development
+{
+	$dir = __DIR__;
+	while (!file_exists("$dir/vendor/autoload.php"))
+	{
+		$next = dirname($dir);
+		if ($next == $dir)
+		{
+			throw new \Exception("vendor/autoload.php not found in ancestor directory");
+		}
+		$dir = $next;
+	}
+
+	require_once "$dir/vendor/autoload.php";
+}
 
 // see https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid
 header('Referrer-Policy: no-referrer-when-downgrade');
