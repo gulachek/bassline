@@ -1,6 +1,6 @@
 <?php
 
-namespace Shell;
+namespace Gulachek\Bassline;
 
 // https://www.w3.org/TR/css-color-4/#css-system-colors
 class SystemColor

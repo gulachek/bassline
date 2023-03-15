@@ -1,6 +1,6 @@
 <?php
 
-namespace Shell;
+namespace Gulachek\Bassline;
 
 function is_json_obj(mixed $obj): bool
 {

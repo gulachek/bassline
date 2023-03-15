@@ -2,7 +2,7 @@
 	"name": "gulachek/bassline",
 	"autoload": {
 		"psr-4": {
-			"Shell\\": "src/"
+			"Gulachek\\Bassline\\": "src/"
 		}
 	},
 	"require": {

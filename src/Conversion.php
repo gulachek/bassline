@@ -1,6 +1,6 @@
 <?php
 
-namespace Shell;
+namespace Gulachek\Bassline;
 
 #[Attribute]
 final class ArrayProperty

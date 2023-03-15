@@ -4,7 +4,7 @@ namespace Hello;
 
 require __DIR__ . '/../../vendor/autoload.php';
 
-class HelloPage extends \Shell\Responder
+class HelloPage extends \Gulachek\Bassline\Responder
 {
 	private $msg;
 
@@ -27,7 +27,7 @@ class HelloPage extends \Shell\Responder
 	}
 }
 
-class LandingPage extends \Shell\Responder
+class LandingPage extends \Gulachek\Bassline\Responder
 {
 	public function respond($arg): mixed
 	{
@@ -39,7 +39,7 @@ class LandingPage extends \Shell\Responder
 	}
 }
 
-class App extends \Shell\App
+class App extends \Gulachek\Bassline\App
 {
 	public function __construct()
 	{
@@ -51,9 +51,9 @@ class App extends \Shell\App
 		return 'Hello';
 	}
 
-	public function version(): \Shell\Semver
+	public function version(): \Gulachek\Bassline\Semver
 	{
-		return new \Shell\Semver(0,1,1);
+		return new \Gulachek\Bassline\Semver(0,1,1);
 	}
 
 	public function install(): ?string
@@ -61,7 +61,7 @@ class App extends \Shell\App
 		return null;
 	}
 
-	public function upgradeFromVersion(\Shell\Semver $version): ?string
+	public function upgradeFromVersion(\Gulachek\Bassline\Semver $version): ?string
 	{
 		return null;
 	}
@@ -72,14 +72,14 @@ class App extends \Shell\App
 			'greeting' => [
 				'description' => 'Color for a greeting, duh?',
 				'example-uri' => '/',
-				'default-system-bg' => \Shell\SystemColor::CANVAS,
-				'default-system-fg' => \Shell\SystemColor::CANVAS_TEXT
+				'default-system-bg' => \Gulachek\Bassline\SystemColor::CANVAS,
+				'default-system-fg' => \Gulachek\Bassline\SystemColor::CANVAS_TEXT
 			],
 			'title' => [
 				'description' => 'Color for someone\'s title',
 				'example-uri' => '/',
-				'default-system-bg' => \Shell\SystemColor::CANVAS,
-				'default-system-fg' => \Shell\SystemColor::CANVAS_TEXT
+				'default-system-bg' => \Gulachek\Bassline\SystemColor::CANVAS,
+				'default-system-fg' => \Gulachek\Bassline\SystemColor::CANVAS_TEXT
 			],
 		];
 	}

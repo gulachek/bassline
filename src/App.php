@@ -1,6 +1,6 @@
 <?php
 
-namespace Shell;
+namespace Gulachek\Bassline;
 
 require_once __DIR__ . '/mime_type.php';
 

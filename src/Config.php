@@ -1,6 +1,6 @@
 <?php
 
-namespace Shell;
+namespace Gulachek\Bassline;
 
 abstract class Config
 {

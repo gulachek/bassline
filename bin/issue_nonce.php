@@ -8,7 +8,7 @@ if ($argc < 3)
 	exit(1);
 }
 
-$server = new \Shell\Server($argv[1]);
+$server = new \Gulachek\Bassline\Server($argv[1]);
 
 if (!$server->issueNonce($argv[2]))
 {

@@ -1,9 +1,9 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use Shell\Conversion;
-use Shell\ArrayProperty;
-use Shell\AssocProperty;
+use Gulachek\Bassline\Conversion;
+use Gulachek\Bassline\ArrayProperty;
+use Gulachek\Bassline\AssocProperty;
 
 class NoProps
 {

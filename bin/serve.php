@@ -30,7 +30,7 @@ if (!isset($_SERVER['SITE_CONFIG_PATH']))
 	$_SERVER['SITE_CONFIG_PATH'] = getenv('SITE_CONFIG_PATH');
 }
 
-$server = new \Shell\Server();
+$server = new \Gulachek\Bassline\Server();
 
 // TODO: add a way to generate static content config files and
 // opt out of this check via $_SERVER variable to go straight to

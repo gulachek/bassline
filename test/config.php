@@ -3,7 +3,7 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/hello/app.php';
 
-class Config extends \Shell\Config
+class Config extends \Gulachek\Bassline\Config
 {
 	public function __construct() { }
 
