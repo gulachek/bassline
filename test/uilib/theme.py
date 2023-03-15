@@ -107,7 +107,6 @@ class ThemeEditPage:
             if btn.text.endswith(pColorName):
                 btn.click()
                 return
-        input('waiting')
         raise Exception(f"no palette color with name {pColorName}")
 
 
