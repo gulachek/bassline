@@ -16,7 +16,9 @@
 		"phpunit/phpunit": "^9"
 	},
 	"scripts": {
-		"post-install-cmd": "scripts/build-client.sh",
-		"post-update-cmd": "scripts/build-client.sh"
+		"post-install-cmd": "scripts/build-client.sh install",
+		"post-package-install": "scripts/build-client.sh install",
+		"post-update-cmd": "scripts/build-client.sh update",
+		"post-package-update": "scripts/build-client.sh update"
 	}
 }
