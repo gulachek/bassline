@@ -8,6 +8,7 @@ abstract class Config
 
 	abstract public function dataDir(): string;
 	abstract public function siteName(): string;
+	abstract public function landingPage(RespondArg $arg): mixed;
 
 	static public function load(?string $path = null)
 	{

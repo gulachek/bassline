@@ -105,6 +105,10 @@ class Site:
         if not self.currentUri().endswith(path):
             self.driver.get(f"{self.uri}{path}")
 
+    def gotoLandingPage(self):
+        self._navigate('/')
+        return 'find me selenium' in self.driver.page_source
+
     def gotoHelloPage(self):
         self._navigate('/hello/')
 

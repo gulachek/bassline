@@ -8,20 +8,6 @@ function isName(string $name): bool
 	return preg_match("/^$name_pattern$/", $name);
 }
 
-class LandingPage extends Responder
-{
-	public function respond(RespondArg $arg): mixed
-	{
-		// TODO: make requested app's mounted dir the root for relative paths
-		$arg->renderPage([
-			'title' => 'Landing Page',
-			'template' => __DIR__ . '/../template/landing_page.php'
-		]);
-
-		return null;
-	}
-}
-
 class ShellApp extends App
 {
 	public function __construct(
@@ -55,7 +41,7 @@ class ShellApp extends App
 	public function respond(RespondArg $arg): mixed
 	{
 		return $arg->route([
-			'.' => new LandingPage(),
+			'.' => $this->handler('landingPage'),
 			'login' => [
 				'.' => new LoginPage($this->config, $this->authPlugins()),
 				'attempt' => $this->handler('attemptLogin'),
@@ -75,6 +61,11 @@ class ShellApp extends App
 				'theme.css' => $this->handler('serveThemeCss'),
 			]
 		]);
+	}
+
+	public function landingPage(RespondArg $arg): mixed
+	{
+		return $this->config->landingPage($arg);
 	}
 
 	public function install(): ?string

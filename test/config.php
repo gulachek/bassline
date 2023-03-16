@@ -3,7 +3,10 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/hello/app.php';
 
-class Config extends \Gulachek\Bassline\Config
+use \Gulachek\Bassline\Config;
+use \Gulachek\Bassline\RespondArg;
+
+class TestConfig extends Config
 {
 	public function __construct() { }
 
@@ -27,6 +30,16 @@ class Config extends \Gulachek\Bassline\Config
 
 		return __DIR__ . '/data/playground';
 	}
+
+	public function landingPage(RespondArg $arg): mixed
+	{
+		$arg->renderPage([
+			'title' => 'Landing Page',
+			'template' => __DIR__ . '/landing_page.php'
+		]);
+
+		return null;
+	}
 }
 
-return new Config();
+return new TestConfig();

@@ -61,6 +61,10 @@ class TestLogin(unittest.TestCase):
         self.assertFalse(page.hasUsersSection())
         self.assertFalse(page.hasGroupsSection())
 
+class TestConfig(unittest.TestCase):
+    def test_renders_landing_page(self):
+        self.assertTrue(site.gotoLandingPage())
+
 class TestGroups(unittest.TestCase):
     def setUp(self):
         site.logInAsUser('admin')
