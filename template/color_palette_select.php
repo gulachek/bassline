@@ -2,7 +2,7 @@
 <h1> Select color palette </h1>
 
 <?php if (count($TEMPLATE['available_palettes'])): ?>
-<form action="/site/admin/color_palette/edit">
+<form action="<?=$URI->rel('edit')?>">
 	<fieldset>
 	<legend> Select an existing palette </legend>
 	<select name="id">
@@ -15,7 +15,7 @@
 </form>
 <?php endif; ?>
 
-<form method="POST" action="/site/admin/color_palette/create">
+<form method="POST" action="<?=$URI->rel('create')?>">
 	<fieldset>
 	<legend> Create a new palette </legend>
 	<label> Palette name:

@@ -2,7 +2,7 @@
 <h1> Select a group </h1>
 
 <div class="group-container">
-<form action="<?=uri('edit')?>">
+<form action="<?=$URI->rel('edit')?>">
 	<?php foreach ($TEMPLATE['groups'] as $id => $group): ?>
 		<div>
 			<button
@@ -17,7 +17,7 @@
 </form>
 </div>
 
-	<form method="POST" action="<?=uri('create')?>">
+	<form method="POST" action="<?=$URI->rel('create')?>">
 	<label> groupname:
 		<input
 			type="text"

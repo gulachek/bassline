@@ -1,4 +1,3 @@
-<?php require_once $UTIL; ?>
 <link rel="stylesheet" href="/assets/clickable.css" />
 
 <?php if ($err = $TEMPLATE['error']): ?>
@@ -14,7 +13,7 @@
 <ul>
 <?php foreach ($TEMPLATE['users'] as $id => $user): ?>
 <li>
-	<a href="/site/admin/users?user_id=<?=$id?>">
+	<a href="<?=$URI->here(query: ['user_id' => $id])?>">
 		<?=text($user['username'])?>
 	</a>
 </li>

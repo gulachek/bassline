@@ -223,12 +223,13 @@ class Server
 		$del = new ResponderDelegate($app, $path);
 		$arg = null;
 		$resp = null;
+		$req_path = $path;
 
 		do
 		{
 			$resp = $del->responder;
 			$path = $del->path ?? $path;
-			$arg = new RespondArg($app_key, $path, $user, $this->config);
+			$arg = new RespondArg($app_key, $path, $user, $this->config, $req_path);
 		}
 		while ($del = ResponderDelegate::fromRespondReturnVal($resp->respond($arg)));
 	}

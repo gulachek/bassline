@@ -1,1 +1,1 @@
-<a href="./buddy"> Hello buddy  </a>
+<a href="<?=$URI->abs('/buddy')?>"> Hello buddy  </a>

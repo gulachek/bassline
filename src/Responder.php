@@ -32,7 +32,8 @@ class RespondArg
 		private readonly string $app_key,
 		public readonly PathInfo $path,
 		private readonly ?array $user,
-		private readonly Config $config
+		private readonly Config $config,
+		private readonly PathInfo $request_path
 	)
 	{
 	}
@@ -89,7 +90,9 @@ class RespondArg
 			$USERNAME = $this->user['username'];
 		}
 
-		$RENDER_BODY = function() use ($args, $template, $UTIL) {
+		$URI = new UriFormatter($this->app_key, $this->request_path);
+
+		$RENDER_BODY = function() use ($args, $template, $URI) {
 			$TEMPLATE = $args;
 			require($template);
 		};
@@ -105,7 +108,8 @@ class RespondArg
 			$this->app_key,
 			$this->path->child(),
 			$this->user,
-			$this->config
+			$this->config,
+			$this->request_path
 		);
 	}
 

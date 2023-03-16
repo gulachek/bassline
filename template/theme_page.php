@@ -3,7 +3,7 @@
 <h1> Select theme </h1>
 
 <?php if (count($TEMPLATE['available_themes'])): ?>
-<form action="/site/admin/theme/edit">
+<form action="<?=$URI->rel('edit')?>">
 	<fieldset>
 	<legend> Select a theme </legend>
 	<select name="id">
@@ -16,7 +16,7 @@
 </form>
 <?php endif; ?>
 
-<form method="POST" action="/site/admin/theme/create">
+<form method="POST" action="<?=$URI->rel('create')?>">
 	<fieldset>
 	<legend> Create a new theme </legend>
 	<input type="submit" value="Create" />

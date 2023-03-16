@@ -11,18 +11,18 @@ class PathInfo
 
 	public function __construct($path)
 	{
-		$this->info = pathinfo($path);
+		$this->info = \pathinfo($path);
 
 		$this->components = [];
-		foreach (explode('/', $path) as $piece)
+		foreach (\explode('/', $path) as $piece)
 		{
 			if (!empty($piece))
-				array_push($this->components, $piece);
+				\array_push($this->components, $piece);
 		}
 
-		$this->is_dir = str_ends_with($path, '/');
+		$this->is_dir = \str_ends_with($path, '/');
 
-		$this->path = '/' . implode('/', $this->components);
+		$this->path = '/' . \implode('/', $this->components);
 	}
 
 	public function isDir()
@@ -57,7 +57,7 @@ class PathInfo
 
 	public function count()
 	{
-		return count($this->components);
+		return \count($this->components);
 	}
 
 	public function isRoot()
@@ -78,21 +78,50 @@ class PathInfo
 			return $this->components[$this->count() + $i];
 	}
 
-	public function child()
+	public function child(): ?PathInfo
 	{
 		if ($this->isRoot())
 		{
 			return null;
 		}
 
-		$child_components = array_slice($this->components, 1);
-		return new PathInfo(implode('/', $child_components));
+		$child_components = \array_slice($this->components, 1);
+		return new PathInfo(\implode('/', $child_components));
+	}
+
+	public function dir(): PathInfo
+	{
+		if ($this->isRoot())
+			return $this;
+
+		$components = \array_slice($this->components, 0, \count($this->components)-1);
+		return new PathInfo(\implode('/', $components));
+	}
+
+	public function concat(string $sub): PathInfo
+	{
+		$pieces = \array_slice($this->components, 0);
+		foreach (\explode('/', $sub) as $piece)
+		{
+			if (empty($piece))
+				continue;
+
+			if ($piece === '..')
+			{
+				\array_pop($pieces);
+				continue;
+			}
+
+			\array_push($pieces, $piece);
+		}
+
+		return new PathInfo(\implode('/', $pieces));
 	}
 
 	public static function parseURI(string $uri): PathInfo
 	{
-		$parsed = parse_url($uri);
-		return new PathInfo(strtolower($parsed['path']));
+		$parsed = \parse_url($uri);
+		return new PathInfo(\strtolower($parsed['path']));
 	}
 
 	public static function parseRequestURI(): ?PathInfo
