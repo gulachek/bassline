@@ -40,7 +40,12 @@ class RespondArg
 
 	public function isLoggedIn(): bool
 	{
-		return !is_null($this->user);
+		return !\is_null($this->user);
+	}
+
+	public function uid(): ?int
+	{
+		return \is_null($this->user) ? null : $this->user['id'];
 	}
 
 	/*
