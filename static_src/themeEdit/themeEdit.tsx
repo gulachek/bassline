@@ -118,10 +118,21 @@ interface IEditState
 
 const ThemeDispatchContext = createContext(null);
 
+function useDispatch()
+{
+	return useContext(ThemeDispatchContext);
+}
+
 interface ISetNameAction
 {
 	type: 'setName';
 	value: string;
+}
+
+function useSetName()
+{
+	const dispatch = useDispatch();
+	return (name: string) => dispatch({ type: 'setName', value: name });
 }
 
 interface IBeginSaveAction
@@ -155,6 +166,14 @@ interface ISetColorNameAction
 	name: string;
 }
 
+function useSetColorName()
+{
+	const dispatch = useDispatch();
+	return (id: string, name: string) => dispatch({
+		type: 'setColorName', id, name
+	});
+}
+
 interface ISetColorLightnessAction
 {
 	type: 'setColorLightness';
@@ -162,6 +181,17 @@ interface ISetColorLightnessAction
 	lightness: number;
 	isBackground: boolean;
 }
+
+function useSetColorLightness(isBackground: boolean)
+{
+	const dispatch = useDispatch();
+	return (id: string, lightness: number) => dispatch({
+		type: 'setColorLightness', isBackground, id, lightness
+	});
+}
+
+const useSetBgLightness = () => useSetColorLightness(true);
+const useSetFgLightness = () => useSetColorLightness(false);
 
 interface ISetPaletteColorAction
 {
@@ -171,15 +201,38 @@ interface ISetPaletteColorAction
 	isBackground: boolean;
 }
 
+function useSetPaletteColor(isBackground: boolean)
+{
+	const dispatch = useDispatch();
+	return (id: string, paletteColorId: number) => dispatch({
+		type: 'setPaletteColor', isBackground, id, paletteColorId
+	});
+}
+
+const useSetBgPaletteColor = () => useSetPaletteColor(true);
+const useSetFgPaletteColor = () => useSetPaletteColor(false);
+
 interface IAddColorAction
 {
 	type: 'addColor';
+}
+
+function useAddColor()
+{
+	const dispatch = useDispatch();
+	return () => dispatch({ type: 'addColor' });
 }
 
 interface IDeleteColorAction
 {
 	type: 'deleteColor';
 	id: string;
+}
+
+function useDeleteColor()
+{
+	const dispatch = useDispatch();
+	return (id: string) => dispatch({ type: 'deleteColor', id });
 }
 
 interface ISelectColorAction
@@ -467,10 +520,10 @@ function ThemeName(props: IThemeNameProps)
 {
 	const { name } = props;
 
-	const dispatch = useContext(ThemeDispatchContext);
+	const setName = useSetName();
 
 	const onChangeName = useCallback((e: InputChangeEvent) => {
-		dispatch({ type: 'setName', value: e.target.value });
+		setName(e.target.value);
 	}, []);
 
 	return <label> name:
@@ -665,53 +718,37 @@ function ThemeColors(props: IThemeColorsProps)
 
 	const dispatch = useContext(ThemeDispatchContext);
 
+	const setColorName = useSetColorName();
+
 	const setName = useCallback((e: InputChangeEvent) => {
-		dispatch({ type: 'setColorName', id: selectedColorId, name: e.target.value });
+		setColorName(selectedColorId, e.target.value);
 	}, [selectedColorId]);
 
+	const setBgLightnessFn = useSetBgLightness();
+	const setFgLightnessFn = useSetFgLightness();
+
 	const setBgLightness = useCallback((e: InputChangeEvent) => {
-		dispatch({
-			type: 'setColorLightness',
-			id: selectedColorId,
-			lightness: e.target.valueAsNumber,
-			isBackground: true
-		});
+		setBgLightnessFn(selectedColorId, e.target.valueAsNumber);
 	}, [selectedColorId]);
 
 	const setFgLightness = useCallback((e: InputChangeEvent) => {
-		dispatch({
-			type: 'setColorLightness',
-			id: selectedColorId,
-			lightness: e.target.valueAsNumber,
-			isBackground: false
-		});
+		setFgLightnessFn(selectedColorId, e.target.valueAsNumber);
 	}, [selectedColorId]);
 
 	// make this selenium-testable
 	useEffect(() => {
 		(window as any)._setThemeColorLightness = (fg: number, bg: number): void => {
-			dispatch({
-				type: 'setColorLightness',
-				id: selectedColorId,
-				lightness: fg,
-				isBackground: false
-			});
-
-			dispatch({
-				type: 'setColorLightness',
-				id: selectedColorId,
-				lightness: bg,
-				isBackground: true
-			});
+			setFgLightnessFn(selectedColorId, fg);
+			setBgLightnessFn(selectedColorId, bg);
 		};
 	}, [selectedColorId]);
 
-	const addColor = useCallback(() => {
-		dispatch({ type: 'addColor' });
-	}, []);
+	const addColor = useAddColor();
 
-	const delColor = useCallback(() => {
-		dispatch({ type: 'deleteColor', id: selectedColorId });
+	const deleteColor = useDeleteColor();
+
+	const deleteSelectedColor = useCallback(() => {
+		deleteColor(selectedColorId);
 	}, [selectedColorId]);
 
 	const paletteSrgb = useMemo(() => {
@@ -817,7 +854,7 @@ function ThemeColors(props: IThemeColorsProps)
 				onChange={setName}
 			/>
 			<button className="add-color" onClick={addColor}> + </button>
-			<button className="del-color" onClick={delColor}> - </button>
+			<button className="del-color" onClick={deleteSelectedColor}> - </button>
 			<label>
 				contrast:
 				<input type="number" readOnly value={contrast} />

@@ -84,6 +84,9 @@ class Site:
     def currentUri(self):
         return self.driver.current_url
 
+    def currentPath(self):
+        return urlparse(self.currentUri()).path
+
     def refresh(self):
         self.driver.get(self.driver.current_url)
 
@@ -102,11 +105,11 @@ class Site:
         return LoginPage(self.driver)
 
     def _navigate(self, path):
-        if not self.currentUri().endswith(path):
+        if self.currentPath() != path:
             self.driver.get(f"{self.uri}{path}")
 
     def gotoLandingPage(self):
-        self._navigate('/')
+        self.driver.get(f"{self.uri}/")
         return 'find me selenium' in self.driver.page_source
 
     def gotoHelloPage(self):
