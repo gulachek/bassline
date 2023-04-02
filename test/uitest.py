@@ -236,6 +236,9 @@ class TestTheme(unittest.TestCase):
                       bgName='Red', bgLightness=0.25
                       )
 
+        # Can only map real colors
+        edit.waitSave()
+
         edit.mapColor('shell', 'page', 'First')
         edit.mapColor('shell', 'clickable', 'Christmas')
         edit.mapColor('hello', 'greeting', 'Christmas')

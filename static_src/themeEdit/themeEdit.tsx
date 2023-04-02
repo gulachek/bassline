@@ -888,11 +888,16 @@ function ThemeMappings(props: IThemeMappingsProps)
 			</option>);
 		}
 
-		const selectColor = (e: ChangeEvent<HTMLSelectElement>) => dispatch({
-			type: 'mapColor',
-			id: mapping.id,
-			themeColor: parseInt(e.target.value)
-		});
+		const selectColor = (e: ChangeEvent<HTMLSelectElement>) => {
+			const themeColor = parseInt(e.target.value);
+			if (isNaN(themeColor)) return;
+
+			dispatch({
+				type: 'mapColor',
+				id: mapping.id,
+				themeColor
+			});
+		};
 
 		rows.push(<div key={name}>
 			<label>
@@ -966,42 +971,41 @@ function Page(props: IPageModel)
 		dispatch({ type: 'endSave', response, request });
 	}, [theme, status]);
 
-	return <div>
+	return <div className="editor">
 			<ThemeDispatchContext.Provider value={dispatch}>
 				<PaletteChangePopup
 					palettes={props.available_palettes}
 					open={state.changePaletteVisible}
 					themeId={theme.id}
 				/>
-				<AutoSaveForm onSave={onSave} hasChange={hasChange}>
-					<div className="header">
-						<h1> Edit theme </h1>
-						<p className="save-indicator">
-						<input type="checkbox" readOnly checked={!hasChange} /> 
-						Saved
-						</p>
-					</div>
+				<AutoSaveForm onSave={onSave} hasChange={hasChange} />
+				<div className="header">
+					<h1> Edit theme </h1>
+				</div>
 
-					<div className="section-container">
-						<ThemeProperties
-							theme={theme}
-							currentPaletteId={savedTheme.palette?.id}
-							palettes={props.available_palettes}
-							status={status}
-						/>
-						<ThemeColors
-							colors={theme.themeColors}
-							palette={savedTheme.palette}
-							selectedColorId={state.selectedColorId}
-						/>
-						<ThemeMappings
-							selectedAppName={state.selectedAppName}
-							appColors={props.semantic_colors}
-							mappings={theme.mappings}
-							themeColors={theme.themeColors}
-						/>
-					</div>
-				</AutoSaveForm>
+				<div className="section-container">
+					<ThemeProperties
+						theme={theme}
+						currentPaletteId={savedTheme.palette?.id}
+						palettes={props.available_palettes}
+						status={status}
+					/>
+					<ThemeColors
+						colors={theme.themeColors}
+						palette={savedTheme.palette}
+						selectedColorId={state.selectedColorId}
+					/>
+					<ThemeMappings
+						selectedAppName={state.selectedAppName}
+						appColors={props.semantic_colors}
+						mappings={theme.mappings}
+						themeColors={theme.themeColors}
+					/>
+				</div>
+				<p className="save-indicator">
+					<input type="checkbox" readOnly checked={!hasChange} /> 
+					Saved
+				</p>
 			</ThemeDispatchContext.Provider>
 		</div>;
 }

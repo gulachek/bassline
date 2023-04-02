@@ -462,22 +462,23 @@ function Page(props: IPageModel)
 		dispatch({ type: 'endSave', response, request });
 	}, [palette]);
 
-	return <AutoSaveForm onSave={onSave} hasChange={hasChange}>
+	return <div className="editor">
+		<AutoSaveForm onSave={onSave} hasChange={hasChange} />
 		<PaletteDispatchContext.Provider value={dispatch}>
 			<div className="header">
 				<h1> Edit color palette </h1>
-				<p className="save-indicator">
-					<input type="checkbox" readOnly checked={!hasChange} /> 
-					Saved
-				</p>
 			</div>
 
 			<div className="section-container">
 				<PaletteProperties name={palette.name} />
 				<PaletteColors selectedId={state.selectedColorId} colors={palette.colors} />
 			</div>
+			<p className="save-indicator">
+				<input type="checkbox" readOnly checked={!hasChange} /> 
+				Saved
+			</p>
 		</PaletteDispatchContext.Provider>
-	</AutoSaveForm>;
+	</div>;
 }
 
 renderReactPage<IPageModel>(model => <Page {...model} />);

@@ -1,19 +1,18 @@
 export class LoadingOverlay extends HTMLElement
 {
 	private _handler: (e: Event) => any;
-	private _displayValue: string;
 
 	public constructor()
 	{
 		super();
 		this._handler = this.onLoad.bind(this);
-		this._displayValue = 'initial';
 	}
 
 	public connectedCallback()
 	{
-		this._displayValue = window.getComputedStyle(this).display;
 		this.style.display = 'none';
+		this.style.height = '100%';
+
 		window.addEventListener('load', this._handler);
 	}
 
@@ -24,7 +23,7 @@ export class LoadingOverlay extends HTMLElement
 
 	public onLoad(e: Event): void
 	{
-		this.style.display = this._displayValue;
+		this.style.display = 'block';
 	}
 }
 

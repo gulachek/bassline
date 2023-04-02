@@ -194,25 +194,26 @@ function Page(props: IPageProps)
 		
 	}, [data]);
 
-	return <React.Fragment>
+	return <div className="editor">
 		<AuthConfigDispatchContext.Provider value={dispatch}>
 		<ModalErrorMsg msg={errorMsg || null} />
 
 		<h1> Authentication Configuration </h1>
-		<p>
+		<AutoSaveForm onSave={onSave} hasChange={pluginHasChange} />
+
+		<div className="section-container">
+			{plugins}
+		</div>
+
+
+		<p className="save-indicator">
 			<label>
 				<input type="checkbox" readOnly checked={!pluginHasChange} />
 				Saved
 			</label>
 		</p>
-		<AutoSaveForm onSave={onSave} hasChange={pluginHasChange}>
-			<div className="section-container">
-				{plugins}
-			</div>
-
-		</AutoSaveForm>
 		</AuthConfigDispatchContext.Provider>
-	</React.Fragment>;
+	</div>;
 }
 
 renderReactPage<IPageModel>(async (model) => {

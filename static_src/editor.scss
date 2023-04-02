@@ -1,15 +1,33 @@
-.header {
-	text-align: center;
+.editor {
+	overflow: auto;
+	height: 100%;
+
+	.header {
+		text-align: center;
+	}
+
+	.save-indicator {
+		text-align: center;
+		position: sticky;
+		bottom: 0;
+		margin: 0.5em auto;
+		max-width: 8in;
+
+		background-color: var(--theme-page-bg);
+		color: var(--theme-page-fg);
+		border: solid 1px;
+	}
+
+	.section-container {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+
+	.section {
+		border: solid 1px;
+		padding: 1em;
+		margin: 1em;
+	}
 }
 
-.section-container {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
-}
-
-.section {
-	border: solid 1px;
-	padding: 1em;
-	margin: 1em;
-}

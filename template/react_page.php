@@ -1,3 +1,4 @@
+<link rel="stylesheet" type="text/css" href="/assets/react_page.css" />
 <script src="/assets/react.js"></script>
 <?php foreach ($TEMPLATE['scripts'] as $script): ?>
 	<script src="<?=text($script)?>"></script>

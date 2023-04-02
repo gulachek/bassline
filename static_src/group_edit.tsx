@@ -291,14 +291,11 @@ function Page(props: IPageModel)
 		dispatch({ type: 'endSave', response });
 	}, [id, group]);
 
-	return <AutoSaveForm onSave={onSave} hasChange={hasChange}>
+	return <div className="editor">
+		<AutoSaveForm onSave={onSave} hasChange={hasChange} />
 		<GroupDispatchContext.Provider value={dispatch}>
 			<div className="header">
 				<h1> Edit group </h1>
-				<p className="save-indicator">
-					<input type="checkbox" readOnly checked={!hasChange} /> 
-					Saved
-				</p>
 			</div>
 
 			<div className="section-container">
@@ -310,8 +307,13 @@ function Page(props: IPageModel)
 				/>
 
 			</div>
+
+			<p className="save-indicator">
+				<input type="checkbox" readOnly checked={!hasChange} /> 
+				Saved
+			</p>
 		</GroupDispatchContext.Provider>
-	</AutoSaveForm>;
+	</div>;
 }
 
 renderReactPage<IPageModel>(model => <Page {...model} />);

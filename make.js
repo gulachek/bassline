@@ -20,6 +20,7 @@ main.dependsOn(requirejs);
 
 const styles = [
 	'main',
+	'react_page',
 	'clickable',
 	'group_select',
 	'admin_page',

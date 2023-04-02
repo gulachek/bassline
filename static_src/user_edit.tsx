@@ -383,18 +383,12 @@ function Page(props: IPageProps)
 		</option>;
 	});
 
-	return <React.Fragment>
+	return <div className="editor">
 		<UserDispatchContext.Provider value={dispatch}>
 		<ModalErrorMsg msg={errorMsg || null} />
 
 		<h1> Edit User </h1>
-		<p>
-			<label>
-				<input type="checkbox" readOnly checked={!hasChange} />
-				Saved
-			</label>
-		</p>
-		<AutoSaveForm onSave={onSave} hasChange={hasChange}>
+		<AutoSaveForm onSave={onSave} hasChange={hasChange} />
 			<div className="section-container">
 
 				<section className="section">
@@ -434,9 +428,15 @@ function Page(props: IPageProps)
 				{plugins}
 			</div>
 
-		</AutoSaveForm>
+			<p className="save-indicator">
+				<label>
+					<input type="checkbox" readOnly checked={!hasChange} />
+					Saved
+				</label>
+			</p>
+
 		</UserDispatchContext.Provider>
-	</React.Fragment>;
+	</div>;
 }
 
 renderReactPage<IPageModel>(async (model) => {

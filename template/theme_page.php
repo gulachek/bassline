@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="/static/theme_page.css" />
-
 <h1> Select theme </h1>
 
 <?php if (count($TEMPLATE['available_themes'])): ?>

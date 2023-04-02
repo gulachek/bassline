@@ -3,8 +3,15 @@ body, dialog {
 	background-color: var(--theme-page-bg);
 }
 
-body {
+html, body {
 	margin: 0;
+	padding: 0;
+	height: 100vh;
+}
+
+body {
+	display: flex;
+	flex-flow: column nowrap;
 }
 
 .nav-bar {
@@ -12,6 +19,7 @@ body {
 	color: var(--theme-banner-fg);
 	text-align: right;
 	border-bottom: solid 1px;
+	flex: none;
 }
 
 .nav-bar a {
@@ -60,6 +68,6 @@ body {
 }
 
 .main {
-	overflow: auto;
-	padding: 0.5em;
+	overflow-y: hidden;
+	flex: auto;
 }
