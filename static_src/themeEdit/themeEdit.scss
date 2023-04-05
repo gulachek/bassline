@@ -1,7 +1,6 @@
 @use '../editor.scss';
 @use 'sass:list';
 @use 'sass:math';
-@use 'sass:string';
 
 /// gradient function to go from 0% to 100% [0, 10] (play around)
 @function lightness($x) {
@@ -31,23 +30,5 @@
 
 	fieldset {
 		margin: 0.5em;
-	}
-}
-
-.save-indicator {
-	.saving {
-		display: inline-grid;
-
-		& > * {
-			grid-area: 1/1/2/2;
-		}
-
-		.visible {
-			visibility: visible;
-		}
-
-		.hidden {
-			visibility: hidden;
-		}
 	}
 }

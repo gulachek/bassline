@@ -16,6 +16,7 @@ import { postJson } from '../postJson';
 import { requireAsync } from '../requireAsync';
 import { AuthPluginConfigEditComponent } from './authPluginConfigEdit';
 import { AutoSaveForm } from '../autosave/AutoSaveForm';
+import { SaveIndicator } from '../autosave/SaveIndicator';
 
 import './authConfigEdit.scss';
 
@@ -206,11 +207,8 @@ function Page(props: IPageProps)
 		</div>
 
 
-		<p className="save-indicator">
-			<label>
-				<input type="checkbox" readOnly checked={!pluginHasChange} />
-				Saved
-			</label>
+		<p className="status-bar">
+			<SaveIndicator isSaving={pluginHasChange} hasError={false} />
 		</p>
 		</AuthConfigDispatchContext.Provider>
 	</div>;

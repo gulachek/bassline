@@ -15,7 +15,7 @@ import {
 import { renderReactPage } from '../renderReactPage';
 import { postJson } from '../postJson';
 import { AutoSaveForm } from '../autosave/AutoSaveForm';
-import { LoadingIcon } from '../autosave/LoadingIcon';
+import { SaveIndicator } from '../autosave/SaveIndicator';
 import { SRGB } from '../srgb';
 
 import './themeEdit.scss';
@@ -1041,16 +1041,8 @@ function Page(props: IPageModel)
 						themeColors={theme.themeColors}
 					/>
 				</div>
-				<p className="save-indicator">
-					<LoadingIcon isLoading={hasChange} hasError={false} />
-					<span className="saving"> 
-						<span className={hasChange ? 'visible' : 'hidden'}>
-							Saving
-						</span>
-						<span className={hasChange ? 'hidden' : 'visible'}>
-							Saved
-						</span>
-					</span>
+				<p className="status-bar">
+					<SaveIndicator isSaving={hasChange} hasError={false} />
 				</p>
 			</ThemeDispatchContext.Provider>
 		</div>;

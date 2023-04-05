@@ -17,6 +17,7 @@ import { renderReactPage } from './renderReactPage';
 import { postJson } from './postJson';
 import { OneVisibleChild } from './containers';
 import { AutoSaveForm } from './autosave/AutoSaveForm';
+import { SaveIndicator } from './autosave/SaveIndicator';
 
 import './group_edit.scss';
 
@@ -308,9 +309,8 @@ function Page(props: IPageModel)
 
 			</div>
 
-			<p className="save-indicator">
-				<input type="checkbox" readOnly checked={!hasChange} /> 
-				Saved
+			<p className="status-bar">
+				<SaveIndicator isSaving={hasChange} hasError={false} />
 			</p>
 		</GroupDispatchContext.Provider>
 	</div>;

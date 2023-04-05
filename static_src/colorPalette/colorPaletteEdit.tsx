@@ -13,6 +13,7 @@ import {
 import { renderReactPage } from '../renderReactPage';
 import { postJson } from '../postJson';
 import { AutoSaveForm } from '../autosave/AutoSaveForm';
+import { SaveIndicator } from '../autosave/SaveIndicator';
 import { SRGB } from '../srgb';
 
 import './colorPaletteEdit.scss';
@@ -473,9 +474,8 @@ function Page(props: IPageModel)
 				<PaletteProperties name={palette.name} />
 				<PaletteColors selectedId={state.selectedColorId} colors={palette.colors} />
 			</div>
-			<p className="save-indicator">
-				<input type="checkbox" readOnly checked={!hasChange} /> 
-				Saved
+			<p className="status-bar">
+				<SaveIndicator isSaving={hasChange} hasError={false} />
 			</p>
 		</PaletteDispatchContext.Provider>
 	</div>;

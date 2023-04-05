@@ -22,6 +22,7 @@ import { postJson } from './postJson';
 import { requireAsync } from './requireAsync';
 import { AuthPluginUserEditComponent } from './authPluginUserEdit';
 import { AutoSaveForm } from './autosave/AutoSaveForm';
+import { SaveIndicator } from './autosave/SaveIndicator';
 
 import './user_edit.scss';
 
@@ -428,11 +429,8 @@ function Page(props: IPageProps)
 				{plugins}
 			</div>
 
-			<p className="save-indicator">
-				<label>
-					<input type="checkbox" readOnly checked={!hasChange} />
-					Saved
-				</label>
+			<p className="status-bar">
+				<SaveIndicator isSaving={hasChange} hasError={!!errorMsg} />
 			</p>
 
 		</UserDispatchContext.Provider>
