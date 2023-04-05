@@ -11,9 +11,11 @@ import {
 	ChangeEvent
 } from 'react';
 
+
 import { renderReactPage } from '../renderReactPage';
 import { postJson } from '../postJson';
 import { AutoSaveForm } from '../autosave/AutoSaveForm';
+import { LoadingIcon } from '../autosave/LoadingIcon';
 import { SRGB } from '../srgb';
 
 import './themeEdit.scss';
@@ -1040,8 +1042,15 @@ function Page(props: IPageModel)
 					/>
 				</div>
 				<p className="save-indicator">
-					<input type="checkbox" readOnly checked={!hasChange} /> 
-					Saved
+					<LoadingIcon isLoading={hasChange} hasError={false} />
+					<span className="saving"> 
+						<span className={hasChange ? 'visible' : 'hidden'}>
+							Saving
+						</span>
+						<span className={hasChange ? 'hidden' : 'visible'}>
+							Saved
+						</span>
+					</span>
 				</p>
 			</ThemeDispatchContext.Provider>
 		</div>;

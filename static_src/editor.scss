@@ -7,11 +7,12 @@
 	}
 
 	.save-indicator {
-		text-align: center;
 		position: sticky;
 		bottom: 0;
 		margin: 0.5em auto;
+		padding: 0.5em;
 		max-width: 8in;
+		width: fit-content;
 
 		background-color: var(--theme-page-bg);
 		color: var(--theme-page-fg);
