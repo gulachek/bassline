@@ -36,11 +36,10 @@ CREATE TABLE theme (
 CREATE TABLE theme_color (
 	id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL DEFAULT "New Color",
+	css_name TEXT, -- can be referenced by css code
 	theme INTEGER NOT NULL,
-	bg_color INTEGER NOT NULL, -- id in color table
-	bg_lightness REAL DEFAULT 0.95,
-	fg_color INTEGER NOT NULL, -- id in color table
-	fg_lightness REAL DEFAULT 0.05
+	color INTEGER NOT NULL, -- id in color table
+	lightness REAL DEFAULT 0.5
 );
 
 -- this is the actual mapping from the color to the app semantic color

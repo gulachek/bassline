@@ -32,3 +32,13 @@
 		margin: 0.5em;
 	}
 }
+
+.color-indicator {
+	background-color: var(--color);
+	border: solid 1px;
+	border-radius: 0.5em;
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	margin: 0 0.5em;
+}

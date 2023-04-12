@@ -81,8 +81,7 @@ class ColorDatabase
 
 	public function deletePaletteColor(int $id): void
 	{
-		$this->db->query('unlink-fg-color', $id);
-		$this->db->query('unlink-bg-color', $id);
+		$this->db->query('unlink-theme-color', $id);
 		$this->db->query('delete-palette-color', $id);
 	}
 
@@ -164,10 +163,8 @@ class ColorDatabase
 				':theme' => $theme['id'],
 				':id' => $id,
 				':name' => $theme_color['name'],
-				':bg_color' => $theme_color['bg_color'],
-				':bg_lightness' => $theme_color['bg_lightness'],
-				':fg_color' => $theme_color['fg_color'],
-				':fg_lightness' => $theme_color['fg_lightness']
+				':color' => $theme_color['color'],
+				':lightness' => $theme_color['lightness'],
 			]);
 		}
 

@@ -224,25 +224,28 @@ class TestTheme(unittest.TestCase):
         edit.setThemeName('Edited Name')
         edit.setActiveStatus('dark')
         edit.setThemeColor('New Color', name='First',
-                        fgName='Red', fgLightness=0.8,
-                        bgName='Blue', bgLightness=0.2,
+                        paletteColorName='Red', lightness=0.1
                            )
+
+        edit.addThemeColor(name='First Fg',
+                        paletteColorName='Red', lightness=0.8
+                           )
+
         edit.addThemeColor(name='Delete me',
-                      fgName='Blue', fgLightness=0.5,
-                      bgName='Red', bgLightness=0.99
+                      paletteColorName='Blue', lightness=0.2
                       )
         edit.addThemeColor(name='Christmas',
-                      fgName='Green', fgLightness=0.9,
-                      bgName='Red', bgLightness=0.25
+                      paletteColorName='Green', lightness=0.3,
                       )
 
         # Can only map real colors
         edit.waitSave()
 
-        edit.mapColor('shell', 'page', 'First')
-        edit.mapColor('shell', 'clickable', 'Christmas')
-        edit.mapColor('hello', 'greeting', 'Christmas')
-        edit.mapColor('hello', 'title', 'Delete me') # don't care about result, just that we handle it
+        edit.mapColor('shell', 'page-bg', 'First')
+        edit.mapColor('shell', 'page-fg', 'First Fg')
+        edit.mapColor('shell', 'clickable-bg', 'Christmas')
+        edit.mapColor('hello', 'greeting-bg', 'Christmas')
+        edit.mapColor('hello', 'title-bg', 'Delete me') # don't care about result, just that we handle it
 
         edit.deleteThemeColor('Delete me')
 
@@ -253,23 +256,24 @@ class TestTheme(unittest.TestCase):
         self.assertEqual(edit.activeStatus(), 'dark')
         self.assertDictEqual(edit.themeColors(), {
             'First': {
-                'fgName': 'Red',
-                'fgLightness': 0.8,
-                'bgName': 'Blue',
-                'bgLightness': 0.2
+                'color': 'Red',
+                'lightness': 0.1,
+                },
+            'First Fg': {
+                'color': 'Red',
+                'lightness': 0.8,
                 },
             'Christmas': {
-                'fgName': 'Green',
-                'fgLightness': 0.9,
-                'bgName': 'Red',
-                'bgLightness': 0.25
+                'color': 'Green',
+                'lightness': 0.3,
                 }
             })
 
         mappings = edit.mappings()
-        self.assertEqual('First', mappings['shell']['page'])
-        self.assertEqual('Christmas', mappings['shell']['clickable'])
-        self.assertEqual('Christmas', mappings['hello']['greeting'])
+        self.assertEqual('First', mappings['shell']['page-bg'])
+        self.assertEqual('First Fg', mappings['shell']['page-fg'])
+        self.assertEqual('Christmas', mappings['shell']['clickable-bg'])
+        self.assertEqual('Christmas', mappings['hello']['greeting-bg'])
 
 if __name__ == '__main__':
     unittest.main()

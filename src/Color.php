@@ -16,8 +16,7 @@ class Color
 		$req = [
 			'example-uri',
 			'description',
-			'default-system-fg',
-			'default-system-bg'
+			'default-system',
 		];
 
 		foreach ($req as $r)
@@ -37,13 +36,8 @@ class Color
 		return $this->def['description'];
 	}
 
-	public function defaultFg(): string
+	public function default(): string
 	{
-		return $this->def['default-system-fg'];
-	}
-
-	public function defaultBg(): string
-	{
-		return $this->def['default-system-bg'];
+		return $this->def['default-system'];
 	}
 }

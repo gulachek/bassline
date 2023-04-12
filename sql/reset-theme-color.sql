@@ -1,7 +1,6 @@
 UPDATE theme_color AS self
 SET
-	bg_color=c.id,
-	fg_color=c.id
+	color=c.id
 FROM (
 	theme_color AS tc
 	INNER JOIN theme AS t ON tc.theme = t.id

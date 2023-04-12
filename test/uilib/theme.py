@@ -72,10 +72,8 @@ class ThemeEditPage:
         colors = dict()
         for elem in elems:
             colors[elem.text] = {
-                'fgName': elem.get_attribute('data-fg_color'),
-                'fgLightness': float(elem.get_attribute('data-fg_lightness')),
-                'bgName': elem.get_attribute('data-bg_color'),
-                'bgLightness': float(elem.get_attribute('data-bg_lightness'))
+                'color': elem.get_attribute('data-color'),
+                'lightness': float(elem.get_attribute('data-lightness')),
             }
         return colors
 
@@ -97,11 +95,11 @@ class ThemeEditPage:
         elem.clear()
         elem.send_keys(name)
 
-    def _setCurrentThemeColorLightness(self, fg, bg):
-        self.driver.execute_script(f"window._setThemeColorLightness({fg}, {bg});")
+    def _setCurrentThemeColorLightness(self, lightness):
+        self.driver.execute_script(f"window._setThemeColorLightness({lightness});")
 
-    def _setThemeColorPaletteColor(self, fgbgStr, pColorName):
-        elem = self.driver.find_element(By.CLASS_NAME, f"{fgbgStr}-editor")
+    def _setThemeColorPaletteColor(self, pColorName):
+        elem = self.driver.find_element(By.CLASS_NAME, f"color-editor")
         btns = elem.find_elements(By.TAG_NAME, 'button')
         for btn in btns:
             if btn.text.endswith(pColorName):
@@ -110,20 +108,18 @@ class ThemeEditPage:
         raise Exception(f"no palette color with name {pColorName}")
 
 
-    def setThemeColor(self, currentName, *, name, fgName, fgLightness, bgName, bgLightness):
+    def setThemeColor(self, currentName, *, name, paletteColorName, lightness):
         self._selectThemeColor(currentName)
         self._setCurrentThemeColorName(name)
-        self._setCurrentThemeColorLightness(fgLightness, bgLightness)
-        self._setThemeColorPaletteColor('fg', fgName)
-        self._setThemeColorPaletteColor('bg', bgName)
+        self._setCurrentThemeColorLightness(lightness)
+        self._setThemeColorPaletteColor(paletteColorName)
 
-    def addThemeColor(self, *, name, fgName, fgLightness, bgName, bgLightness):
+    def addThemeColor(self, *, name, paletteColorName, lightness):
         btn = self.driver.find_element(By.CLASS_NAME, 'add-color')
         btn.click()
         self._setCurrentThemeColorName(name)
-        self._setCurrentThemeColorLightness(fgLightness, bgLightness)
-        self._setThemeColorPaletteColor('fg', fgName)
-        self._setThemeColorPaletteColor('bg', bgName)
+        self._setCurrentThemeColorLightness(lightness)
+        self._setThemeColorPaletteColor(paletteColorName)
 
     def deleteThemeColor(self, name):
         self._selectThemeColor(name)

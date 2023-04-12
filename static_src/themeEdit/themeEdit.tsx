@@ -60,10 +60,8 @@ interface IThemeColor
 {
 	id: number;
 	name: string;
-	bg_color: number;
-	bg_lightness: number;
-	fg_color: number;
-	fg_lightness: number;
+	color: number;
+	lightness: number;
 }
 
 enum ThemeStatus
@@ -181,38 +179,30 @@ interface ISetColorLightnessAction
 	type: 'setColorLightness';
 	id: string;
 	lightness: number;
-	isBackground: boolean;
 }
 
-function useSetColorLightness(isBackground: boolean)
+function useSetColorLightness()
 {
 	const dispatch = useDispatch();
 	return (id: string, lightness: number) => dispatch({
-		type: 'setColorLightness', isBackground, id, lightness
+		type: 'setColorLightness', id, lightness
 	});
 }
-
-const useSetBgLightness = () => useSetColorLightness(true);
-const useSetFgLightness = () => useSetColorLightness(false);
 
 interface ISetPaletteColorAction
 {
 	type: 'setPaletteColor';
 	id: string;
 	paletteColorId: number;
-	isBackground: boolean;
 }
 
-function useSetPaletteColor(isBackground: boolean)
+function useSetPaletteColor()
 {
 	const dispatch = useDispatch();
 	return (id: string, paletteColorId: number) => dispatch({
-		type: 'setPaletteColor', isBackground, id, paletteColorId
+		type: 'setPaletteColor', id, paletteColorId
 	});
 }
-
-const useSetBgPaletteColor = () => useSetPaletteColor(true);
-const useSetFgPaletteColor = () => useSetPaletteColor(false);
 
 interface IAddColorAction
 {
@@ -362,21 +352,15 @@ function reducer(state: IEditState, action: EditAction)
 	}
 	else if (action.type === 'setColorLightness')
 	{
-		const { id, lightness, isBackground } = action;
+		const { id, lightness } = action;
 		const color = findThemeColor(id);
-		if (isBackground)
-			color.bg_lightness = lightness;
-		else
-			color.fg_lightness = lightness;
+		color.lightness = lightness;
 	}
 	else if (action.type === 'setPaletteColor')
 	{
-		const { id, paletteColorId, isBackground } = action;
+		const { id, paletteColorId } = action;
 		const color = findThemeColor(id);
-		if (isBackground)
-			color.bg_color = paletteColorId;
-		else
-			color.fg_color = paletteColorId;
+		color.color = paletteColorId;
 	}
 	else if (action.type === 'selectColor')
 	{
@@ -384,16 +368,13 @@ function reducer(state: IEditState, action: EditAction)
 	}
 	else if (action.type === 'addColor')
 	{
-		const { bg_color, bg_lightness, fg_color, fg_lightness } = 
-			findThemeColor(selectedColorId);
+		const { color, lightness } = findThemeColor(selectedColorId);
 
 		const newColor: IThemeColor = {
 			id: -1,
 			name: 'New Color',
-			fg_color,
-			fg_lightness,
-			bg_color,
-			bg_lightness
+			color,
+			lightness,
 		};
 
 		const tempId = `temp${tempIdCounter++}`;
@@ -485,16 +466,10 @@ function pageHasChange(state: IEditState): boolean
 		if (editColor.name !== saveColor.name)
 			return true;
 
-		if (editColor.fg_lightness !== saveColor.fg_lightness)
+		if (editColor.lightness !== saveColor.lightness)
 			return true;
 
-		if (editColor.fg_color !== saveColor.fg_color)
-			return true;
-
-		if (editColor.bg_lightness !== saveColor.bg_lightness)
-			return true;
-
-		if (editColor.bg_color !== saveColor.bg_color)
+		if (editColor.color !== saveColor.color)
 			return true;
 	}
 
@@ -647,63 +622,71 @@ function ThemeProperties(props: IThemePropertiesProps)
 
 interface IThemeColorEditProps
 {
-	color: IThemeColor;
+	themeColor: IThemeColor;
 	id: string;
 	selected: boolean;
 	palette: Map<number, SRGB>;
-	fgColorName: string;
-	bgColorName: string;
+	paletteColorName: string;
 }
 
 function ThemeColorEdit(props: IThemeColorEditProps)
 {
-	const { color, id, selected, palette, fgColorName, bgColorName } = props;
-	const { name, fg_color, fg_lightness, bg_color, bg_lightness } = color;
+	const { themeColor, id, selected, palette, paletteColorName } = props;
+	const { name, color, lightness } = themeColor;
 
 	const dispatch = useContext(ThemeDispatchContext);
 	const selectColor = useCallback(() => {
 		dispatch({ type: 'selectColor', id });
 	}, [id]);
 
-	const style = {
-		color: withLightness(palette.get(fg_color), fg_lightness).toHex(),
-		backgroundColor: withLightness(palette.get(bg_color), bg_lightness).toHex()
-	};
+	const hex = withLightness(palette.get(color), lightness).toHex();
 
 	let className = 'theme-color-edit';
 	if (selected) className += ' selected';
 	return <button
 		className={className}
-		style={style}
-		data-fg_color={fgColorName}
-		data-bg_color={bgColorName}
-		data-fg_lightness={fg_lightness}
-		data-bg_lightness={bg_lightness}
+		data-color={paletteColorName}
+		data-lightness={lightness}
 		onClick={selectColor}
 	>
 		{name}
+		<ColorIndicator value={hex} />
 	</button>;
+}
+
+interface IColorIndicatorProps
+{
+	value: string;
+}
+
+function ColorIndicator(props: IColorIndicatorProps)
+{
+	const { value } = props;
+
+	const ref = useRef<HTMLSpanElement>(null);
+
+	useEffect(() => {
+		ref.current.style.setProperty('--color', value);
+	}, [value]);
+
+	return <span ref={ref} className="color-indicator" />;
 }
 
 interface IColoredButtonProps
 {
-	fg: string;
-	bg: string;
+	color: string;
 	text: string;
 	onClick(): void;
 }
 
 function ColoredButton(props: IColoredButtonProps)
 {
-	const { fg, bg, text, onClick } = props;
-	const ref = useRef<HTMLButtonElement>(null);
+	const { color, text, onClick } = props;
 
-	useEffect(() => {
-		ref.current.style.color = fg;
-		ref.current.style.backgroundColor = bg;
-	}, [fg, bg]);
-		
-	return <button ref={ref} onClick={onClick}> {text} </button>;
+	return <button onClick={onClick}>
+		{text}
+		<ColorIndicator value={color} />
+	</button>;
 }
 
 interface IThemeColorsProps
@@ -726,27 +709,20 @@ function ThemeColors(props: IThemeColorsProps)
 		setColorName(selectedColorId, e.target.value);
 	}, [selectedColorId]);
 
-	const setBgLightnessFn = useSetBgLightness();
-	const setFgLightnessFn = useSetFgLightness();
+	const setLightnessFn = useSetColorLightness();
 
-	const setBgLightness = useCallback((e: InputChangeEvent) => {
-		setBgLightnessFn(selectedColorId, e.target.valueAsNumber);
-	}, [selectedColorId]);
-
-	const setFgLightness = useCallback((e: InputChangeEvent) => {
-		setFgLightnessFn(selectedColorId, e.target.valueAsNumber);
+	const setLightness = useCallback((e: InputChangeEvent) => {
+		setLightnessFn(selectedColorId, e.target.valueAsNumber);
 	}, [selectedColorId]);
 
 	// make this selenium-testable
 	useEffect(() => {
-		(window as any)._setThemeColorLightness = (fg: number, bg: number): void => {
-			setFgLightnessFn(selectedColorId, fg);
-			setBgLightnessFn(selectedColorId, bg);
+		(window as any)._setThemeColorLightness = (val: number): void => {
+			setLightnessFn(selectedColorId, val);
 		};
 	}, [selectedColorId]);
 
 	const addColor = useAddColor();
-
 	const deleteColor = useDeleteColor();
 
 	const deleteSelectedColor = useCallback(() => {
@@ -781,71 +757,51 @@ function ThemeColors(props: IThemeColorsProps)
 		if (selected) selectedColor = item;
 		names.push(<ThemeColorEdit
 			palette={paletteSrgb}
-			key={id} color={item} id={id} selected={selected}
-			fgColorName={palette.colors[`${item.fg_color}`].name}
-			bgColorName={palette.colors[`${item.bg_color}`].name}
+			key={id} themeColor={item} id={id} selected={selected}
+			paletteColorName={palette.colors[`${item.color}`].name}
 			/>);
 	}
 
-	const fgSRGB = withLightness(
-		SRGB.fromHex(palette.colors[selectedColor.fg_color].hex),
-		selectedColor.fg_lightness);
-	const fgHex = fgSRGB.toHex();
+	const selectedSrgb = withLightness(
+		SRGB.fromHex(palette.colors[selectedColor.color].hex),
+		selectedColor.lightness);
+	const selectedHex = selectedSrgb.toHex();
 	
-	const bgSRGB = withLightness(
-		SRGB.fromHex(palette.colors[selectedColor.bg_color].hex),
-		selectedColor.bg_lightness);
-	const bgHex = bgSRGB.toHex();
-
-	const fgPalette = [];
-	const bgPalette = [];
+	const paletteBtns = [];
 	for (const paletteColorId in palette.colors)
 	{
 		const { hex, id, name } = palette.colors[paletteColorId];
 		const srgb = SRGB.fromHex(hex);
 
-		const { fg_lightness, bg_lightness } = selectedColor;
+		const { lightness } = selectedColor;
 
-		const setColor = (bg: boolean) => () => dispatch({
+		const setColor = () => dispatch({
 			type: 'setPaletteColor',
 			paletteColorId: id,
 			id: selectedColorId,
-			isBackground: bg
 		});
 
-		const fgName = id === selectedColor.fg_color ? `*${name}` : name;
-		const bgName = id === selectedColor.bg_color ? `*${name}` : name;
+		const btnText = id === selectedColor.color ? `*${name}` : name;
 
-		fgPalette.push(<ColoredButton key={id} text={fgName}
-			onClick={setColor(false)}
-			fg={withLightness(srgb, fg_lightness).toHex()} bg={bgHex}/>);
-		bgPalette.push(<ColoredButton key={id} text={bgName}
-			onClick={setColor(true)}
-			bg={withLightness(srgb, bg_lightness).toHex()} fg={fgHex}/>);
+		paletteBtns.push(<ColoredButton key={id} text={btnText}
+			onClick={setColor}
+			color={withLightness(srgb, lightness).toHex()} />);
 	}
 
+/*
 	const contrast = 
 		Math.round(fgSRGB.contrastRatio(bgSRGB) * 10) / 10;
+*/
 
 	return <Section title="Theme colors">
-		<div className="fgbg-editors">
-		<fieldset className="fg-editor">
-			<legend> Foreground </legend>
-			<div> {fgPalette} </div>
+		<div className="color-editors">
+		<fieldset className="color-editor">
+			<legend> Palette Color </legend>
+			<div> {paletteBtns} </div>
 			<label> lightness:
 			<input type="range" min="0" max="1" step="0.01"
-				value={selectedColor.fg_lightness}
-				onChange={setFgLightness}
-			/>
-			</label>
-		</fieldset>
-		<fieldset className="bg-editor">
-			<legend> Background </legend>
-			<div> {bgPalette} </div>
-			<label> lightness:
-			<input type="range" min="0" max="1" step="0.01"
-				value={selectedColor.bg_lightness}
-				onChange={setBgLightness}
+				value={selectedColor.lightness}
+				onChange={setLightness}
 			/>
 			</label>
 		</fieldset>
@@ -857,10 +813,6 @@ function ThemeColors(props: IThemeColorsProps)
 			/>
 			<button className="add-color" onClick={addColor}> + </button>
 			<button className="del-color" onClick={deleteSelectedColor}> - </button>
-			<label>
-				contrast:
-				<input type="number" readOnly value={contrast} />
-			</label>
 		</div>
 		<div>
 			{names}

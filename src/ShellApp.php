@@ -232,47 +232,75 @@ class ShellApp extends App
 	public function colors(): array
 	{
 		return [
-			'page' => [
+			'page-bg' => [
 				'description' => 'The default color for every page',
 				'example-uri' => '/',
-				'default-system-bg' => SystemColor::CANVAS,
-				'default-system-fg' => SystemColor::CANVAS_TEXT
+				'default-system' => SystemColor::CANVAS,
 			],
-			'clickable' => [
+			'page-fg' => [
+				'description' => 'The default color for every page',
+				'example-uri' => '/',
+				'default-system' => SystemColor::CANVAS_TEXT,
+			],
+			'clickable-bg' => [
 				'description' => 'Color for elements that are clickable',
 				'example-uri' => '/login',
-				'default-system-bg' => SystemColor::BUTTON_FACE,
-				'default-system-fg' => SystemColor::BUTTON_TEXT
+				'default-system' => SystemColor::BUTTON_FACE,
 			],
-			'clickable-hover' => [
+			'clickable-fg' => [
+				'description' => 'Color for elements that are clickable',
+				'example-uri' => '/login',
+				'default-system' => SystemColor::BUTTON_TEXT,
+			],
+			'clickable-hover-bg' => [
 				'description' => 'Color for hovering elements that are clickable',
 				'example-uri' => '/login',
-				'default-system-bg' => SystemColor::BUTTON_FACE,
-				'default-system-fg' => SystemColor::BUTTON_TEXT
+				'default-system' => SystemColor::BUTTON_FACE,
 			],
-			'editable' => [
+			'clickable-hover-fg' => [
+				'description' => 'Color for hovering elements that are clickable',
+				'example-uri' => '/login',
+				'default-system' => SystemColor::BUTTON_TEXT,
+			],
+			'editable-bg' => [
 				'description' => 'Color for elements that are editable (text box)',
 				'example-uri' => '/shell/color_palette',
-				'default-system-bg' => SystemColor::FIELD,
-				'default-system-fg' => SystemColor::FIELD_TEXT
+				'default-system' => SystemColor::FIELD,
 			],
-			'selected' => [
+			'editable-fg' => [
+				'description' => 'Color for elements that are editable (text box)',
+				'example-uri' => '/shell/color_palette',
+				'default-system' => SystemColor::FIELD_TEXT,
+			],
+			'selected-bg' => [
 				'description' => 'Color for selected interactive elements',
 				'example-uri' => '/login',
-				'default-system-bg' => SystemColor::SELECTED_ITEM,
-				'default-system-fg' => SystemColor::SELECTED_ITEM_TEXT
+				'default-system' => SystemColor::SELECTED_ITEM,
 			],
-			'banner' => [
+			'selected-fg' => [
+				'description' => 'Color for selected interactive elements',
+				'example-uri' => '/login',
+				'default-system' => SystemColor::SELECTED_ITEM_TEXT,
+			],
+			'banner-bg' => [
 				'description' => 'The website navbar banner color',
 				'example-uri' => '/',
-				'default-system-bg' => SystemColor::CANVAS,
-				'default-system-fg' => SystemColor::CANVAS_TEXT
+				'default-system' => SystemColor::CANVAS,
 			],
-			'banner-hover' => [
+			'banner-fg' => [
+				'description' => 'The website navbar banner color',
+				'example-uri' => '/',
+				'default-system' => SystemColor::CANVAS_TEXT,
+			],
+			'banner-hover-bg' => [
 				'description' => 'Color of hovered site-wide navbar items',
 				'example-uri' => '/',
-				'default-system-bg' => SystemColor::HIGHLIGHT,
-				'default-system-fg' => SystemColor::HIGHLIGHT_TEXT
+				'default-system' => SystemColor::HIGHLIGHT,
+			],
+			'banner-hover-fg' => [
+				'description' => 'Color of hovered site-wide navbar items',
+				'example-uri' => '/',
+				'default-system' => SystemColor::HIGHLIGHT_TEXT,
 			],
 		];
 	}
@@ -395,41 +423,26 @@ class ShellApp extends App
 		foreach ($colors as $name => $def)
 		{
 			$color = new Color($app_key, $name, $def);
-			$bg = $color->defaultBg();
-			$fg = $color->defaultFg();
+			$colorVal = $color->default();
 
 			if (array_key_exists($name, $by_name))
 			{
 				$theme_color_id = $by_name[$name];
 				$theme_color = $theme['themeColors'][$theme_color_id];
 
-				if (is_int($theme_color['bg_color']))
+				if (is_int($theme_color['color']))
 				{
-					$lightness = $theme_color['bg_lightness'];
+					$lightness = $theme_color['lightness'];
 
 					$palette = $theme['palette']['colors']
-						[$theme_color['bg_color']];
+						[$theme_color['color']];
 					$srgb_base = SRGB::fromHex($palette['hex']);
 					list($h,$s,$l) = $srgb_base->toHSL();
-					$bg = SRGB::fromHSL([$h,$s, $lightness])->toHex();
-				}
-
-				if (is_int($theme_color['fg_color']))
-				{
-					$lightness = $theme_color['fg_lightness'];
-
-					$palette = $theme['palette']['colors']
-						[$theme_color['fg_color']];
-					$srgb_base = SRGB::fromHex($palette['hex']);
-					list($h,$s,$l) = $srgb_base->toHSL();
-					$fg = SRGB::fromHSL([$h,$s, $lightness])->toHex();
+					$colorVal = SRGB::fromHSL([$h,$s, $lightness])->toHex();
 				}
 			}
 
-			$name_to_css[$name] = [
-				'bg' => $bg,
-				'fg' => $fg
-			];
+			$name_to_css[$name] = $colorVal;
 		}
 
 		return $name_to_css;
