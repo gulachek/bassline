@@ -148,7 +148,7 @@ export const UserEditor: AuthPluginUserEditComponent<SiwgData> = (props) =>
 	}, []);
 
 	const items = emails.map((email: string, i: number) => {
-		let classNames = 'cell clickable';
+		let classNames = 'cell';
 
 		if (i === index)
 			classNames += ' selected';
@@ -168,12 +168,11 @@ export const UserEditor: AuthPluginUserEditComponent<SiwgData> = (props) =>
 	return <div className="siwg" onKeyDown={keyDown}>
 		<div className="controls">
 			<input type="email"
-				className="editable"
 				onChange={onChange}
 				value={value}
 			/>
-			<button className="clickable" onClick={clickAdd}> + </button>
-			<button className="clickable" onClick={clickRemove}> - </button>
+			<button onClick={clickAdd}> + </button>
+			<button onClick={clickRemove}> - </button>
 		</div>
 		<div className="array">
 			{items}

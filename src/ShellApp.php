@@ -232,56 +232,6 @@ class ShellApp extends App
 	public function colors(): array
 	{
 		return [
-			'page-bg' => [
-				'description' => 'The default color for every page',
-				'example-uri' => '/',
-				'default-system' => SystemColor::CANVAS,
-			],
-			'page-fg' => [
-				'description' => 'The default color for every page',
-				'example-uri' => '/',
-				'default-system' => SystemColor::CANVAS_TEXT,
-			],
-			'clickable-bg' => [
-				'description' => 'Color for elements that are clickable',
-				'example-uri' => '/login',
-				'default-system' => SystemColor::BUTTON_FACE,
-			],
-			'clickable-fg' => [
-				'description' => 'Color for elements that are clickable',
-				'example-uri' => '/login',
-				'default-system' => SystemColor::BUTTON_TEXT,
-			],
-			'clickable-hover-bg' => [
-				'description' => 'Color for hovering elements that are clickable',
-				'example-uri' => '/login',
-				'default-system' => SystemColor::BUTTON_FACE,
-			],
-			'clickable-hover-fg' => [
-				'description' => 'Color for hovering elements that are clickable',
-				'example-uri' => '/login',
-				'default-system' => SystemColor::BUTTON_TEXT,
-			],
-			'editable-bg' => [
-				'description' => 'Color for elements that are editable (text box)',
-				'example-uri' => '/shell/color_palette',
-				'default-system' => SystemColor::FIELD,
-			],
-			'editable-fg' => [
-				'description' => 'Color for elements that are editable (text box)',
-				'example-uri' => '/shell/color_palette',
-				'default-system' => SystemColor::FIELD_TEXT,
-			],
-			'selected-bg' => [
-				'description' => 'Color for selected interactive elements',
-				'example-uri' => '/login',
-				'default-system' => SystemColor::SELECTED_ITEM,
-			],
-			'selected-fg' => [
-				'description' => 'Color for selected interactive elements',
-				'example-uri' => '/login',
-				'default-system' => SystemColor::SELECTED_ITEM_TEXT,
-			],
 			'banner-bg' => [
 				'description' => 'The website navbar banner color',
 				'example-uri' => '/',

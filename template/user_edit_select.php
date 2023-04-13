@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="/assets/clickable.css" />
-
 <?php if ($err = $TEMPLATE['error']): ?>
 	<dialog open>
 		<h2> Error </h2>
@@ -22,7 +20,6 @@
 
 <form method="POST">
 <input type="text"
-	class="editable"
 	title="Enter a username (letters, numbers, or underscores)"
 	pattern="<?=$TEMPLATE['username_pattern']?>"
 	name="username"
@@ -36,5 +33,5 @@
 <?php endforeach; ?>
 </select>
 	
-<input type="submit" name="action" value="Create" class="clickable" />
+<input type="submit" name="action" value="Create" />
 </form>

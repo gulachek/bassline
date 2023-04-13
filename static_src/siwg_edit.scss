@@ -1,3 +1,5 @@
+@use './clickable' as c;
+
 .siwg {
 	.controls {
 		text-align: center;
@@ -11,12 +13,14 @@
 
 	.cell {
 		padding: 0.5em;
-		outline: solid 1px;
+		margin: 2px;
 		display: block;
+
+		@include c.clickable();
 	}
 
 	.cell.selected {
-		color: var(--theme-selected-fg);
-		background-color: var(--theme-selected-bg);
+		color: var(--sys-theme-selected-item-text);
+		background-color: var(--sys-theme-selected-item);
 	}
 }

@@ -1,3 +1,5 @@
+@use '../clickable' as c;
+
 .fixture {
 	display: flex;
 	flex-direction: column;
@@ -24,12 +26,13 @@
 	visibility: hidden;
 	width: max-content;
 	margin: 0;
-	cursor: pointer;
+
+	@include c.clickable();
 }
 
 .tab.selected {
-	background-color: SelectedItem;
-	color: SelectedItemText;
+	background-color: var(--sys-theme-selected-item);
+	color: var(--sys-theme-selected-item-text);
 }
 
 .tab-panel-container {

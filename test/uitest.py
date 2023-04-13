@@ -241,9 +241,9 @@ class TestTheme(unittest.TestCase):
         # Can only map real colors
         edit.waitSave()
 
-        edit.mapColor('shell', 'page-bg', 'First')
-        edit.mapColor('shell', 'page-fg', 'First Fg')
-        edit.mapColor('shell', 'clickable-bg', 'Christmas')
+        edit.mapColor('shell', 'banner-bg', 'First')
+        edit.mapColor('shell', 'banner-fg', 'First Fg')
+        edit.mapColor('shell', 'banner-hover-bg', 'Christmas')
         edit.mapColor('hello', 'greeting-bg', 'Christmas')
         edit.mapColor('hello', 'title-bg', 'Delete me') # don't care about result, just that we handle it
 
@@ -270,9 +270,9 @@ class TestTheme(unittest.TestCase):
         self.assertFalse('Delete me' in colors)
 
         mappings = edit.mappings()
-        self.assertEqual('First', mappings['shell']['page-bg'])
-        self.assertEqual('First Fg', mappings['shell']['page-fg'])
-        self.assertEqual('Christmas', mappings['shell']['clickable-bg'])
+        self.assertEqual('First', mappings['shell']['banner-bg'])
+        self.assertEqual('First Fg', mappings['shell']['banner-fg'])
+        self.assertEqual('Christmas', mappings['shell']['banner-hover-bg'])
         self.assertEqual('Christmas', mappings['hello']['greeting-bg'])
 
 if __name__ == '__main__':

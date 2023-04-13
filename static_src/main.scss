@@ -1,6 +1,6 @@
 body, dialog {
-	color: var(--theme-page-fg);
-	background-color: var(--theme-page-bg);
+	color: var(--sys-theme-canvas-text);
+	background-color: var(--sys-theme-canvas);
 }
 
 html, body {
@@ -70,4 +70,33 @@ body {
 .main {
 	overflow-y: hidden;
 	flex: auto;
+	padding: 1em;
+}
+
+:link {
+	color: var(--sys-theme-link-text);
+}
+
+:visited {
+	color: var(--sys-theme-visited-text);
+}
+
+:any-link:active {
+	color: var(--sys-theme-active-text);
+}
+
+input, textarea {
+	color: var(--sys-theme-field-text);
+	background-color: var(--sys-theme-field);
+	border-color: var(--sys-theme-field-text);
+}
+
+fieldset {
+	border-color: var(--sys-theme-field-text);
+}
+
+button, input[type="submit"], select {
+	color: var(--sys-theme-button-text);
+	border-color: var(--sys-theme-button-border);
+	background-color: var(--sys-theme-button-face);
 }

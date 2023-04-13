@@ -1,18 +1,15 @@
+@use './clickable' as c;
+
 .card {
+	@include c.clickable();
+
 	display: block;
 	width: 3in;
 	margin: 1em auto;
-	background-color: var(--theme-clickable-bg);
-	color: var(--theme-clickable-fg);
 	padding: 1em;
-	border: solid 1px;
 	border-radius: 1em;
+	border-style: solid;
 	text-decoration: none;
-}
-
-.card:hover {
-	background-color: var(--theme-clickable-hover-bg);
-	color: var(--theme-clickable-hover-fg);
 }
 
 @media (min-width: 8in) {

@@ -6,7 +6,6 @@
 	<?php foreach ($TEMPLATE['groups'] as $id => $group): ?>
 		<div>
 			<button
-				class="clickable"
 				name="id"
 				value="<?=$id?>"
 				>
@@ -21,9 +20,8 @@
 	<label> groupname:
 		<input
 			type="text"
-			class="editable"
 			name="groupname"
 		/>
 	</label>
-	<input class="clickable" type="submit" value="Create" />
+	<input type="submit" value="Create" />
 </form>

@@ -397,7 +397,6 @@ function Page(props: IPageProps)
 					<div>
 						<label> username:
 							<input type="text"
-								className="editable"
 								name="username"
 								title="Enter a username (letters, numbers, or underscores)"
 								pattern={patterns.username}
