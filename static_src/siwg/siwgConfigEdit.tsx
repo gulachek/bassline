@@ -5,6 +5,7 @@ import {
 } from 'react';
 
 import { AuthPluginConfigEditComponent } from '../authConfigEdit/authPluginConfigEdit';
+import { Checkbox } from '../cbox';
 
 interface IData
 {
@@ -16,8 +17,8 @@ export const ConfigEditor: AuthPluginConfigEditComponent = (props) =>
 {
 	const { data, setData } = props;
 	const { enabled, clientId } = data;
-	const onCboxChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-	setData({ enabled: e.target.checked, clientId });
+	const onCboxChange = useCallback((checked: boolean) => {
+	setData({ enabled: checked, clientId });
 	}, [clientId]);
 
 	const onIdChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
@@ -25,8 +26,8 @@ export const ConfigEditor: AuthPluginConfigEditComponent = (props) =>
 	}, [enabled]);
 
 	return <div>
-		<label>
-		<input type="checkbox" checked={data.enabled} onChange={onCboxChange} />
+		<label className="siwg-enabled">
+		<Checkbox checked={data.enabled} onChange={onCboxChange} />
 		enabled
 		</label> <br />
 		<label>

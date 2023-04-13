@@ -6,6 +6,8 @@ import {
 
 import { AuthPluginConfigEditComponent } from '../authConfigEdit/authPluginConfigEdit';
 
+import { Checkbox } from '../cbox';
+
 interface IData
 {
 	enabled: boolean;
@@ -14,12 +16,12 @@ interface IData
 export const ConfigEditor: AuthPluginConfigEditComponent = (props) =>
 {
 	const { data, setData } = props;
-	const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-	setData({ enabled: e.target.checked });
+	const onChange = useCallback((checked: boolean) => {
+		setData({ enabled: checked });
 	}, []);
 
-	return <label>
-		<input type="checkbox" checked={data.enabled} onChange={onChange} />
+	return <label className="noauth-enabled">
+		<Checkbox checked={data.enabled} onChange={onChange} />
 		enabled
 	</label>;
 };
