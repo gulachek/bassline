@@ -18,6 +18,7 @@ import { postJson } from './postJson';
 import { OneVisibleChild } from './containers';
 import { AutoSaveForm } from './autosave/AutoSaveForm';
 import { SaveIndicator } from './autosave/SaveIndicator';
+import { Checkbox } from './cbox';
 
 import './group_edit.scss';
 
@@ -179,9 +180,8 @@ function Capabilities(props: ICapabilitiesProps)
 
 	const dispatch = useContext(GroupDispatchContext);
 
-	const changeCap = (capId: CapabilityId) => (e: ChangeEvent<HTMLInputElement>) => {
-		e.stopPropagation();
-		if (e.target.checked) {
+	const changeCap = (capId: CapabilityId) => (checked: boolean) => {
+		if (checked) {
 			dispatch({ type: 'addCapability', capId });
 		} else {
 			dispatch({ type: 'removeCapability', capId });
@@ -201,12 +201,14 @@ function Capabilities(props: ICapabilitiesProps)
 	{
 		const caps = allCapabilities[app];
 		const inputs = caps.map((cap: ICapability) => {
-			return <div key={cap.id}> <label title={cap.description}>
-				<input type="checkbox"
-					checked={groupCapabilities.includes(cap.id)}
-					onChange={changeCap(cap.id)}
-					data-capability={cap.name}
-				/> {cap.name}
+			return <div key={cap.id}> <label
+				title={cap.description}
+				data-capability={cap.name}
+				>
+					<Checkbox
+						checked={groupCapabilities.includes(cap.id)}
+						onChange={changeCap(cap.id)}
+					/> {cap.name}
 			</label></div>;
 		});
 

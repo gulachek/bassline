@@ -19,7 +19,7 @@ import './cbox.scss';
 interface ICheckboxProps
 {
 	checked: boolean;
-	disabled: boolean;
+	disabled?: boolean;
 	onChange(checked: boolean): any;
 }
 
