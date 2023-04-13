@@ -93,7 +93,7 @@ class ThemeEditPage extends Responder
 
 	private function createTheme(RespondArg $arg): mixed
 	{
-		$theme = $this->db->createTheme();
+		$theme = $this->db->createTheme(isDark: false);
 		$id = $theme['id'];
 		return new Redirect("/site/admin/theme/edit?id=$id");
 	}

@@ -28,6 +28,7 @@ class ColorDatabase
 		}
 
 		$this->db->exec('init-color');
+		$this->db->exec('init-system-colors');
 
 		$palette = $this->createPalette('Default');
 		foreach ($palette['colors'] as $id => $color)
@@ -38,11 +39,20 @@ class ColorDatabase
 		}
 		$this->savePalette($palette);
 
-		$theme = $this->createTheme();
-		$theme['name'] = 'Default';
-		$this->saveTheme($theme);
+		$light = $this->createTheme(isDark: false);
+		$light['name'] = 'Default Light';
+		$this->saveTheme($light);
+
+		$dark = $this->createTheme(isDark: true);
+		$dark['name'] = 'Default Dark';
+		$this->saveTheme($dark);
 
 		return null;
+	}
+
+	public function loadSystemColorValues(): array
+	{
+		return $this->db->query('load-system-color-values')->indexById();
 	}
 
 	public function availablePalettes(): array
@@ -109,10 +119,14 @@ class ColorDatabase
 		return true;
 	}
 
-	public function createTheme(): array
+	public function createTheme(bool $isDark): array
 	{
 		$this->db->query('create-theme');
 		$id = $this->db->lastInsertRowID();
+		$this->db->query('init-theme-system-colors', [
+			':theme' => $id,
+			':is_dark' => $isDark
+		]);
 		$color = $this->createThemeColor($id);
 		$this->db->query('init-theme-color-map', [
 			':theme' => $id,

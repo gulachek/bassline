@@ -401,8 +401,7 @@ class ShellApp extends App
 		$by_name = [];
 		foreach ($theme['mappings'] as $id => $mapping)
 		{
-			if ($mapping['app'] === $app_key
-				&& is_int($mapping['theme_color']))
+			if ($mapping['app'] === $app_key)
 			{
 				$by_name[$mapping['name']] = $mapping['theme_color'];
 			}
@@ -413,36 +412,70 @@ class ShellApp extends App
 
 	private static function mapAppThemeColors(?array $theme, string $app_key, array $colors): array
 	{
-		$by_name = [];
-
-		if ($theme)
-			$by_name = self::mappedThemeColorsForApp($theme, $app_key);
-
 		$name_to_css = [];
 
-		foreach ($colors as $name => $def)
+		if ($theme)
 		{
-			$color = new Color($app_key, $name, $def);
-			$colorVal = $color->default();
+			$by_name = self::mappedThemeColorsForApp($theme, $app_key);
 
-			if (array_key_exists($name, $by_name))
+			foreach ($colors as $name => $def)
 			{
+				$color = new Color($app_key, $name, $def);
+
 				$theme_color_id = $by_name[$name];
 				$theme_color = $theme['themeColors'][$theme_color_id];
 
-				if (is_int($theme_color['color']))
-				{
-					$lightness = $theme_color['lightness'];
+				$lightness = $theme_color['lightness'];
 
-					$palette = $theme['palette']['colors']
-						[$theme_color['color']];
-					$srgb_base = SRGB::fromHex($palette['hex']);
-					list($h,$s,$l) = $srgb_base->toHSL();
-					$colorVal = SRGB::fromHSL([$h,$s, $lightness])->toHex();
-				}
+				$palette_color = $theme['palette']['colors']
+					[$theme_color['color']];
+				$srgb_base = SRGB::fromHex($palette_color['hex']);
+				list($h,$s,$l) = $srgb_base->toHSL();
+				$name_to_css[$name] = SRGB::fromHSL([$h,$s, $lightness])->toHex();
 			}
+		}
+		else
+		{
+			foreach ($colors as $name => $def)
+			{
+				$color = new Color($app_key, $name, $def);
+				$name_to_css[$name] = "var(--sys-theme-{$color->default()})";
+			}
+		}
 
-			$name_to_css[$name] = $colorVal;
+		return $name_to_css;
+	}
+
+	private static function mapSysThemeColors(array $sys_colors, ?array $theme, bool $isDark): array
+	{
+		$name_to_css = [];
+
+		if ($theme)
+		{
+			foreach ($theme['themeColors'] as $id => $theme_color)
+			{
+				if (\is_null($theme_color['system_color']))
+					continue;
+
+				$sys_color = $sys_colors[$theme_color['system_color']];
+				$name = $sys_color['css_name'];
+
+				$lightness = $theme_color['lightness'];
+
+				$palette_color = $theme['palette']['colors']
+					[$theme_color['color']];
+				$srgb_base = SRGB::fromHex($palette_color['hex']);
+				list($h,$s,$l) = $srgb_base->toHSL();
+				$name_to_css[$name] = SRGB::fromHSL([$h,$s, $lightness])->toHex();
+			}
+		}
+		else
+		{
+			$value_key = $isDark ? 'dark_css_value' : 'light_css_value';
+			foreach ($sys_colors as $id => $sys_color)
+			{
+				$name_to_css[$sys_color['css_name']] = $sys_color[$value_key];
+			}
 		}
 
 		return $name_to_css;
@@ -477,18 +510,22 @@ class ShellApp extends App
 		$dark_theme = null;
 		$light_theme = null;
 
-		if ($active_themes['dark'] ?? false)
+		if (\array_key_exists('dark', $active_themes))
 		{
 			$dark_theme = $db->loadTheme($active_themes['dark']);
 		}
 
-		if ($active_themes['light'] ?? false)
+		if (\array_key_exists('light', $active_themes))
 		{
 			$light_theme = $db->loadTheme($active_themes['light']);
 		}
 
-		$DARK = self::mapAppThemeColors($dark_theme, $app_key, $colors);
-		$LIGHT = self::mapAppThemeColors($light_theme, $app_key, $colors);
+		$sys_colors = $db->loadSystemColorValues();
+		$DARK_SYS = self::mapSysThemeColors($sys_colors, $dark_theme, isDark: true);
+		$LIGHT_SYS = self::mapSysThemeColors($sys_colors, $light_theme, isDark: false);
+
+		$DARK_APP = self::mapAppThemeColors($dark_theme, $app_key, $colors);
+		$LIGHT_APP = self::mapAppThemeColors($light_theme, $app_key, $colors);
 
 		header('Content-Type: text/css');
 		require (__DIR__ . '/../template/theme.css.php');

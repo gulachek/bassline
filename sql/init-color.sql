@@ -19,6 +19,17 @@ CREATE TABLE color (
 	palette INTEGER NOT NULL
 );
 
+-- this is mantained by bassline installation, not apps
+CREATE TABLE system_color  (
+	id INTEGER PRIMARY KEY,
+	css_name TEXT NOT NULL,
+	dark_css_value TEXT NOT NULL, -- default when no theme selected
+	light_css_value TEXT NOT NULL,
+	default_light_lightness REAL NOT NULL,
+	default_dark_lightness REAL NOT NULL,
+	description TEXT NOT NULL
+);
+
 -- this is maintained by app installation: named slots for app colors
 CREATE TABLE semantic_color (
 	id INTEGER PRIMARY KEY,
@@ -36,7 +47,7 @@ CREATE TABLE theme (
 CREATE TABLE theme_color (
 	id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL DEFAULT "New Color",
-	css_name TEXT, -- can be referenced by css code
+	system_color INTEGER, -- non-null means this is a system color
 	theme INTEGER NOT NULL,
 	color INTEGER NOT NULL, -- id in color table
 	lightness REAL DEFAULT 0.5

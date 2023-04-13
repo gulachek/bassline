@@ -2,6 +2,7 @@ SELECT
 	id,
 	name,
 	color,
-	lightness
+	lightness,
+	system_color
 FROM theme_color
 WHERE theme=?;

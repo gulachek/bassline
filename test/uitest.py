@@ -254,20 +254,20 @@ class TestTheme(unittest.TestCase):
 
         self.assertEqual(edit.themeName(), 'Edited Name')
         self.assertEqual(edit.activeStatus(), 'dark')
-        self.assertDictEqual(edit.themeColors(), {
-            'First': {
+        colors = edit.themeColors()
+        self.assertDictEqual(colors['First'], {
                 'color': 'Red',
                 'lightness': 0.1,
-                },
-            'First Fg': {
+                })
+        self.assertDictEqual(colors['First Fg'], {
                 'color': 'Red',
                 'lightness': 0.8,
-                },
-            'Christmas': {
+                })
+        self.assertDictEqual(colors['Christmas'], {
                 'color': 'Green',
                 'lightness': 0.3,
-                }
-            })
+                })
+        self.assertFalse('Delete me' in colors)
 
         mappings = edit.mappings()
         self.assertEqual('First', mappings['shell']['page-bg'])
