@@ -163,9 +163,10 @@ class ThemeEditPage:
 
     def setActiveStatus(self, status):
         elems = self.driver.find_elements(By.CSS_SELECTOR, 'input[name="theme-status"]')
-        for elem in elems:
+        icons = self.driver.find_elements(By.CSS_SELECTOR, 'input[name="theme-status"] + .radio-icon')
+        for elem, icon in zip(elems, icons):
             if elem.get_attribute('value') == status:
-                elem.click()
+                icon.click()
                 return
         raise Exception(f"status '{status}' radio button not found")
 
