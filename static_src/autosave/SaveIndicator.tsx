@@ -24,17 +24,17 @@ export function SaveIndicator(props: ISaveIndicatorProps)
 
 	if (isSaving)
 	{
-		icon = <FontAwesomeIcon icon={faSpinner} spin />;
+		icon = <FontAwesomeIcon className="loading-icon" icon={faSpinner} spin />;
 		savingCls = 'visible';
 	}
 	else if (hasError)
 	{
-		icon = <FontAwesomeIcon icon={faCircleXmark} />;
+		icon = <FontAwesomeIcon className="error-icon" icon={faCircleXmark} />;
 		errorCls = 'visible';
 	}
 	else
 	{
-		icon = <FontAwesomeIcon icon={faCircleCheck} />;
+		icon = <FontAwesomeIcon className="success-icon" icon={faCircleCheck} />;
 		savedCls = 'visible';
 	}
 

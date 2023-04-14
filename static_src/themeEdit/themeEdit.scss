@@ -62,7 +62,6 @@ input[type=range] {
 }
 
 input[type=range]::-webkit-slider-runnable-track {
-  width: 100%;
 	height: 0.5em;
   cursor: pointer;
   background-color: var(--sys-theme-button-face);

@@ -21,4 +21,12 @@
 			visibility: visible;
 		}
 	}
+
+	.error-icon {
+		color: var(--sys-theme-error);
+	}
+
+	.success-icon {
+		color: var(--sys-theme-success);
+	}
 }
