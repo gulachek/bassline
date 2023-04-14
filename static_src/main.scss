@@ -72,6 +72,11 @@ body {
 	flex: auto;
 }
 
+::selection {
+	background-color: var(--sys-theme-highlight);
+	color: var(--sys-theme-highlight-text);
+}
+
 :link {
 	color: var(--sys-theme-link-text);
 }
@@ -85,13 +90,14 @@ body {
 }
 
 input, textarea {
+	accent-color: var(--sys-theme-accent-color);
 	color: var(--sys-theme-field-text);
 	background-color: var(--sys-theme-field);
-	border-color: var(--sys-theme-field-text);
+	border-color: var(--sys-theme-button-border);
 }
 
 fieldset {
-	border-color: var(--sys-theme-field-text);
+	border-color: var(--sys-theme-button-border);
 }
 
 button, input[type="submit"], select {
