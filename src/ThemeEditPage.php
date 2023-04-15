@@ -156,7 +156,7 @@ class ThemeEditPage extends Responder
 			'name_pattern' => $NAME_PATTERN,
 			'available_palettes' => $AVAILABLE_PALETTES,
 			'status' => $STATUS,
-			'semantic_colors' => $this->colors
+			'app_colors' => $this->colors
 		];
 
 		ReactPage::render($arg, [

@@ -51,7 +51,7 @@ class App extends Responder
 	}
 
 	/*
-	 * Broadcast all semantic colors used by this app
+	 * Broadcast all app colors used by this app
 	 */
 	public function colors(): array
 	{

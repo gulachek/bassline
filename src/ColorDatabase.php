@@ -214,46 +214,46 @@ class ColorDatabase
 		$this->db->query('clear-theme-color-mappings', $theme_color_id);
 	}
 
-	public function createColorMapping(int $theme_id, string $app, string $semantic_color): array
+	public function createColorMapping(int $theme_id, string $app, string $app_color): array
 	{
 		$this->db->query('create-color-mapping', [
 			':theme' => $theme_id,
 			':app' => $app,
-			':color_name' => $semantic_color
+			':color_name' => $app_color
 		]);
 
 		return $this->db->loadRowUnsafe('theme_color', $this->db->lastInsertRowID());
 	}
 
-	public function addSemanticColor(string $app, string $semantic_color, array $color_def): void
+	public function addAppColor(string $app, string $app_color, array $color_def): void
 	{
-		$color = new Color($app, $semantic_color, $color_def);
+		$color = new Color($app, $app_color, $color_def);
 
-		$this->db->query('add-semantic-color', [
+		$this->db->query('add-app-color', [
 			':app' => $app,
-			':color_name' => $semantic_color,
+			':color_name' => $app_color,
 			':sys_color' => $color->default()
 		]);
 	}
 
-	public function removeSemanticColor(string $app, string $semantic_color): void
+	public function removeAppColor(string $app, string $app_color): void
 	{
-		$this->db->query('remove-semantic-color', [
+		$this->db->query('remove-app-color', [
 			':app' => $app,
-			':color_name' => $semantic_color
+			':color_name' => $app_color
 		]);
 	}
 
-	// delete theme mappings to dangling semantic colors (probably removed on upgrade)
-	// add empty theme mappings to existing themes with new semantic colors
-	public function syncSemanticColors(): void
+	// delete theme mappings to dangling app colors (probably removed on upgrade)
+	// add empty theme mappings to existing themes with new app colors
+	public function syncAppColors(): void
 	{
-		$this->db->exec('sync-semantic-colors');
+		$this->db->exec('sync-app-colors');
 	}
 
-	public function semanticColorNames(string $app): array
+	public function appColorNames(string $app): array
 	{
-		$result = $this->db->query('semantic-color-names', $app);
+		$result = $this->db->query('app-color-names', $app);
 		return $result->column('name');
 	}
 

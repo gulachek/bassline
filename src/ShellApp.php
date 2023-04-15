@@ -107,7 +107,7 @@ class ShellApp extends App
 
 		$existing_colors = [];
 
-		$color_names = $db->semanticColorNames($key);
+		$color_names = $db->appColorNames($key);
 		foreach ($color_names as $name)
 		{
 			if (array_key_exists($name, $app_colors))
@@ -116,7 +116,7 @@ class ShellApp extends App
 			}
 			else
 			{
-				$db->removeSemanticColor($key, $name);
+				$db->removeAppColor($key, $name);
 			}
 		}
 
@@ -124,11 +124,11 @@ class ShellApp extends App
 		{
 			if (!array_key_exists($name, $existing_colors))
 			{
-				$db->addSemanticColor($key, $name, $color);
+				$db->addAppColor($key, $name, $color);
 			}
 		}
 
-		$db->syncSemanticColors();
+		$db->syncAppColors();
 	}
 
 	private function syncAppCapabilities(string $key, App $app): void

@@ -31,7 +31,7 @@ CREATE TABLE system_color  (
 );
 
 -- this is maintained by app installation: named slots for app colors
-CREATE TABLE semantic_color (
+CREATE TABLE app_color (
 	id INTEGER PRIMARY KEY,
 	app TEXT NOT NULL,
 	name TEXT NOT NULL,
@@ -54,10 +54,10 @@ CREATE TABLE theme_color (
 	lightness REAL DEFAULT 0.5
 );
 
--- this is the actual mapping from the color to the app semantic color
+-- this is the actual mapping from the color to the app app color
 CREATE TABLE theme_color_map (
 	id INTEGER PRIMARY KEY,
 	theme INTEGER NOT NULL,
-	semantic_color INTEGER NOT NULL,
+	app_color INTEGER NOT NULL,
 	theme_color INTEGER NOT NULL
 );

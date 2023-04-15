@@ -106,7 +106,7 @@ interface IPageModel
 	theme: ITheme;
 	available_palettes: JsonMap<IPalettePreview>;
 	status: ThemeStatus;
-	semantic_colors: JsonMap<AppColors>;
+	app_colors: JsonMap<AppColors>;
 }
 
 interface IEditState
@@ -1002,7 +1002,7 @@ function Page(props: IPageModel)
 					/>
 					<ThemeMappings
 						selectedAppName={state.selectedAppName}
-						appColors={props.semantic_colors}
+						appColors={props.app_colors}
 						mappings={theme.mappings}
 						themeColors={theme.themeColors}
 					/>
