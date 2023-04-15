@@ -828,7 +828,7 @@ function ThemeColors(props: IThemeColorsProps)
 				className="del-color"
 				onClick={deleteSelectedColor}> - </button>
 		</div>
-		<div>
+		<div className="theme-color-buttons">
 			{names}
 		</div>
 	</Section>;
@@ -904,7 +904,7 @@ function ThemeMappings(props: IThemeMappingsProps)
 			});
 		};
 
-		rows.push(<div key={name}>
+		rows.push(<React.Fragment key={name}>
 			<label>
 				<strong title={colors[name].desc}> ⓘ {name}:</strong>
 			</label>
@@ -916,7 +916,7 @@ function ThemeMappings(props: IThemeMappingsProps)
 			>
 				{themeColorOpts}
 			</select>
-		</div>);
+		</React.Fragment>);
 	}
 
 	return <Section title="Theme mappings">
@@ -931,7 +931,7 @@ function ThemeMappings(props: IThemeMappingsProps)
 			</select>
 			</label>
 		</div>
-		<dl>
+		<dl className="mappings">
 			{rows}
 		</dl>
 	</Section>;

@@ -43,14 +43,22 @@
 	margin: 0 0.5em;
 }
 
-.hidden-radio {
-	display: none;
+button {
+	border-width: thin;
+	cursor: pointer;
 }
 
-.radio-icon {
-	margin: 0 0.25em;
+input[type="text"] {
+	border-width: thin;
 }
 
-input[type="radio"]:checked + .radio-icon {
-	color: var(--system-theme-selected-item);
+.mappings {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.25em;
+}
+
+.theme-color-buttons {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
 }
