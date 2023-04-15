@@ -19,10 +19,10 @@ class AuthConfigEditPage:
         return self.driver.find_element(By.CSS_SELECTOR, f"section[data-plugin-key=\"{key}\"]")
 
     def _noauthCbox(self):
-        return self._sectionElem('noauth').find_element(By.CSS_SELECTOR, '.cbox-icon')
+        return self._sectionElem('noauth').find_element(By.CSS_SELECTOR, 'input[type="checkbox"]')
 
     def _siwgCbox(self):
-        return self._sectionElem('siwg').find_element(By.CSS_SELECTOR, '.cbox-icon')
+        return self._sectionElem('siwg').find_element(By.CSS_SELECTOR, 'input[type="checkbox"]')
 
     def _noauthCboxIsChecked(self):
         return self.driver.execute_script(f"return !!document.querySelector('section[data-plugin-key=\"noauth\"] input[type=\"checkbox\"]').checked")
