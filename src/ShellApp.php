@@ -389,7 +389,7 @@ class ShellApp extends App
 			foreach ($colors as $name => $def)
 			{
 				$color = new Color($app_key, $name, $def);
-				$name_to_css[$name] = "var(--sys-theme-{$color->default()})";
+				$name_to_css[$name] = "var(--system-theme-{$color->default()})";
 			}
 		}
 
