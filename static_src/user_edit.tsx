@@ -23,7 +23,6 @@ import { requireAsync } from './requireAsync';
 import { AuthPluginUserEditComponent } from './authPluginUserEdit';
 import { AutoSaveForm } from './autosave/AutoSaveForm';
 import { SaveIndicator } from './autosave/SaveIndicator';
-import { Checkbox } from './cbox';
 
 import './user_edit.scss';
 
@@ -150,13 +149,13 @@ function GroupMembership(props: IGroupMembershipProps)
 	const switches = groupIds.map((gid) => {
 		const { groupname, id } = allGroups[gid];
 		const inGroup = groupMembership.includes(id);
-		const onCheck = (checked: boolean) => {
-			dispatch({ type: 'joinGroup', groupId: id, inGroup: checked });
+		const onCheck = (e: ChangeEvent<HTMLInputElement>) => {
+			dispatch({ type: 'joinGroup', groupId: id, inGroup: e.target.checked });
 		};
 
 		return <div key={gid}>
-			<label data-groupname={groupname}>
-				<Checkbox
+			<label>
+				<input type="checkbox" data-groupname={groupname}
 					checked={inGroup}
 					onChange={onCheck}
 					disabled={id === primaryId}

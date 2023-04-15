@@ -73,10 +73,10 @@ class UserEditPage:
         select.select_by_visible_text(groupname)
 
     def _groupCbox(self, groupname):
-        return self.driver.find_element(By.CSS_SELECTOR, f"label[data-groupname=\"{groupname}\"] .cbox-icon")
+        return self.driver.find_element(By.CSS_SELECTOR, f"input[data-groupname=\"{groupname}\"]")
 
     def _groupCboxIsChecked(self, groupname):
-        return self.driver.execute_script(f"return !!document.querySelector('label[data-groupname=\"{groupname}\"] input[type=\"checkbox\"]').checked")
+        return self.driver.execute_script(f"return !!document.querySelector('input[data-groupname=\"{groupname}\"]').checked")
 
     def toggleGroup(self, groupname):
         self._groupCbox(groupname).click()
