@@ -1,7 +1,7 @@
 SELECT 
 	id,
 	name,
-	color,
+	palette_color,
 	lightness,
 	system_color
 FROM theme_color

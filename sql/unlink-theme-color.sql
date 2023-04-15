@@ -1,6 +1,6 @@
 UPDATE theme_color as self
-SET color = tc.color
+SET palette_color = tc.palette_color
 FROM (
 	theme_color AS tc
 )
-WHERE self.color = ? AND self.color <> tc.color AND self.theme = tc.theme
+WHERE self.palette_color = ? AND self.palette_color <> tc.palette_color AND self.theme = tc.theme

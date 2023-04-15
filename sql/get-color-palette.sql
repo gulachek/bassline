@@ -1,1 +1,1 @@
-SELECT palette FROM color WHERE id=?;
+SELECT palette FROM palette_color WHERE id=?;

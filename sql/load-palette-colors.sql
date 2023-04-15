@@ -1,1 +1,1 @@
-SELECT id,name,hex FROM color WHERE palette=?;
+SELECT id,name,hex FROM palette_color WHERE palette=?;

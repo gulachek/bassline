@@ -1,7 +1,7 @@
 WITH
 	first_color(id) AS (
-		SELECT color.id FROM color
-		INNER JOIN theme ON color.palette = theme.palette
+		SELECT palette_color.id FROM palette_color
+		INNER JOIN theme ON palette_color.palette = theme.palette
 		WHERE theme.id = :theme
 		LIMIT 1
 	),
@@ -13,7 +13,7 @@ WITH
 		END
 		FROM system_color
 	)
-INSERT INTO theme_color (name, system_color, theme, color, lightness)
+INSERT INTO theme_color (name, system_color, theme, palette_color, lightness)
 SELECT sys.css_name, sys.id, :theme, pc.id, sys.lightness
 FROM sys_colors AS sys
-CROSS JOIN first_color AS pc -- palette color
+CROSS JOIN first_color AS pc

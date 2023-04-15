@@ -1,4 +1,4 @@
-UPDATE color
+UPDATE palette_color
 SET
 	name=:name,
 	hex=:hex

@@ -1,1 +1,1 @@
-DELETE FROM color WHERE id = ?;
+DELETE FROM palette_color WHERE id = ?;

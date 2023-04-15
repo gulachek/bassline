@@ -241,7 +241,7 @@ class ThemeEditPage extends Responder
 			$themeToSave['themeColors'][$colorId] = [
 				'id' => $colorId,
 				'name' => $color->name,
-				'color' => $color->color,
+				'palette_color' => $color->palette_color,
 				'lightness' => $color->lightness,
 			];
 		}
@@ -302,7 +302,7 @@ class ThemeColor
 {
 	public int $id;
 	public string $name;
-	public ?int $color;
+	public ?int $palette_color;
 	public float $lightness;
 }
 

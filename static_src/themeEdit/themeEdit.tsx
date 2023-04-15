@@ -61,7 +61,7 @@ interface IThemeColor
 	id: number;
 	name: string;
 	system_color: number|null;
-	color: number;
+	palette_color: number;
 	lightness: number;
 }
 
@@ -366,7 +366,7 @@ function reducer(state: IEditState, action: EditAction)
 	{
 		const { id, paletteColorId } = action;
 		const color = findThemeColor(id);
-		color.color = paletteColorId;
+		color.palette_color = paletteColorId;
 	}
 	else if (action.type === 'selectColor')
 	{
@@ -374,13 +374,13 @@ function reducer(state: IEditState, action: EditAction)
 	}
 	else if (action.type === 'addColor')
 	{
-		const { color, lightness } = findThemeColor(selectedColorId);
+		const { palette_color, lightness } = findThemeColor(selectedColorId);
 
 		const newColor: IThemeColor = {
 			id: -1,
 			name: 'New Color',
 			system_color: null,
-			color,
+			palette_color,
 			lightness,
 		};
 
@@ -476,7 +476,7 @@ function pageHasChange(state: IEditState): boolean
 		if (editColor.lightness !== saveColor.lightness)
 			return true;
 
-		if (editColor.color !== saveColor.color)
+		if (editColor.palette_color !== saveColor.palette_color)
 			return true;
 	}
 
@@ -639,14 +639,14 @@ interface IThemeColorEditProps
 function ThemeColorEdit(props: IThemeColorEditProps)
 {
 	const { themeColor, id, selected, palette, paletteColorName } = props;
-	const { name, color, lightness } = themeColor;
+	const { name, palette_color, lightness } = themeColor;
 
 	const dispatch = useContext(ThemeDispatchContext);
 	const selectColor = useCallback(() => {
 		dispatch({ type: 'selectColor', id });
 	}, [id]);
 
-	const hex = withLightness(palette.get(color), lightness).toHex();
+	const hex = withLightness(palette.get(palette_color), lightness).toHex();
 
 	let className = 'theme-color-edit';
 	if (selected) className += ' selected';
@@ -765,14 +765,14 @@ function ThemeColors(props: IThemeColorsProps)
 		names.push(<ThemeColorEdit
 			palette={paletteSrgb}
 			key={id} themeColor={item} id={id} selected={selected}
-			paletteColorName={palette.colors[`${item.color}`].name}
+			paletteColorName={palette.colors[`${item.palette_color}`].name}
 			/>);
 	}
 
 	const isSystem = isSystemColor(selectedColor);
 
 	const selectedSrgb = withLightness(
-		SRGB.fromHex(palette.colors[selectedColor.color].hex),
+		SRGB.fromHex(palette.colors[selectedColor.palette_color].hex),
 		selectedColor.lightness);
 	const selectedHex = selectedSrgb.toHex();
 	
@@ -790,7 +790,7 @@ function ThemeColors(props: IThemeColorsProps)
 			id: selectedColorId,
 		});
 
-		const btnText = id === selectedColor.color ? `*${name}` : name;
+		const btnText = id === selectedColor.palette_color ? `*${name}` : name;
 
 		paletteBtns.push(<ColoredButton key={id} text={btnText}
 			onClick={setColor}

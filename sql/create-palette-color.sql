@@ -1,1 +1,1 @@
-INSERT INTO color (palette) VALUES (?);
+INSERT INTO palette_color (palette) VALUES (?);

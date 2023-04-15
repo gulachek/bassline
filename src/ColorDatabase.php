@@ -177,7 +177,7 @@ class ColorDatabase
 				':theme' => $theme['id'],
 				':id' => $id,
 				':name' => $theme_color['name'],
-				':color' => $theme_color['color'],
+				':palette_color' => $theme_color['palette_color'],
 				':lightness' => $theme_color['lightness'],
 			]);
 		}

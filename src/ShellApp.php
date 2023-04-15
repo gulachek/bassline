@@ -378,7 +378,7 @@ class ShellApp extends App
 				$lightness = $theme_color['lightness'];
 
 				$palette_color = $theme['palette']['colors']
-					[$theme_color['color']];
+					[$theme_color['palette_color']];
 				$srgb_base = SRGB::fromHex($palette_color['hex']);
 				list($h,$s,$l) = $srgb_base->toHSL();
 				$name_to_css[$name] = SRGB::fromHSL([$h,$s, $lightness])->toHex();
@@ -413,7 +413,7 @@ class ShellApp extends App
 				$lightness = $theme_color['lightness'];
 
 				$palette_color = $theme['palette']['colors']
-					[$theme_color['color']];
+					[$theme_color['palette_color']];
 				$srgb_base = SRGB::fromHex($palette_color['hex']);
 				list($h,$s,$l) = $srgb_base->toHSL();
 				$name_to_css[$name] = SRGB::fromHSL([$h,$s, $lightness])->toHex();
