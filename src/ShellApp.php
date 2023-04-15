@@ -124,7 +124,7 @@ class ShellApp extends App
 		{
 			if (!array_key_exists($name, $existing_colors))
 			{
-				$db->addSemanticColor($key, $name);
+				$db->addSemanticColor($key, $name, $color);
 			}
 		}
 

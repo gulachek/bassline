@@ -34,7 +34,7 @@ class ColorDatabase
 		foreach ($palette['colors'] as $id => $color)
 		{
 			$palette['colors'][$id]['name'] = 'Default';
-			$palette['colors'][$id]['hex'] = '#0000ff';
+			$palette['colors'][$id]['hex'] = '#11c1e4';
 			break;
 		}
 		$this->savePalette($palette);
@@ -225,11 +225,14 @@ class ColorDatabase
 		return $this->db->loadRowUnsafe('theme_color', $this->db->lastInsertRowID());
 	}
 
-	public function addSemanticColor(string $app, string $semantic_color): void
+	public function addSemanticColor(string $app, string $semantic_color, array $color_def): void
 	{
+		$color = new Color($app, $semantic_color, $color_def);
+
 		$this->db->query('add-semantic-color', [
 			':app' => $app,
-			':color_name' => $semantic_color
+			':color_name' => $semantic_color,
+			':sys_color' => $color->default()
 		]);
 	}
 

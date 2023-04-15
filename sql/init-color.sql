@@ -34,7 +34,8 @@ CREATE TABLE system_color  (
 CREATE TABLE semantic_color (
 	id INTEGER PRIMARY KEY,
 	app TEXT NOT NULL,
-	name TEXT NOT NULL
+	name TEXT NOT NULL,
+	system_color INTEGER NOT NULL
 );
 
 -- Theme is mapping named app-defined colors to palette
