@@ -18,16 +18,6 @@ import { AutoSaveForm } from '../autosave/AutoSaveForm';
 import { SaveIndicator } from '../autosave/SaveIndicator';
 import { SRGB } from '../srgb';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-	faCircleDot
-} from '@fortawesome/free-solid-svg-icons';
-
-import {
-	faCircle
-} from '@fortawesome/free-regular-svg-icons';
-
-
 import './themeEdit.scss';
 
 interface IPaletteColor
@@ -575,26 +565,6 @@ function PaletteChangePopup(props: IPaletteChangePopupProps)
 	</dialog>;
 }
 
-interface IThemedRadioProps
-{
-	name: string;
-	checked: boolean;
-	value: string;
-	onChange: (e: InputChangeEvent) => any;
-}
-
-function ThemedRadio(props: IThemedRadioProps)
-{
-	const { name, value, checked, onChange } = props;
-	const icon = checked ? faCircleDot : faCircle;
-	return <React.Fragment>
-		<input type="radio" name={name} className="hidden-radio"
-			value={value} checked={checked} onChange={onChange}
-		/>
-		<FontAwesomeIcon className="radio-icon" icon={icon} />
-	</React.Fragment>;
-}
-
 interface IThemePropertiesProps
 {
 	theme: IThemeEdit;
@@ -626,7 +596,7 @@ function ThemeProperties(props: IThemePropertiesProps)
 
 	const radios = ['inactive', 'light', 'dark'].map((s) => {
 		return <label key={s}>
-			<ThemedRadio name="theme-status"
+			<input type="radio" name="theme-status"
 				value={s} checked={s === status} onChange={changeStatus}
 			/>
 			{s}
