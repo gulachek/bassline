@@ -59,8 +59,8 @@ class GroupEditPage:
     def groupname(self):
         return self._groupnameInput().get_attribute('value')
 
-    def _capLabelSelector(self, app, capName):
-        return f"div[data-app=\"{app}\"] label[data-capability=\"{capName}\"]"
+    def _capSelector(self, app, capName):
+        return f"div[data-app=\"{app}\"] input[data-capability=\"{capName}\"]"
 
     def selectApp(self, app):
         select = Select(self.driver.find_element(By.TAG_NAME, 'select'))
@@ -68,12 +68,12 @@ class GroupEditPage:
 
     def hasSecurity(self, app, capName):
         self.selectApp(app)
-        sel = self._capLabelSelector(app, capName)
-        return self.driver.execute_script(f"return !!document.querySelector('{sel} input[type=\"checkbox\"]').checked")
+        sel = self._capSelector(app, capName)
+        return self.driver.execute_script(f"return !!document.querySelector('{sel}').checked")
 
     def toggleSecurity(self, app, capName):
         self.selectApp(app)
-        cbox = self.driver.find_element(By.CSS_SELECTOR, self._capLabelSelector(app, capName))
+        cbox = self.driver.find_element(By.CSS_SELECTOR, self._capSelector(app, capName))
         cbox.click()
 
     def waitSave(self):
