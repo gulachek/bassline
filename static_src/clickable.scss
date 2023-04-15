@@ -1,7 +1,7 @@
 @mixin clickable {
-	color: var(--sys-theme-button-text);
-	background-color: var(--sys-theme-button-face);
-	border-color: var(--sys-theme-button-border);
+	color: var(--system-theme-button-text);
+	background-color: var(--system-theme-button-face);
+	border-color: var(--system-theme-button-border);
 	border-width: 1px;
 	cursor: pointer;
 }

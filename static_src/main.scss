@@ -1,6 +1,6 @@
 body, dialog {
-	color: var(--sys-theme-canvas-text);
-	background-color: var(--sys-theme-canvas);
+	color: var(--system-theme-canvas-text);
+	background-color: var(--system-theme-canvas);
 }
 
 html, body {
@@ -73,20 +73,20 @@ body {
 }
 
 ::selection {
-	background-color: var(--sys-theme-highlight);
-	color: var(--sys-theme-highlight-text);
+	background-color: var(--system-theme-highlight);
+	color: var(--system-theme-highlight-text);
 }
 
 :link {
-	color: var(--sys-theme-link-text);
+	color: var(--system-theme-link-text);
 }
 
 :visited {
-	color: var(--sys-theme-visited-text);
+	color: var(--system-theme-visited-text);
 }
 
 :any-link:active {
-	color: var(--sys-theme-active-text);
+	color: var(--system-theme-active-text);
 }
 
 @mixin disabled-style {
@@ -96,22 +96,22 @@ body {
 }
 
 input, textarea {
-	accent-color: var(--sys-theme-accent-color);
-	color: var(--sys-theme-field-text);
-	background-color: var(--sys-theme-field);
-	border-color: var(--sys-theme-button-border);
+	accent-color: var(--system-theme-accent-color);
+	color: var(--system-theme-field-text);
+	background-color: var(--system-theme-field);
+	border-color: var(--system-theme-button-border);
 
 	@include disabled-style();
 }
 
 fieldset {
-	border-color: var(--sys-theme-button-border);
+	border-color: var(--system-theme-button-border);
 }
 
 button, input[type="submit"], select {
-	color: var(--sys-theme-button-text);
-	border-color: var(--sys-theme-button-border);
-	background-color: var(--sys-theme-button-face);
+	color: var(--system-theme-button-text);
+	border-color: var(--system-theme-button-border);
+	background-color: var(--system-theme-button-face);
 
 	@include disabled-style();
 }
