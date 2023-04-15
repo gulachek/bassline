@@ -60,8 +60,14 @@ interface IThemeColor
 {
 	id: number;
 	name: string;
+	system_color: number|null;
 	color: number;
 	lightness: number;
+}
+
+function isSystemColor(tc: IThemeColor): boolean
+{
+	return typeof tc.system_color === 'number';
 }
 
 enum ThemeStatus
@@ -373,6 +379,7 @@ function reducer(state: IEditState, action: EditAction)
 		const newColor: IThemeColor = {
 			id: -1,
 			name: 'New Color',
+			system_color: null,
 			color,
 			lightness,
 		};
@@ -762,6 +769,8 @@ function ThemeColors(props: IThemeColorsProps)
 			/>);
 	}
 
+	const isSystem = isSystemColor(selectedColor);
+
 	const selectedSrgb = withLightness(
 		SRGB.fromHex(palette.colors[selectedColor.color].hex),
 		selectedColor.lightness);
@@ -807,12 +816,17 @@ function ThemeColors(props: IThemeColorsProps)
 		</fieldset>
 		</div>
 		<div>
-			<input type="text" className="current-theme-color-name"
+			<input type="text"
+				disabled={isSystem}
+				className="current-theme-color-name"
 				value={selectedColor.name}
 				onChange={setName}
 			/>
 			<button className="add-color" onClick={addColor}> + </button>
-			<button className="del-color" onClick={deleteSelectedColor}> - </button>
+			<button
+				disabled={isSystem}
+				className="del-color"
+				onClick={deleteSelectedColor}> - </button>
 		</div>
 		<div>
 			{names}

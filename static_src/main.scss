@@ -89,11 +89,19 @@ body {
 	color: var(--sys-theme-active-text);
 }
 
+@mixin disabled-style {
+	&:disabled {
+		opacity: 0.7;
+	}
+}
+
 input, textarea {
 	accent-color: var(--sys-theme-accent-color);
 	color: var(--sys-theme-field-text);
 	background-color: var(--sys-theme-field);
 	border-color: var(--sys-theme-button-border);
+
+	@include disabled-style();
 }
 
 fieldset {
@@ -104,4 +112,6 @@ button, input[type="submit"], select {
 	color: var(--sys-theme-button-text);
 	border-color: var(--sys-theme-button-border);
 	background-color: var(--sys-theme-button-face);
+
+	@include disabled-style();
 }

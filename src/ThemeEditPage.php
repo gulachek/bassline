@@ -2,6 +2,11 @@
 
 namespace Gulachek\Bassline;
 
+function isSystemColor(array $theme_color): bool
+{
+	return !\is_null($theme_color['system_color']);
+}
+
 class ThemeEditPage extends Responder
 {
 	const NAME_PATTERN =  "^[a-zA-Z0-9 ]+$";
@@ -194,6 +199,15 @@ class ThemeEditPage extends Responder
 				return null;
 			}
 
+			$theme_color = $currentTheme['themeColors'][$colorId];
+
+			if (isSystemColor($theme_color))
+			{
+				http_response_code(400);
+				echo json_encode(['error' => 'Cannot delete system color from theme']);
+				return null;
+			}
+
 			$this->db->deleteThemeColor($colorId);
 		}
 
@@ -212,6 +226,15 @@ class ThemeEditPage extends Responder
 			{
 				http_response_code(400);
 				echo json_encode(['error' => 'Theme color not part of theme']);
+				return null;
+			}
+
+			$current_color = $currentTheme['themeColors'][$colorId];
+			if (isSystemColor($current_color)
+				&& ($current_color['name'] !== $color->name))
+			{
+				http_response_code(400);
+				echo json_encode(['error' => 'System color names are constant']);
 				return null;
 			}
 
