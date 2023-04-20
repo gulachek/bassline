@@ -12,59 +12,68 @@ html, body {
 body {
 	display: flex;
 	flex-flow: column nowrap;
+	overflow: hidden;
 }
 
 .nav-bar {
 	background-color: var(--theme-banner-bg);
 	color: var(--theme-banner-fg);
-	text-align: right;
 	border-bottom: solid 1px;
+	width: 100%;
+
 	flex: none;
-}
 
-.nav-bar a {
-	color: var(--theme-banner-fg);
-	text-decoration: none;
-}
+	display: grid;
+	grid-template-columns: 1fr 1fr;
 
-.nav-bar > * {
-	padding: 0.5em;
-	display: inline-block;
-}
+	& > div {
+		display: flex;
+	}
 
-.nav-bar > *:hover {
-	background-color: var(--theme-banner-hover-bg);
-	color: var(--theme-banner-hover-fg);
-}
+	.right {
+		justify-content: end;
+	}
 
-.nav-bar .menu {
-	position: relative;
-	text-align: center;
-}
+	a, span {
+		color: var(--theme-banner-fg);
+		text-decoration: none;
+		padding: 0.5em;
 
-.nav-bar .menu .items {
-	background-color: var(--theme-banner-bg);
-	display: flex;
-	flex-direction: column;
-	visibility: hidden;
-	position: absolute;
-	top: 100%;
-	right: 0;
-	border: solid 1px;
-}
+		&:hover {
+			background-color: var(--theme-banner-hover-bg);
+			color: var(--theme-banner-hover-fg);
+		}
+	}
 
-.nav-bar .menu .items > * {
-	padding: 0.5em;
-	min-width: max-content;
-}
+	.menu {
+		position: relative;
+		text-align: center;
 
-.nav-bar .menu .items > *:hover {
-	background-color: var(--theme-banner-hover-bg);
-	color: var(--theme-banner-hover-fg);
-}
+		.items {
+			background-color: var(--theme-banner-bg);
+			display: flex;
+			flex-direction: column;
+			visibility: hidden;
+			position: absolute;
+			top: 100%;
+			right: 0;
+			border: solid 1px;
 
-.nav-bar .menu:hover > .items {
-	visibility: visible;
+			& > * {
+				padding: 0.5em;
+				min-width: max-content;
+			}
+
+			& > *:hover {
+				background-color: var(--theme-banner-hover-bg);
+				color: var(--theme-banner-hover-fg);
+			}
+		}
+
+		&:hover > .items {
+			visibility: visible;
+		}
+	}
 }
 
 .main {

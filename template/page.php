@@ -15,14 +15,16 @@
 <body>
 <nav class="nav-bar">
 
-<a href="/"> <?= text($SITE_NAME) ?> </a>
+<div class="left">
+	<a href="/"> <?= text($SITE_NAME) ?> </a>
 
-<?php foreach ($APPS as $appHref => $app): ?>
-	<a href="/<?= text($appHref) ?>/"> <?= text($app->title()) ?> </a>
-<?php endforeach; ?>
+	<?php foreach ($APPS as $appHref => $app): ?>
+		<a href="/<?= text($appHref) ?>/"> <?= text($app->title()) ?> </a>
+	<?php endforeach; ?>
+</div>
 
 <?php if (isset($USER)): ?>
-	<div class="menu">
+	<div class="right menu">
 		<span class="username"><?= text($USERNAME) ?></span>
 		<div class="items">
 			<?php if ($SHOW_ADMIN_LINK): ?>
