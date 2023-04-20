@@ -40,7 +40,7 @@ class UriFormatter
 		return self::addQuery($cat->path(), $query);
 	}
 
-	public function here(?array $query = null)
+	public function cur(?array $query = null)
 	{
 		return self::addQuery($this->path->path(), $query);
 	}

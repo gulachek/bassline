@@ -11,7 +11,7 @@
 <ul>
 <?php foreach ($TEMPLATE['users'] as $id => $user): ?>
 <li>
-	<a href="<?=$URI->here(query: ['user_id' => $id])?>">
+	<a href="<?=$URI->cur(query: ['user_id' => $id])?>">
 		<?=text($user['username'])?>
 	</a>
 </li>

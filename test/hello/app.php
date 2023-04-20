@@ -33,7 +33,10 @@ class LandingPage extends \Gulachek\Bassline\Responder
 	{
 		$arg->renderPage([
 			'title' => 'Hello',
-			'template' => __DIR__ . '/landing_page.php'
+			'template' => __DIR__ . '/landing_page.php',
+			'args' => [
+				'steve_uri' => $arg->uriAbs('/steve')
+			]
 		]);
 		return null;
 	}
@@ -109,7 +112,11 @@ class App extends \Gulachek\Bassline\App
 			return new LandingPage();
 
 		if ($path->count() > 1)
-			return null; // not found
+		{
+			\http_response_code(404);
+			echo "Not found";
+			return null;
+		}
 
 		return new HelloPage($path->at(0));
 	}

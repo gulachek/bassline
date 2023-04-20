@@ -28,6 +28,8 @@ class ResponderDelegate
 
 class RespondArg
 {
+	private UriFormatter $uri;
+
 	public function __construct(
 		private readonly string $app_key,
 		public readonly PathInfo $path,
@@ -36,6 +38,7 @@ class RespondArg
 		private readonly PathInfo $request_path
 	)
 	{
+		$this->uri = new UriFormatter($app_key, $request_path);
 	}
 
 	public function isLoggedIn(): bool
@@ -95,7 +98,7 @@ class RespondArg
 			$USERNAME = $this->user['username'];
 		}
 
-		$URI = new UriFormatter($this->app_key, $this->request_path);
+		$URI = $this->uri;
 
 		$RENDER_BODY = function() use ($args, $template, $URI) {
 			$TEMPLATE = $args;
@@ -116,6 +119,33 @@ class RespondArg
 			$this->config,
 			$this->request_path
 		);
+	}
+
+	// absolute to app
+	public function uriAbs(
+		string $path,
+		?array $query = null,
+		?string $app = null
+	): string
+	{
+		return $this->uri->abs($path, $query, $app);
+	}
+
+	// relative to current uri
+	public function uriRel(
+		string $path,
+		?array $query = null
+	): string
+	{
+		return $this->uri->rel($path, $query);
+	}
+
+	// current uri
+	public function uriCur(
+		?array $query = null
+	): string
+	{
+		return $this->uri->cur($query);
 	}
 
 	public function route(array $routes): ResponderDelegate
