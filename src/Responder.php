@@ -107,6 +107,10 @@ class RespondArg
 
 		$SITE_NAME = $this->config->siteName();
 		$APPS = $this->config->apps();
+		$SHOW_ADMIN_LINK =
+			$this->userCan('edit_security', 'shell')
+			|| $this->userCan('edit_themes', 'shell');
+
 		include __DIR__ . '/../template/page.php';
 	}
 

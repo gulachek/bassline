@@ -87,21 +87,21 @@ class TestGroups(unittest.TestCase):
 
         # Defaults
         self.assertEqual(edit.groupname(), 'edit_me')
-        self.assertFalse(edit.hasSecurity('shell', 'edit_groups'))
-        self.assertFalse(edit.hasSecurity('shell', 'edit_users'))
+        self.assertFalse(edit.hasSecurity('shell', 'edit_themes'))
+        self.assertFalse(edit.hasSecurity('shell', 'edit_security'))
         self.assertFalse(edit.hasSecurity('hello', 'edit_greeting'))
 
         # Now edit
         edit.setGroupname('edit_me_test')
-        edit.toggleSecurity('shell', 'edit_groups')
+        edit.toggleSecurity('shell', 'edit_themes')
         edit.toggleSecurity('hello', 'edit_greeting')
 
         edit.waitSave()
         site.refresh()
 
         self.assertEqual(edit.groupname(), 'edit_me_test')
-        self.assertTrue(edit.hasSecurity('shell', 'edit_groups'))
-        self.assertFalse(edit.hasSecurity('shell', 'edit_users'))
+        self.assertTrue(edit.hasSecurity('shell', 'edit_themes'))
+        self.assertFalse(edit.hasSecurity('shell', 'edit_security'))
         self.assertTrue(edit.hasSecurity('hello', 'edit_greeting'))
 
 class TestUsers(unittest.TestCase):

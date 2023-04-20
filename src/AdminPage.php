@@ -16,10 +16,8 @@ class AdminPage extends Responder
 			'title' => 'Admin',
 			'template' => __DIR__ . '/../template/admin_page.php',
 			'args' => [
-				'access_users' => $arg->userCan('edit_users'),
-				'access_groups' => $arg->userCan('edit_groups'),
-				'access_auth_config' => $arg->userCan('edit_auth'),
-				'access_themes' => $arg->userCan('edit_themes')
+				'access_security' => $arg->userCan('edit_security', 'shell'),
+				'access_themes' => $arg->userCan('edit_themes', 'shell')
 			]
 		]);
 

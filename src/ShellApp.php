@@ -258,14 +258,8 @@ class ShellApp extends App
 	public function capabilities(): array
 	{
 		return [
-			'edit_users' => [
-				'description' => 'Create/delete/modify user records. Edit username and auth credentials for any user.'
-			],
-			'edit_groups' => [
-				'description' => 'Create/delete/modify group records. Edit membership and group capabilities.'
-			],
-			'edit_auth' => [
-				'description' => 'Change site-wide authentication configuration.'
+			'edit_security' => [
+				'description' => 'Create/modify users and groups. Edit site-wide auth settings.'
 			],
 			'edit_themes' => [
 				'description' => 'Create and edit color palettes and site themes'
@@ -484,7 +478,7 @@ class ShellApp extends App
 
 	public function renderGroups(RespondArg $arg): mixed
 	{
-		if (!$arg->userCan('edit_groups'))
+		if (!$arg->userCan('edit_security'))
 		{
 			http_response_code(401);
 			echo "Not authorized";
@@ -570,7 +564,7 @@ class ShellApp extends App
 
 	public function renderAuthConfig(RespondArg $arg): mixed
 	{
-		if (!$arg->userCan('edit_auth'))
+		if (!$arg->userCan('edit_security'))
 		{
 			http_response_code(401);
 			echo "Not authorized";

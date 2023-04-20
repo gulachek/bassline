@@ -140,7 +140,7 @@ class UserEditPage extends Responder
 
 	public function respond(RespondArg $arg): mixed
 	{
-		if (!$arg->userCan('edit_users'))
+		if (!$arg->userCan('edit_security'))
 		{
 			http_response_code(401);
 			echo "Not authorized\n";

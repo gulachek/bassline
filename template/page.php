@@ -25,7 +25,9 @@
 	<div class="menu">
 		<span class="username"><?= text($USERNAME) ?></span>
 		<div class="items">
-			<a href="/site/admin/"> Admin </a>
+			<?php if ($SHOW_ADMIN_LINK): ?>
+				<a href="/site/admin/"> Admin </a>
+			<?php endif; ?>
 			<a href="/logout/"> Log out </a>
 		</div>
 	</div>
