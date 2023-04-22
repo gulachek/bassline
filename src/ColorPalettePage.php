@@ -154,6 +154,19 @@ class ColorPalettePage extends Responder
 		return null;
 	}
 
+	private function tryReservePalette(int $uid, array $palette, ?string $key = null): ?SaveToken
+	{
+		if ($palette['save_token'])
+		{
+			$token = SaveToken::decode($palette['save_token']);
+			return $token->tryReserve($uid, $key);
+		}
+		else
+		{
+			return SaveToken::createForUser($uid);
+		}
+	}
+
 	private function save(RespondArg $arg): mixed
 	{
 		$db = $this->db;
@@ -174,66 +187,129 @@ class ColorPalettePage extends Responder
 			return null;
 		}
 
-		$paletteToSave = [
-			'id' => $palette->id,
-			'name' => $palette->name,
-			'colors' => []
-		];
-
-		$mappedColors = [];
-
-		foreach ($palette->colors->newItems as $tempId => $color)
+		if (!$db->lock())
 		{
-			$colorId = $db->createPaletteColor($palette->id);
-			$color->id = $colorId;
-			$mappedColors[$tempId] = $colorId;
-			$palette->colors->items[$colorId] = $color;
+			http_response_code(423);
+			echo json_encode(['error' => 'Locked']);
+			return null;
 		}
 
-		foreach ($palette->colors->deletedItems as $id)
+		try
 		{
-			$db->deletePaletteColor($id);
-		}
+			$currentPalette = $db->loadPalette($palette->id);
+			if (!$currentPalette)
+			{
+				http_response_code(404);
+				echo json_encode(['error' => 'Palette not found']);
+				return null;
+			}
 
-		foreach ($palette->colors->items as $id => $color)
-		{
-			$paletteToSave['colors'][$id] = [
-				'id' => $id,
-				'name' => $color->name,
-				'hex' => $color->hex
+			$token = $this->tryReservePalette($arg->uid(),
+				$currentPalette, $palette->saveKey);
+
+			if (!$token)
+			{
+				http_response_code(423);
+				echo json_encode(['error' => 'Palette could not be locked']);
+				return null;
+			}
+
+			$paletteToSave = [
+				'id' => $palette->id,
+				'name' => $palette->name,
+				'save_token' => $token->encode(),
+				'colors' => []
 			];
-		}
 
-		if ($db->savePalette($paletteToSave))
-		{
-			echo json_encode(['mappedColors' => $mappedColors]);
-		}
-		else
-		{
-			http_response_code(400);
-			echo json_encode(['error' => 'Failed to save palette']);
-		}
+			$mappedColors = [];
 
-		return null;
+			foreach ($palette->colors->newItems as $tempId => $color)
+			{
+				$colorId = $db->createPaletteColor($palette->id);
+				$color->id = $colorId;
+				$mappedColors[$tempId] = $colorId;
+				$palette->colors->items[$colorId] = $color;
+			}
+
+			foreach ($palette->colors->deletedItems as $id)
+			{
+				$db->deletePaletteColor($id);
+			}
+
+			foreach ($palette->colors->items as $id => $color)
+			{
+				$paletteToSave['colors'][$id] = [
+					'id' => $id,
+					'name' => $color->name,
+					'hex' => $color->hex
+				];
+			}
+
+			if ($db->savePalette($paletteToSave))
+			{
+				echo json_encode([
+					'mappedColors' => $mappedColors,
+					'newSaveKey' => $token->key
+				]);
+			}
+			else
+			{
+				http_response_code(400);
+				echo json_encode(['error' => 'Failed to save palette']);
+			}
+
+			return null;
+		}
+		finally
+		{
+			$db->unlock();
+		}
 	}
 
 	private function edit(RespondArg $arg): mixed
 	{
 		$id = intval($_REQUEST['id']);
-		$palette = $this->db->loadPalette($id);
-		if (!$palette)
-			return new NotFound();
 
-		$model = [
-			'palette' => $palette,
-		];
+		if (!$this->db->lock())
+		{
+			\http_response_code(423);
+			echo "Database is busy. Try again in a few seconds.";
+			return null;
+		}
 
-		ReactPage::render($arg, [
-			'title' => "Edit {$palette['name']}",
-			'scripts' => ['/assets/colorPaletteEdit.js'],
-			'model' => $model
-		]);
-		return null;
+		try
+		{
+			$palette = $this->db->loadPalette($id);
+			if (!$palette)
+				return new NotFound();
+
+			$token = $this->tryReservePalette($arg->uid(), $palette);
+			if (!$token)
+			{
+				\http_response_code(423);
+				echo "Someone else is editing this palette. Try again later.";
+				return null;
+			}
+
+			$palette['save_token'] = $token->encode();
+			$this->db->savePalette($palette);
+
+			$model = [
+				'palette' => $palette,
+				'initialSaveKey' => $token->key
+			];
+
+			ReactPage::render($arg, [
+				'title' => "Edit {$palette['name']}",
+				'scripts' => ['/assets/colorPaletteEdit.js'],
+				'model' => $model
+			]);
+			return null;
+		}
+		finally
+		{
+			$this->db->unlock();
+		}
 	}
 
 	private function select(RespondArg $arg): mixed
@@ -283,4 +359,5 @@ class ColorPaletteSaveRequest
 	public int $id;
 	public string $name;
 	public EditablePaletteColorMap $colors;
+	public string $saveKey;
 }

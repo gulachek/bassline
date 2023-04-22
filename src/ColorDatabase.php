@@ -19,6 +19,16 @@ class ColorDatabase
 		return new ColorDatabase(new Database(new \Sqlite3($path)));
 	}
 
+	public function lock(): bool
+	{
+		return $this->db->lock();
+	}
+
+	public function unlock(): void
+	{
+		$this->db->unlock();
+	}
+
 	public function initReentrant(): ?string
 	{
 		if ($this->db->queryValue('table-exists', 'props'))
@@ -104,7 +114,8 @@ class ColorDatabase
 	{
 		$this->db->query('save-palette', [
 			':id' => $palette['id'],
-			':name' => $palette['name']
+			':name' => $palette['name'],
+			':save_token' => $palette['save_token']
 		]);
 
 		foreach ($palette['colors'] as $color)

@@ -47,11 +47,13 @@ interface IPaletteEdit
 	id: number;
 	name: string;
 	colors: IEditableMap<IPaletteColor>;
+	saveKey: string;
 }
 
 interface IPageModel
 {
 	palette: IPalette;
+	initialSaveKey: string;
 }
 
 interface IEditState
@@ -80,6 +82,7 @@ interface ISaveResponse
 {
 	error?: string|null;
 	mappedColors: JsonMap<number>; // tempId -> id after actually creating
+	newSaveKey: string;
 }
 
 interface IEndSaveAction
@@ -154,6 +157,7 @@ function reducer(state: IEditState, action: EditAction)
 		else
 		{
 			savedPalette.name = request.name;
+			palette.saveKey = response.newSaveKey;
 
 			const { items, newItems } = palette.colors;
 
@@ -435,6 +439,7 @@ function Page(props: IPageModel)
 		palette: {
 			name: props.palette.name,
 			id: props.palette.id,
+			saveKey: props.initialSaveKey,
 			colors: {
 				newItems: {},
 				deletedItems: [],

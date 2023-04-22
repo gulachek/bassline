@@ -9,7 +9,8 @@ VALUES ("version", "0.1.0");
 -- Color palette is group of named colors/hex codes
 CREATE TABLE palette (
 	id INTEGER PRIMARY KEY,
-	name TEXT NOT NULL DEFAULT "New Palette"
+	name TEXT NOT NULL DEFAULT "New Palette",
+	save_token TEXT
 );
 
 CREATE TABLE palette_color (

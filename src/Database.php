@@ -18,6 +18,17 @@ class Database
 		$this->query_dir = $query_dir;
 	}
 
+	public function lock(): bool
+	{
+		$this->db->exec('BEGIN IMMEDIATE TRANSACTION');
+		return $this->db->lastErrorCode() === 0;
+	}
+
+	public function unlock(): void
+	{
+		$this->db->exec('COMMIT TRANSACTION');
+	}
+
 	public function lastInsertRowID(): int
 	{
 		return $this->db->lastInsertRowID();

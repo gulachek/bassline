@@ -1,1 +1,5 @@
-SELECT id,name FROM palette WHERE id=?;
+SELECT
+	id,
+	name,
+	save_token
+FROM palette WHERE id=?;
