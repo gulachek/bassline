@@ -63,6 +63,7 @@ interface IEditState
 	isSaving: boolean;
 	tempIdCounter: number;
 	selectedColorId: string;
+	errorMsg: string | null;
 }
 
 const PaletteDispatchContext = createContext(null);
@@ -137,7 +138,7 @@ function reducer(state: IEditState, action: EditAction)
 {
 	const palette = {...state.palette};
 	let savedPalette = { ...state.savedPalette };
-	let { isSaving, tempIdCounter, selectedColorId } = state;
+	let { isSaving, tempIdCounter, selectedColorId, errorMsg } = state;
 
 	if (action.type === 'setName')
 	{
@@ -153,6 +154,7 @@ function reducer(state: IEditState, action: EditAction)
 		if (response.error)
 		{
 			console.error(response.error);
+			errorMsg = response.error;
 		}
 		else
 		{
@@ -240,7 +242,8 @@ function reducer(state: IEditState, action: EditAction)
 		savedPalette,
 		isSaving,
 		tempIdCounter,
-		selectedColorId
+		selectedColorId,
+		errorMsg
 	};
 }
 
@@ -449,12 +452,13 @@ function Page(props: IPageModel)
 		savedPalette: props.palette,
 		isSaving: false,
 		tempIdCounter: 1,
+		errorMsg: null,
 		selectedColorId: Object.keys(colors)[0]
 	};
 
 	const [state, dispatch] = useReducer(reducer, initialState);
 
-	const { isSaving, palette, savedPalette } = state;
+	const { isSaving, palette, savedPalette, errorMsg } = state;
 
 	const hasChange = paletteHasChange(palette, savedPalette);
 
@@ -468,8 +472,10 @@ function Page(props: IPageModel)
 		dispatch({ type: 'endSave', response, request });
 	}, [palette]);
 
+	const shouldSave = hasChange && !errorMsg;
+
 	return <div className="editor">
-		<AutoSaveForm onSave={onSave} hasChange={hasChange} />
+		<AutoSaveForm onSave={onSave} hasChange={shouldSave} />
 		<PaletteDispatchContext.Provider value={dispatch}>
 			<div className="header">
 				<h1> Edit color palette </h1>
@@ -480,7 +486,7 @@ function Page(props: IPageModel)
 				<PaletteColors selectedId={state.selectedColorId} colors={palette.colors} />
 			</div>
 			<p className="status-bar">
-				<SaveIndicator isSaving={hasChange} hasError={false} />
+				<SaveIndicator isSaving={shouldSave} hasError={!!errorMsg} />
 			</p>
 		</PaletteDispatchContext.Provider>
 	</div>;
