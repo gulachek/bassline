@@ -1,8 +1,12 @@
-DELETE FROM login
-WHERE rowid NOT IN (
-	SELECT rowid
-	FROM login
-	WHERE id = :id
+WITH here_to_stay(i) AS (
+	SELECT rowid FROM login
+	WHERE id = :id AND unixepoch(expiration) > unixepoch()
 	ORDER BY expiration DESC
 	LIMIT :limit
-) OR (unixepoch(expiration) <= unixepoch());
+)
+DELETE FROM login
+WHERE rowid IN (
+	SELECT rowid FROM login WHERE id = :id
+	EXCEPT
+	SELECT i FROM here_to_stay
+)
