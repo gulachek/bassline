@@ -34,7 +34,9 @@
 		</div>
 	</div>
 <?php else: ?>
-	<a href="/login/" class="login"> Log in </a>
+	<div class="right">
+		<a href="/login/" class="login"> Log in </a>
+	</div>
 <?php endif; ?>
 
 </nav>
