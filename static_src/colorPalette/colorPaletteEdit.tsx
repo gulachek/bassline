@@ -15,6 +15,7 @@ import { postJson } from '../postJson';
 import { AutoSaveForm } from '../autosave/AutoSaveForm';
 import { SaveIndicator } from '../autosave/SaveIndicator';
 import { SRGB } from '../srgb';
+import { ErrorBanner } from '../ErrorBanner';
 
 import './colorPaletteEdit.scss';
 
@@ -476,7 +477,7 @@ function Page(props: IPageModel)
 
 	return <div className="editor">
 		<AutoSaveForm onSave={onSave} hasChange={shouldSave} />
-		{errorMsg && <ErrorMessage msg={errorMsg} />}
+		{errorMsg && <ErrorBanner msg={errorMsg} />}
 		<PaletteDispatchContext.Provider value={dispatch}>
 			<div className="header">
 				<h1> Edit color palette </h1>
@@ -490,21 +491,6 @@ function Page(props: IPageModel)
 				<SaveIndicator isSaving={shouldSave} hasError={!!errorMsg} />
 			</p>
 		</PaletteDispatchContext.Provider>
-	</div>;
-}
-
-interface IErrorMessageProps
-{
-	msg: string;
-}
-
-function ErrorMessage(props: IErrorMessageProps)
-{
-	const { msg } = props;
-
-	
-	return <div className="error-msg">
-		<p> {msg} </p>
 	</div>;
 }
 
