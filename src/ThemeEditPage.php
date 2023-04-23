@@ -356,9 +356,47 @@ class ThemeEditPage extends Responder
 		$id = $this->parseId('theme-id');
 		$palette = $this->parseId('palette-id');
 
-		$this->db->changeThemePalette($id, $palette);
+		if (!$this->db->lock())
+		{
+			\http_response_code(503);
+			\header('Retry-After: 5');
+			echo "Database is unavailable. Try again.";
+			return null;
+		}
 
-		return new Redirect("/site/admin/theme/edit?id=$id");
+		try
+		{
+			$theme = $this->db->loadTheme($id);
+
+			if (!$theme)
+			{
+				\http_response_code(404);
+				echo "Theme not found";
+				return null;
+			}
+
+			$token = $this->tryReserveTheme($arg->uid(), $theme);
+			if (!$token)
+			{
+				$currentToken = SaveToken::decode($theme['save_token']);
+				$uname = $arg->username($currentToken->userId);
+
+				\http_response_code(409);
+				echo "This theme is being edited by '{$uname}'. Try again when the theme is no longer being edited.";
+				return null;
+			}
+
+			$theme['save_token'] = $token->encode();
+			$this->db->saveTheme($theme);
+
+			$this->db->changeThemePalette($id, $palette);
+
+			return new Redirect("/site/admin/theme/edit?id=$id");
+		}
+		finally
+		{
+			$this->db->unlock();
+		}
 	}
 
 	private function tryReserveTheme(int $uid, array $theme, ?string $key = null): ?SaveToken
