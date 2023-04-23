@@ -19,28 +19,21 @@ class ThemeEditPage extends Responder
 	{
 	}
 
-	private function parsePattern(string $name, string $pattern): string
+	private function parsePattern(string $name, string $pattern): ?string
 	{
 		if (empty($_REQUEST[$name]))
-		{
-			http_response_code(400);
-			echo "No $name\n";
-			exit;
-		}
+			return null;
 
 		if (!preg_match("/^$pattern$/", $_REQUEST[$name]))
-		{
-			http_response_code(400);
-			echo "Invalid $name\n";
-			exit;
-		}
+			return null;
 
 		return $_REQUEST[$name];
 	}
 
-	private function parseId(string $name): int
+	private function parseId(string $name): ?int
 	{
-		return intval($this->parsePattern($name, '\d+'));
+		$n = \intval($_REQUEST[$name] ?? -1);
+		return $n < 1 ? null : $n;
 	}
 
 	public function respond(RespondArg $arg): mixed
@@ -127,6 +120,21 @@ class ThemeEditPage extends Responder
 		return null;
 	}
 
+	private static function systemUnavailable(): ErrorPage
+	{
+		\header('Retry-After: 5');
+		return new ErrorPage(503, 'System Unavailable', 'The system is currently too busy to allow editing themes. Try again.');
+	}
+
+	private static function themeUnavailable(string $uname): ErrorPage
+	{
+		return new ErrorPage(
+			errorCode: 409, 
+			title: 'Theme Unavailable',
+			msg: "This theme is being edited by '{$uname}'. Try again when the theme is no longer being edited."
+		);
+	}
+
 	private function editTheme(RespondArg $arg): mixed
 	{
 		$theme = null;
@@ -134,37 +142,25 @@ class ThemeEditPage extends Responder
 		$status = 'inactive';
 
 		$id = $this->parseId('id');
+		if (\is_null($id))
+			return new ErrorPage(400, 'Bad Request', 'Invalid palette id');
 
 		if (!$this->db->lock())
-		{
-			\http_response_code(503);
-			\header('Retry-After: 5');
-			echo "Database is unavailable. Try again.";
-			return null;
-		}
+			return self::systemUnavailable();
 
 		try
 		{
 			$theme = $this->db->loadTheme($id);
 
 			if (!$theme)
-			{
-				\http_response_code(404);
-				echo "Theme not found";
-				return null;
-			}
+				return self::themeNotFound();
 
 			$token = $this->tryReserveTheme($arg->uid(), $theme);
 			if (!$token)
 			{
 				$currentToken = SaveToken::decode($theme['save_token']);
 				$uname = $arg->username($currentToken->userId);
-
-				return new ErrorPage(
-					errorCode: 409, 
-					title: 'Theme Unavailable',
-					msg: "This theme is being edited by '{$uname}'. Try again when the theme is no longer being edited."
-				);
+				return self::themeUnavailable($uname);
 			}
 
 			$theme['save_token'] = $token->encode();
@@ -353,29 +349,28 @@ class ThemeEditPage extends Responder
 		}
 	}
 
+	private static function themeNotFound(): ErrorPage
+	{
+		return new ErrorPage(404, 'Theme not found', "The requested theme doesn't exist");
+	}
+
 	private function changePalette(RespondArg $arg): mixed
 	{
 		$id = $this->parseId('theme-id');
 		$palette = $this->parseId('palette-id');
 
+		if (!($id && $palette))
+			return new ErrorPage(400, 'Bad Request', 'Invalid theme or palette id');
+
 		if (!$this->db->lock())
-		{
-			\http_response_code(503);
-			\header('Retry-After: 5');
-			echo "Database is unavailable. Try again.";
-			return null;
-		}
+			return self::systemUnavailable();
 
 		try
 		{
 			$theme = $this->db->loadTheme($id);
 
 			if (!$theme)
-			{
-				\http_response_code(404);
-				echo "Theme not found";
-				return null;
-			}
+				return self::themeNotFound();
 
 			$token = $this->tryReserveTheme($arg->uid(), $theme);
 			if (!$token)
@@ -383,9 +378,7 @@ class ThemeEditPage extends Responder
 				$currentToken = SaveToken::decode($theme['save_token']);
 				$uname = $arg->username($currentToken->userId);
 
-				\http_response_code(409);
-				echo "This theme is being edited by '{$uname}'. Try again when the theme is no longer being edited.";
-				return null;
+				return self::themeUnavailable($uname);
 			}
 
 			$theme['save_token'] = $token->encode();
@@ -413,7 +406,6 @@ class ThemeEditPage extends Responder
 			return SaveToken::createForUser($uid);
 		}
 	}
-
 }
 
 class ThemeColor
