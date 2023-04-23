@@ -43,7 +43,8 @@ CREATE TABLE app_color (
 CREATE TABLE theme (
 	id INTEGER PRIMARY KEY,
 	name TEXT NOT NULL DEFAULT "New Theme",
-	palette INTEGER NOT NULL
+	palette INTEGER NOT NULL,
+	save_token TEXT
 );
 
 CREATE TABLE theme_color (

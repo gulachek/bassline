@@ -17,6 +17,7 @@ import { postJson } from '../postJson';
 import { AutoSaveForm } from '../autosave/AutoSaveForm';
 import { SaveIndicator } from '../autosave/SaveIndicator';
 import { SRGB } from '../srgb';
+import { ErrorBanner } from '../ErrorBanner';
 
 import './themeEdit.scss';
 
@@ -90,6 +91,7 @@ interface IThemeEdit
 {
 	id: number;
 	name: string;
+	saveKey: string;
 	themeColors: IEditableMap<IThemeColor>;
 	mappings: JsonMap<IThemeMapping>;
 }
@@ -104,6 +106,7 @@ type AppColors = JsonMap<IAppColor>;
 interface IPageModel
 {
 	theme: ITheme;
+	initialSaveKey: string;
 	available_palettes: JsonMap<IPalettePreview>;
 	status: ThemeStatus;
 	app_colors: JsonMap<AppColors>;
@@ -120,6 +123,7 @@ interface IEditState
 	status: ThemeStatus;
 	savedStatus: ThemeStatus;
 	selectedAppName: string;
+	errorMsg: string | null;
 }
 
 const ThemeDispatchContext = createContext(null);
@@ -150,6 +154,7 @@ interface ISaveResponse
 {
 	error?: string|null;
 	mappedColors: JsonMap<number>; // tempId -> id after actually creating
+	newSaveKey: string;
 }
 
 interface ISaveRequest
@@ -290,7 +295,8 @@ function reducer(state: IEditState, action: EditAction)
 		changePaletteVisible,
 		status,
 		savedStatus,
-		selectedAppName
+		selectedAppName,
+		errorMsg
 	} = state;
 
 	const findThemeColor = (id: string) => {
@@ -315,9 +321,12 @@ function reducer(state: IEditState, action: EditAction)
 		if (response.error)
 		{
 			console.error(response.error);
+			errorMsg = response.error;
 		}
 		else
 		{
+			errorMsg = null;
+			theme.saveKey = response.newSaveKey;
 			savedTheme.name = request.theme.name;
 			savedStatus = request.status;
 
@@ -447,7 +456,8 @@ function reducer(state: IEditState, action: EditAction)
 		changePaletteVisible,
 		status,
 		savedStatus,
-		selectedAppName
+		selectedAppName,
+		errorMsg
 	};
 }
 
@@ -943,6 +953,7 @@ function Page(props: IPageModel)
 		theme: {
 			name: props.theme.name,
 			id: props.theme.id,
+			saveKey: props.initialSaveKey,
 			themeColors: {
 				items: structuredClone(props.theme.themeColors),
 				newItems: {},
@@ -957,12 +968,13 @@ function Page(props: IPageModel)
 		changePaletteVisible: false,
 		status: props.status,
 		savedStatus: props.status,
-		selectedAppName: 'shell'
+		selectedAppName: 'shell',
+		errorMsg: null
 	};
 
 	const [state, dispatch] = useReducer(reducer, initialState);
 
-	const { isSaving, theme, savedTheme, status } = state;
+	const { isSaving, theme, savedTheme, status, errorMsg } = state;
 
 	const hasChange = pageHasChange(state);
 
@@ -976,14 +988,17 @@ function Page(props: IPageModel)
 		dispatch({ type: 'endSave', response, request });
 	}, [theme, status]);
 
+	const shouldSave = hasChange && !errorMsg;
+
 	return <div className="editor">
+			{errorMsg && <ErrorBanner msg={errorMsg} />}
 			<ThemeDispatchContext.Provider value={dispatch}>
 				<PaletteChangePopup
 					palettes={props.available_palettes}
 					open={state.changePaletteVisible}
 					themeId={theme.id}
 				/>
-				<AutoSaveForm onSave={onSave} hasChange={hasChange} />
+				<AutoSaveForm onSave={onSave} hasChange={shouldSave} />
 				<div className="header">
 					<h1> Edit theme </h1>
 				</div>
@@ -1008,7 +1023,7 @@ function Page(props: IPageModel)
 					/>
 				</div>
 				<p className="status-bar">
-					<SaveIndicator isSaving={hasChange} hasError={false} />
+					<SaveIndicator isSaving={shouldSave} hasError={!!errorMsg} />
 				</p>
 			</ThemeDispatchContext.Provider>
 		</div>;

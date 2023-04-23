@@ -129,42 +129,72 @@ class ThemeEditPage extends Responder
 
 	private function editTheme(RespondArg $arg): mixed
 	{
-		$THEME = null;
-		$AVAILABLE_THEMES = $this->db->availableThemes();
-		$AVAILABLE_PALETTES = $this->db->availablePalettes();
-		$NAME_PATTERN = self::NAME_PATTERN;
-		$STATUS = 'inactive';
+		$theme = null;
+		$available_palettes = $this->db->availablePalettes();
+		$status = 'inactive';
 
-		$THEME = $this->db->loadTheme($this->parseId('id'));
+		$id = $this->parseId('id');
 
-		if (!$THEME)
+		if (!$this->db->lock())
 		{
-			\http_response_code(404);
-			echo "Theme not found";
+			\http_response_code(503);
+			\header('Retry-After: 5');
+			echo "Database is unavailable. Try again.";
 			return null;
 		}
 
-		$active_themes = $this->db->getActiveThemes();
-		foreach ($active_themes as $type => $id)
+		try
 		{
-			if ($id === $THEME['id'])
-				$STATUS = $type;
+			$theme = $this->db->loadTheme($id);
+
+			if (!$theme)
+			{
+				\http_response_code(404);
+				echo "Theme not found";
+				return null;
+			}
+
+			$token = $this->tryReserveTheme($arg->uid(), $theme);
+			if (!$token)
+			{
+				$currentToken = SaveToken::decode($theme['save_token']);
+				$uname = $arg->username($currentToken->userId);
+
+				\http_response_code(409);
+				echo "This theme is being edited by '{$uname}'. Try again when the theme is no longer being edited.";
+				return null;
+			}
+
+			$theme['save_token'] = $token->encode();
+			$this->db->saveTheme($theme);
+
+			$active_themes = $this->db->getActiveThemes();
+			foreach ($active_themes as $type => $activeId)
+			{
+				if ($activeId === $id)
+					$status = $type;
+			}
+
+			$model = [
+				'theme' => $theme,
+				'name_pattern' => self::NAME_PATTERN,
+				'available_palettes' => $available_palettes,
+				'status' => $status,
+				'app_colors' => $this->colors,
+				'initialSaveKey' => $token->key
+			];
+
+			ReactPage::render($arg, [
+				'title' => "Edit {$theme['name']}",
+				'scripts' => ['/assets/themeEdit.js'],
+				'model' => $model
+			]);
+			return null;
 		}
-
-		$model = [
-			'theme' => $THEME,
-			'name_pattern' => $NAME_PATTERN,
-			'available_palettes' => $AVAILABLE_PALETTES,
-			'status' => $STATUS,
-			'app_colors' => $this->colors
-		];
-
-		ReactPage::render($arg, [
-			'title' => "Edit {$THEME['name']}",
-			'scripts' => ['/assets/themeEdit.js'],
-			'model' => $model
-		]);
-		return null;
+		finally
+		{
+			$this->db->unlock();
+		}
 	}
 
 	private function saveTheme(RespondArg $arg): mixed
@@ -178,113 +208,147 @@ class ThemeEditPage extends Responder
 			return null;
 		}
 
-		$theme = $req->theme;
-		$id = $theme->id;
-
-		$currentTheme = $this->db->loadTheme($id);
-
-		$themeToSave = [
-			'id' => $id,
-			'name' => $theme->name,
-			'themeColors' => [],
-			'mappings' => []
-		];
-
-		foreach ($theme->themeColors->deletedItems as $colorId)
+		if (!$this->db->lock())
 		{
-			if (!array_key_exists($colorId, $currentTheme['themeColors']))
-			{
-				http_response_code(400);
-				echo json_encode(['error' => 'Theme color not part of theme']);
-				return null;
-			}
-
-			$theme_color = $currentTheme['themeColors'][$colorId];
-
-			if (isSystemColor($theme_color))
-			{
-				http_response_code(400);
-				echo json_encode(['error' => 'Cannot delete system color from theme']);
-				return null;
-			}
-
-			$this->db->deleteThemeColor($colorId);
+			\http_response_code(503);
+			\header('Retry-After: 5');
+			echo \json_encode(['error' => 'Database unavailable']);
+			return null;
 		}
 
-		$mappedColors = [];
-		foreach ($theme->themeColors->newItems as $tempId => $color)
+		try
 		{
-			$newColor = $this->db->createThemeColor($id);
-			$mappedColors[$tempId] = $newColor['id'];
-			$currentTheme['themeColors'][$newColor['id']] = $newColor;
-			$theme->themeColors->items[$newColor['id']] = $color;
-		}
+			$theme = $req->theme;
+			$id = $theme->id;
 
-		foreach ($theme->themeColors->items as $colorId => $color)
-		{
-			if (!array_key_exists($colorId, $currentTheme['themeColors']))
+			$currentTheme = $this->db->loadTheme($id);
+
+			$token = $this->tryReserveTheme($arg->uid(),
+				$currentTheme, $theme->saveKey);
+
+			if (!$token)
 			{
-				http_response_code(400);
-				echo json_encode(['error' => 'Theme color not part of theme']);
+				$currentToken = SaveToken::decode($currentTheme['save_token']);
+				$uname = $arg->username($currentToken->userId);
+
+				$msg = "This theme was edited by '{$uname}' and the information you're seeing might be inaccurate. You will not be able to continue editing until you reload the page.";
+
+				\http_response_code(409);
+				echo \json_encode(['error' => $msg]);
 				return null;
 			}
 
-			$current_color = $currentTheme['themeColors'][$colorId];
-			if (isSystemColor($current_color)
-				&& ($current_color['name'] !== $color->name))
-			{
-				http_response_code(400);
-				echo json_encode(['error' => 'System color names are constant']);
-				return null;
-			}
-
-			$themeToSave['themeColors'][$colorId] = [
-				'id' => $colorId,
-				'name' => $color->name,
-				'palette_color' => $color->palette_color,
-				'lightness' => $color->lightness,
+			$themeToSave = [
+				'id' => $id,
+				'name' => $theme->name,
+				'save_token' => $token->encode(),
+				'themeColors' => [],
+				'mappings' => []
 			];
-		}
 
-		foreach ($theme->mappings as $mappingId => $mapping)
-		{
-			if (!array_key_exists($mappingId, $currentTheme['mappings']))
+			foreach ($theme->themeColors->deletedItems as $colorId)
 			{
-				http_response_code(400);
-				echo json_encode(['error' => 'Mapping not part of theme']);
-				return null;
+				if (!array_key_exists($colorId, $currentTheme['themeColors']))
+				{
+					http_response_code(400);
+					echo json_encode(['error' => 'Theme color not part of theme']);
+					return null;
+				}
+
+				$theme_color = $currentTheme['themeColors'][$colorId];
+
+				if (isSystemColor($theme_color))
+				{
+					http_response_code(400);
+					echo json_encode(['error' => 'Cannot delete system color from theme']);
+					return null;
+				}
+
+				$this->db->deleteThemeColor($colorId);
 			}
 
-			if (!array_key_exists($mapping->theme_color, $currentTheme['themeColors']))
+			$mappedColors = [];
+			foreach ($theme->themeColors->newItems as $tempId => $color)
 			{
-				http_response_code(400);
-				echo json_encode(['error' => 'Mapping theme color not part of theme']);
-				return null;
+				$newColor = $this->db->createThemeColor($id);
+				$mappedColors[$tempId] = $newColor['id'];
+				$currentTheme['themeColors'][$newColor['id']] = $newColor;
+				$theme->themeColors->items[$newColor['id']] = $color;
 			}
 
-			$currentMapping = $currentTheme['mappings'][$mappingId];
+			foreach ($theme->themeColors->items as $colorId => $color)
+			{
+				if (!array_key_exists($colorId, $currentTheme['themeColors']))
+				{
+					http_response_code(400);
+					echo json_encode(['error' => 'Theme color not part of theme']);
+					return null;
+				}
 
-			$themeToSave['mappings'][$mappingId] = [
-				'id' => $mappingId,
-				'app' => $currentMapping['app'],
-				'name' => $currentMapping['name'],
-				'theme_color' => $mapping->theme_color
-			];
+				$current_color = $currentTheme['themeColors'][$colorId];
+				if (isSystemColor($current_color)
+					&& ($current_color['name'] !== $color->name))
+				{
+					http_response_code(400);
+					echo json_encode(['error' => 'System color names are constant']);
+					return null;
+				}
+
+				$themeToSave['themeColors'][$colorId] = [
+					'id' => $colorId,
+					'name' => $color->name,
+					'palette_color' => $color->palette_color,
+					'lightness' => $color->lightness,
+				];
+			}
+
+			foreach ($theme->mappings as $mappingId => $mapping)
+			{
+				if (!array_key_exists($mappingId, $currentTheme['mappings']))
+				{
+					http_response_code(400);
+					echo json_encode(['error' => 'Mapping not part of theme']);
+					return null;
+				}
+
+				if (!array_key_exists($mapping->theme_color, $currentTheme['themeColors']))
+				{
+					http_response_code(400);
+					echo json_encode(['error' => 'Mapping theme color not part of theme']);
+					return null;
+				}
+
+				$currentMapping = $currentTheme['mappings'][$mappingId];
+
+				$themeToSave['mappings'][$mappingId] = [
+					'id' => $mappingId,
+					'app' => $currentMapping['app'],
+					'name' => $currentMapping['name'],
+					'theme_color' => $mapping->theme_color
+				];
+			}
+
+			$this->db->saveTheme($themeToSave);
+
+			if ($req->status === 'inactive')
+			{
+				$this->db->deactivateTheme($id);
+			}
+			else
+			{
+				$this->db->activateTheme($req->status, $id);
+			}
+
+			echo \json_encode([
+				'mappedColors' => $mappedColors,
+				'newSaveKey' => $token->key
+			]);
+			return null;
 		}
-
-		$this->db->saveTheme($themeToSave);
-
-		if ($req->status === 'inactive')
+		finally
 		{
-			$this->db->deactivateTheme($id);
+			$this->db->unlock();
 		}
-		else
-		{
-			$this->db->activateTheme($req->status, $id);
-		}
-
-		echo json_encode(['mappedColors' => $mappedColors]);
-		return null;
 	}
 
 	private function changePalette(RespondArg $arg): mixed
@@ -296,6 +360,20 @@ class ThemeEditPage extends Responder
 
 		return new Redirect("/site/admin/theme/edit?id=$id");
 	}
+
+	private function tryReserveTheme(int $uid, array $theme, ?string $key = null): ?SaveToken
+	{
+		if ($theme['save_token'])
+		{
+			$token = SaveToken::decode($theme['save_token']);
+			return $token->tryReserve($uid, $key);
+		}
+		else
+		{
+			return SaveToken::createForUser($uid);
+		}
+	}
+
 }
 
 class ThemeColor
@@ -330,6 +408,7 @@ class EditedTheme
 {
 	public int $id;
 	public string $name;
+	public string $saveKey;
 	public EditableThemeColorMap $themeColors;
 
 	#[AssocProperty('int', ThemeMapping::class)]

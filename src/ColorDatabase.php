@@ -156,6 +156,7 @@ class ColorDatabase
 		$theme = [
 			'id' => $row['id'],
 			'name' => $row['name'],
+			'save_token' => $row['save_token']
 		];
 
 		if (is_int($row['palette']))
@@ -177,9 +178,10 @@ class ColorDatabase
 
 	public function saveTheme(array $theme): void
 	{
-		$this->db->query('set-theme-name', [
+		$this->db->query('save-theme', [
 			':id' => $theme['id'],
-			':name' => $theme['name']
+			':name' => $theme['name'],
+			':save_token' => $theme['save_token']
 		]);
 
 		foreach ($theme['themeColors'] as $id => $theme_color)
