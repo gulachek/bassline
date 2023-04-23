@@ -24,6 +24,7 @@ const styles = [
 	'group_select',
 	'admin_page',
 	'login_page',
+	'error_page',
 	'nonce/nonce_login_form',
 	'components/tablist',
 	'colorPalette/colorPaletteSelect'

@@ -10,8 +10,6 @@ class NotFound extends Responder
 
 	public function respond(RespondArg $arg): mixed
 	{
-		http_response_code(404);
-		echo "Not found\n";
-		exit;
+		return new ErrorPage(404, "Not Found", "The requested resource was not found.");
 	}
 }

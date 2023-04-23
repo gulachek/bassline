@@ -160,9 +160,11 @@ class ThemeEditPage extends Responder
 				$currentToken = SaveToken::decode($theme['save_token']);
 				$uname = $arg->username($currentToken->userId);
 
-				\http_response_code(409);
-				echo "This theme is being edited by '{$uname}'. Try again when the theme is no longer being edited.";
-				return null;
+				return new ErrorPage(
+					errorCode: 409, 
+					title: 'Theme Unavailable',
+					msg: "This theme is being edited by '{$uname}'. Try again when the theme is no longer being edited."
+				);
 			}
 
 			$theme['save_token'] = $token->encode();
