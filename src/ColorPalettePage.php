@@ -174,23 +174,24 @@ class ColorPalettePage extends Responder
 		$palette = $arg->parseBody(ColorPaletteSaveRequest::class);
 		if (!$palette)
 		{
-			http_response_code(400);
-			echo json_encode(['error' => 'Bad palette encoding']);
+			\http_response_code(400);
+			echo \json_encode(['error' => 'Bad palette encoding']);
 			return null;
 		}
 
 		$pattern = self::NAME_PATTERN;
 		if (!preg_match("/$pattern/", $palette->name))
 		{
-			http_response_code(400);
-			echo json_encode(['error' => 'Invalid name format']);
+			\http_response_code(400);
+			echo \json_encode(['error' => 'Invalid name format']);
 			return null;
 		}
 
 		if (!$db->lock())
 		{
-			http_response_code(423);
-			echo json_encode(['error' => 'Locked']);
+			\http_response_code(503);
+			\header('Retry-After: 5');
+			echo \json_encode(['error' => 'Database unavailable']);
 			return null;
 		}
 
@@ -199,8 +200,8 @@ class ColorPalettePage extends Responder
 			$currentPalette = $db->loadPalette($palette->id);
 			if (!$currentPalette)
 			{
-				http_response_code(404);
-				echo json_encode(['error' => 'Palette not found']);
+				\http_response_code(404);
+				echo \json_encode(['error' => 'Palette not found']);
 				return null;
 			}
 
@@ -209,8 +210,13 @@ class ColorPalettePage extends Responder
 
 			if (!$token)
 			{
-				http_response_code(423);
-				echo json_encode(['error' => 'Palette could not be locked']);
+				$currentToken = SaveToken::decode($currentPalette['save_token']);
+				$uname = $arg->username($currentToken->userId);
+
+				$msg = "This palette was edited by '{$uname}' and the information you're seeing might be inaccurate. You will not be able to continue editing until you reload the page.";
+
+				\http_response_code(409);
+				echo \json_encode(['error' => $msg]);
 				return null;
 			}
 
@@ -247,15 +253,15 @@ class ColorPalettePage extends Responder
 
 			if ($db->savePalette($paletteToSave))
 			{
-				echo json_encode([
+				echo \json_encode([
 					'mappedColors' => $mappedColors,
 					'newSaveKey' => $token->key
 				]);
 			}
 			else
 			{
-				http_response_code(400);
-				echo json_encode(['error' => 'Failed to save palette']);
+				\http_response_code(400);
+				echo \json_encode(['error' => 'Failed to save palette']);
 			}
 
 			return null;
@@ -272,7 +278,8 @@ class ColorPalettePage extends Responder
 
 		if (!$this->db->lock())
 		{
-			\http_response_code(423);
+			\http_response_code(503);
+			\header('Retry-After: 5');
 			echo "Database is busy. Try again in a few seconds.";
 			return null;
 		}
@@ -286,8 +293,11 @@ class ColorPalettePage extends Responder
 			$token = $this->tryReservePalette($arg->uid(), $palette);
 			if (!$token)
 			{
-				\http_response_code(423);
-				echo "Someone else is editing this palette. Try again later.";
+				$currentToken = SaveToken::decode($palette['save_token']);
+				$uname = $arg->username($currentToken->userId);
+
+				\http_response_code(409);
+				echo "This palette is being edited by '{$uname}'. Try again when the palette is no longer being edited.";
 				return null;
 			}
 

@@ -1,3 +1,9 @@
+@mixin circle-icon {
+	border-radius: 0.5em;
+	outline-width: thin;
+	outline-style: solid;
+}
+
 .save-indicator {
 	.icon {
 		display: inline-block;
@@ -24,9 +30,17 @@
 
 	.error-icon {
 		color: var(--system-theme-error);
+		background-color: var(--system-theme-error-text);
+		outline-color: var(--system-theme-error-text);
+
+		@include circle-icon;
 	}
 
 	.success-icon {
 		color: var(--system-theme-success);
+		background-color: var(--system-theme-success-text);
+		outline-color: var(--system-theme-success-text);
+
+		@include circle-icon;
 	}
 }

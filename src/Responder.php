@@ -51,6 +51,19 @@ class RespondArg
 		return \is_null($this->user) ? null : $this->user['id'];
 	}
 
+	public function username(?int $uid = null): ?string
+	{
+		if (\is_null($uid) || $uid === $this->user['id'])
+			return $this->user['username'];
+
+		$db = SecurityDatabase::fromConfig($this->config);
+		$user = $db->loadUser($uid);
+		if (!$user)
+			return null;
+
+		return $user['username'];
+	}
+
 	/*
 	 * Can the currently logged in user has capability, return true.
 	 * App defaults to currently requested app. This doesn't make
