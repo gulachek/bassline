@@ -2,6 +2,13 @@
 
 namespace Gulachek\Bassline;
 
+enum TransactionType
+{
+	case Deferred;
+	case Immediate;
+	case Exclusive;
+}
+
 class Database
 {
 	public function __construct(
@@ -13,14 +20,30 @@ class Database
 			throw new \Exception("php >= 7.0.7 needed for sqlite3 bindValue type inference");
 	}
 
+	private static function transactionType(TransactionType $type): string
+	{
+		switch ($type)
+		{
+			case TransactionType::Deferred:
+				return 'DEFERRED';
+			case TransactionType::Immediate:
+				return 'IMMEDIATE';
+			case TransactionType::Exclusive:
+				return 'EXCLUSIVE';
+			default:
+				throw new \Exception("Invalid transaction type: $type");
+		}
+	}
+
 	public function mountNamedQueries(string $query_dir): void
 	{
 		$this->query_dir = $query_dir;
 	}
 
-	public function lock(): bool
+	public function lock(TransactionType $type = TransactionType::Exclusive): bool
 	{
-		$this->db->exec('BEGIN IMMEDIATE TRANSACTION');
+		$typeStr = self::transactionType($type);
+		$this->db->exec("BEGIN $typeStr TRANSACTION");
 		return $this->db->lastErrorCode() === 0;
 	}
 
