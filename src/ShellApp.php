@@ -70,6 +70,7 @@ class ShellApp extends App
 
 	public function install(): ?string
 	{
+		/*
 		$sec = SecurityDatabase::fromConfig($this->config);
 
 		if ($err = $sec->initReentrant())
@@ -83,6 +84,7 @@ class ShellApp extends App
 		{
 			return "Failed to initialize color database: $err";
 		}
+		 */
 
 		return null;
 	}
@@ -95,8 +97,10 @@ class ShellApp extends App
 	// TODO: this should operate on all apps as group instead of individual
 	public function installApp(string $key, App $app): void
 	{
+		/*
 		$this->syncAppColors($key, $app);
 		$this->syncAppCapabilities($key, $app);
+		 */
 	}
 
 	private function syncAppColors(string $key, App $app): void

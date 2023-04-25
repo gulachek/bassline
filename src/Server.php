@@ -18,6 +18,12 @@ class Server
 		$this->path = PathInfo::parseRequestURI();
 	}
 
+	private function dataFile(string $path): string
+	{
+		$dir = $this->config->dataDir();
+		return "$dir/$path";
+	}
+
 	private function allApps(): array
 	{
 		$apps = ['shell' => new ShellApp($this->config)];
@@ -29,82 +35,77 @@ class Server
 
 	public function initializeSystem(): bool
 	{
-		// load all currently installed apps
-		$installation = InstallDatabase::fromConfig($this->config);
-		if ($err = $installation->initReentrant())
+		$current_apps = $this->allApps();
+		$app_table = [];
+		$has_error = false;
+
+		foreach ($this->allApps() as $key => $app)
 		{
-			echo "Failed to initialize installation database: $err\n";
+			\array_push($app_table, [
+				'app' => $key,
+				'version' => $app->version()
+			]);
+		}
+
+		$installation = InstallDatabase::fromConfig($this->config);
+
+		if (!$installation->lock())
+		{
+			echo "Failed to lock install.db";
 			return false;
 		}
-
-		$prev_apps = $installation->installedApps();
-		$current_apps = $this->allApps();
-		$has_err = false;
-
-		foreach ($current_apps as $key => $app)
+		try
 		{
-			$err = null;
-			$version = $app->version();
-			$change = false;
-
-			if (array_key_exists($key, $prev_apps))
+			if ($err = $installation->installToVersion($current_apps))
 			{
-				$prev_version = $prev_apps[$key];
-
-				if ($prev_version->isGreaterThan($version))
-				{
-					$err = "Cannot downgrade app '$key' from $prev_version to $version";
-				}
-				else if ($prev_version->isLessThan($version))
-				{
-					echo "Upgrading $key from $prev_version to $version\n";
-					$err = $app->upgradeFromVersion($version);
-					$change = true;
-				}
-			}
-			else
-			{
-				echo "Installing $key $version\n";
-				$err = $app->install();
-				$change = true;
-			}
-
-			if ($err)
-			{
-				echo "Error setting up app $key:\n";
-				echo "\t$err\n";
-				$has_err = true;
-			}
-			else if ($change)
-			{
-				$current_apps['shell']->installApp($key, $app);
-				$installation->setVersion($key, $version);
+				echo "Error during app installation: $err\n";
+				return false;
 			}
 		}
-
-		$missing = "";
-		$delim = "";
-
-		// check for installed apps that no longer exist and report
-		foreach ($prev_apps as $key => $version)
+		finally
 		{
-			if (!array_key_exists($key, $current_apps))
+			$installation->unlock();
+		}
+
+		$colors = ColorDatabase::fromConfig($this->config);
+		if (!$colors->lock())
+		{
+			echo "Failed to lock colors.db";
+			return false;
+		}
+		try
+		{
+			if ($err = $colors->installWithApps($current_apps))
 			{
-				$missing .= "{$delim}{$key}";
-				$delim = ", ";
+				echo "Error during color installation: $err\n";
+				return false;
 			}
-
 		}
-
-		if ($missing)
+		finally
 		{
-			echo "The following apps were previously installed but "
-				. "are no longer listed in the site config. Either "
-				. "delete or rename them: $missing";
-			$has_err = true;
+			$colors->unlock();
 		}
 
-		return !$has_err;
+		$security = SecurityDatabase::fromConfig($this->config);
+		if (!$security->lock())
+		{
+			echo "Failed to lock security.db";
+			return false;
+		}
+		try
+		{
+			if ($err = $security->installWithApps($current_apps))
+			{
+				echo "Error during security installation: $err\n";
+				return false;
+			}
+		}
+		finally
+		{
+			$security->unlock();
+		}
+
+		return true;
 	}
 
 	public function issueNonce(string $username): bool

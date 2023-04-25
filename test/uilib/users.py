@@ -5,6 +5,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 class UserSelectPage:
     @classmethod
     def fromDriver(cls, driver):
+        WebDriverWait(driver, timeout=10).until(edit_page_is_saved)
         h1s = driver.find_elements(By.TAG_NAME, 'h1')
         mainHeading = next((h for h in h1s if h.text == 'Select a user'), None)
         return None if mainHeading is None else UserSelectPage(driver)
@@ -39,7 +40,7 @@ class UserSelectPage:
         return UserEditPage.fromDriver(self.driver)
 
 def edit_page_is_saved(driver):
-    return driver.execute_script('return !("isBusy" in document.querySelector(".autosave").dataset)')
+    return driver.execute_script('return !("isBusy" in (document.querySelector(".autosave")?.dataset || {}))')
 
 class UserEditPage:
     @classmethod

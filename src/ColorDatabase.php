@@ -29,7 +29,39 @@ class ColorDatabase
 		$this->db->unlock();
 	}
 
-	public function initReentrant(): ?string
+	private function createTempSrcColors(array $apps): void
+	{
+		$this->db->exec('temp-src-colors');
+
+		$stmt = $this->db->prepare('insert-src-color');
+		foreach ($apps as $key => $app)
+		{
+			$colors = $app->colors();
+			foreach ($colors as $name => $def)
+			{
+				$stmt->execWith([
+					':app' => $key,
+					':name' => $name,
+					':sys_color' => $def['default-system']
+				]);
+			}
+		}
+
+		$stmt->close();
+	}
+
+	public function installWithApps(array $apps): ?string
+	{
+		if ($err = $this->initReentrant())
+			return $err;
+
+		$this->createTempSrcColors($apps);
+
+		$this->db->exec('consume-temp-src-colors');
+		return null;
+	}
+
+	private function initReentrant(): ?string
 	{
 		if ($this->db->queryValue('table-exists', 'props'))
 		{

@@ -23,7 +23,7 @@ CREATE TABLE palette_color (
 -- this is mantained by bassline installation, not apps
 CREATE TABLE system_color  (
 	id INTEGER PRIMARY KEY,
-	css_name TEXT NOT NULL,
+	css_name TEXT UNIQUE NOT NULL,
 	dark_css_value TEXT NOT NULL, -- default when no theme selected
 	light_css_value TEXT NOT NULL,
 	default_light_lightness REAL NOT NULL,
@@ -38,6 +38,8 @@ CREATE TABLE app_color (
 	name TEXT NOT NULL,
 	system_color INTEGER NOT NULL
 );
+
+CREATE UNIQUE INDEX app_color_index ON app_color(app, name);
 
 -- Theme is mapping named app-defined colors to palette
 CREATE TABLE theme (
@@ -63,3 +65,5 @@ CREATE TABLE theme_color_map (
 	app_color INTEGER NOT NULL,
 	theme_color INTEGER NOT NULL
 );
+
+CREATE UNIQUE INDEX theme_app_color ON theme_color_map(theme, app_color);

@@ -17,7 +17,48 @@ class SecurityDatabase
 		return new SecurityDatabase(new Database( new \Sqlite3($path)));
 	}
 
-	public function initReentrant(): ?string
+	public function lock(): bool
+	{
+		return $this->db->lock();
+	}
+
+	public function unlock(): void
+	{
+		$this->db->unlock();
+	}
+
+	private function createTempSrcCaps(array $apps): void
+	{
+		$this->db->exec('temp-src-caps');
+
+		$stmt = $this->db->prepare('insert-src-cap');
+		foreach ($apps as $key => $app)
+		{
+			$caps = $app->capabilities();
+			foreach ($caps as $name => $def)
+			{
+				$stmt->execWith([
+					':app' => $key,
+					':name' => $name
+				]);
+			}
+		}
+
+		$stmt->close();
+	}
+
+	public function installWithApps(array $apps): ?string
+	{
+		if ($err = $this->initReentrant())
+			return $err;
+
+		$this->createTempSrcCaps($apps);
+
+		$this->db->exec('consume-temp-src-caps');
+		return null;
+	}
+
+	private function initReentrant(): ?string
 	{
 		if ($this->db->queryValue('table-exists', 'props'))
 		{

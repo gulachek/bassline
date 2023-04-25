@@ -28,6 +28,8 @@ CREATE TABLE capabilities (
 	name TEXT NOT NULL
 	);
 
+CREATE UNIQUE INDEX app_uniq_caps ON capabilities(app, name);
+
 CREATE TABLE group_capabilities (
 	group_id INTEGER NOT NULL,
 	cap_id INTEGER NOT NULL
