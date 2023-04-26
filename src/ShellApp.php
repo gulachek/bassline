@@ -70,101 +70,12 @@ class ShellApp extends App
 
 	public function install(): ?string
 	{
-		/*
-		$sec = SecurityDatabase::fromConfig($this->config);
-
-		if ($err = $sec->initReentrant())
-		{
-			return "Failed to initialize security database: $err";
-		}
-
-		$color = ColorDatabase::fromConfig($this->config);
-
-		if ($err = $color->initReentrant())
-		{
-			return "Failed to initialize color database: $err";
-		}
-		 */
-
 		return null;
 	}
 
 	public function upgradeFromVersion(Semver $version): ?string
 	{
 		return null;
-	}
-
-	// TODO: this should operate on all apps as group instead of individual
-	public function installApp(string $key, App $app): void
-	{
-		/*
-		$this->syncAppColors($key, $app);
-		$this->syncAppCapabilities($key, $app);
-		 */
-	}
-
-	private function syncAppColors(string $key, App $app): void
-	{
-		$app_colors = $app->colors();
-
-		$db = ColorDatabase::fromConfig($this->config);
-
-		$existing_colors = [];
-
-		$color_names = $db->appColorNames($key);
-		foreach ($color_names as $name)
-		{
-			if (array_key_exists($name, $app_colors))
-			{
-				$existing_colors[$name] = true;
-			}
-			else
-			{
-				$db->removeAppColor($key, $name);
-			}
-		}
-
-		foreach ($app_colors as $name => $color)
-		{
-			if (!array_key_exists($name, $existing_colors))
-			{
-				$db->addAppColor($key, $name, $color);
-			}
-		}
-
-		$db->syncAppColors();
-	}
-
-	private function syncAppCapabilities(string $key, App $app): void
-	{
-		$app_caps = $app->capabilities();
-
-		$db = SecurityDatabase::fromConfig($this->config);
-
-		$existing_caps = [];
-
-		$cap_names = $db->capabilityNames($key);
-		foreach ($cap_names as $name)
-		{
-			if (array_key_exists($name, $app_caps))
-			{
-				$existing_caps[$name] = true;
-			}
-			else
-			{
-				$db->removeCapability($key, $name);
-			}
-		}
-
-		foreach ($app_caps as $name => $cap)
-		{
-			if (!array_key_exists($name, $existing_caps))
-			{
-				$db->addCapability($key, $name);
-			}
-		}
-
-		$db->syncCapabilities();
 	}
 
 	private function allAuthPlugins(): array

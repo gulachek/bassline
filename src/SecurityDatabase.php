@@ -112,12 +112,6 @@ class SecurityDatabase
 		]);
 	}
 
-	// now that caps have been added/removed, remove dangling refs, add index where needed, etc
-	public function syncCapabilities(): void
-	{
-		$this->db->query('remove-dangling-group-capabilities');
-	}
-
 	// return the username and user ID for a logged in user
 	public function getLoggedInUser(string $token): ?array
 	{

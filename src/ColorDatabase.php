@@ -289,13 +289,6 @@ class ColorDatabase
 		]);
 	}
 
-	// delete theme mappings to dangling app colors (probably removed on upgrade)
-	// add empty theme mappings to existing themes with new app colors
-	public function syncAppColors(): void
-	{
-		$this->db->exec('sync-app-colors');
-	}
-
 	public function appColorNames(string $app): array
 	{
 		$result = $this->db->query('app-color-names', $app);
