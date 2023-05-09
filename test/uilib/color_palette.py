@@ -1,19 +1,22 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support.wait import WebDriverWait
+from .autosave import wait_save
+from .page import Page
 
-class ColorPaletteSelectPage:
+class ColorPaletteSelectPage(Page):
     @classmethod
     def fromDriver(cls, driver):
+        wait_save(driver)
         h1s = driver.find_elements(By.TAG_NAME, 'h1')
         mainHeading = next((h for h in h1s if h.text == 'Select color palette'), None)
         return None if mainHeading is None else ColorPaletteSelectPage(driver)
 
     def __init__(self, driver):
         self.driver = driver
+        super().__init__(driver)
 
     def _paletteSelect(self):
-        return Select(self.driver.find_element(By.TAG_NAME, 'select'))
+        return Select(self.elem(By.TAG_NAME, 'select'))
 
     def hasPalette(self, name):
         for opt in self._paletteSelect().options:
@@ -23,34 +26,33 @@ class ColorPaletteSelectPage:
 
     def editPalette(self, name):
         self._paletteSelect().select_by_visible_text(name)
-        self.driver.find_element(By.CSS_SELECTOR, 'input[value="Edit"]').click()
+        self.elem('input[value="Edit"]').click()
 
     def enterPaletteName(self, name):
-        elem = self.driver.find_element(By.CSS_SELECTOR, 'input[type="text"]')
+        elem = self.elem(By.CSS_SELECTOR, 'input[type="text"]')
         elem.clear()
         elem.send_keys(name)
 
     def createPalette(self, name):
         self.enterPaletteName(name)
-        btn = self.driver.find_element(By.CSS_SELECTOR, 'input[value="Create"]')
+        btn = self.elem(By.CSS_SELECTOR, 'input[value="Create"]')
         btn.click()
         return ColorPaletteEditPage.fromDriver(self.driver)
 
-def edit_page_is_saved(driver):
-    return driver.execute_script('return !("isBusy" in document.querySelector(".autosave").dataset)')
-
-class ColorPaletteEditPage:
+class ColorPaletteEditPage(Page):
     @classmethod
     def fromDriver(cls, driver):
+        wait_save(driver)
         h1s = driver.find_elements(By.TAG_NAME, 'h1')
         mainHeading = next((h for h in h1s if h.text == 'Edit color palette'), None)
         return None if mainHeading is None else ColorPaletteEditPage(driver)
 
     def __init__(self, driver):
         self.driver = driver
+        super().__init__(driver)
 
     def _paletteNameInput(self):
-        return self.driver.find_element(By.CLASS_NAME, 'palette-name')
+        return self.elem(By.CLASS_NAME, 'palette-name')
 
     def setPaletteName(self, name):
         elem = self._paletteNameInput()
@@ -84,7 +86,7 @@ class ColorPaletteEditPage:
         elem.click()
 
     def _setCurrentColorName(self, name):
-        elem = self.driver.find_element(By.CLASS_NAME, 'current-color-name')
+        elem = self.elem(By.CLASS_NAME, 'current-color-name')
         elem.clear()
         elem.send_keys(name)
 
@@ -97,15 +99,15 @@ class ColorPaletteEditPage:
         self._setCurrentColorHex(color)
 
     def addColor(self, *, name, color):
-        btn = self.driver.find_element(By.CLASS_NAME, 'add-color')
+        btn = self.elem(By.CLASS_NAME, 'add-color')
         btn.click()
         self._setCurrentColorName(name)
         self._setCurrentColorHex(color)
 
     def deleteColor(self, name):
         self._selectColor(name)
-        btn = self.driver.find_element(By.CLASS_NAME, 'del-color')
+        btn = self.elem(By.CLASS_NAME, 'del-color')
         btn.click()
 
     def waitSave(self):
-        WebDriverWait(self.driver, timeout=10).until(edit_page_is_saved)
+        wait_save(self.driver)

@@ -1,22 +1,21 @@
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
+from .autosave import wait_save
+from .page import Page
 
-def edit_page_is_saved(driver):
-    return driver.execute_script('let autosave = document.querySelector(".autosave"); return !!autosave && !("isBusy" in autosave.dataset);')
-
-class AuthConfigEditPage:
+class AuthConfigEditPage(Page):
     @classmethod
     def fromDriver(cls, driver):
-        WebDriverWait(driver, timeout=10).until(edit_page_is_saved)
+        wait_save(driver)
         h1s = driver.find_elements(By.TAG_NAME, 'h1')
         mainHeading = next((h for h in h1s if h.text == 'Authentication Configuration'), None)
         return None if mainHeading is None else AuthConfigEditPage(driver)
 
     def __init__(self, driver):
         self.driver = driver
+        super().__init__(driver)
 
     def _sectionElem(self, key):
-        return self.driver.find_element(By.CSS_SELECTOR, f"section[data-plugin-key=\"{key}\"]")
+        return self.elem(By.CSS_SELECTOR, f"section[data-plugin-key=\"{key}\"]")
 
     def _noauthCbox(self):
         return self._sectionElem('noauth').find_element(By.CSS_SELECTOR, 'input[type="checkbox"]')
@@ -60,4 +59,4 @@ class AuthConfigEditPage:
         elem.send_keys(clientid)
 
     def waitSave(self):
-        WebDriverWait(self.driver, timeout=10).until(edit_page_is_saved)
+        wait_save(self.driver)

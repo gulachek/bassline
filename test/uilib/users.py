@@ -1,20 +1,22 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support.wait import WebDriverWait
+from .autosave import wait_save
+from .page import Page
 
-class UserSelectPage:
+class UserSelectPage(Page):
     @classmethod
     def fromDriver(cls, driver):
-        WebDriverWait(driver, timeout=10).until(edit_page_is_saved)
+        wait_save(driver)
         h1s = driver.find_elements(By.TAG_NAME, 'h1')
         mainHeading = next((h for h in h1s if h.text == 'Select a user'), None)
         return None if mainHeading is None else UserSelectPage(driver)
 
     def __init__(self, driver):
         self.driver = driver
+        super().__init__(driver)
 
     def _findUserLink(self, username):
-        links = self.driver.find_elements(By.LINK_TEXT, username)
+        links = self.elems(By.LINK_TEXT, username)
         return links[0] if len(links) > 0 else None
 
     def selectUser(self, username):
@@ -24,36 +26,35 @@ class UserSelectPage:
         return self._findUserLink(username) != None
 
     def enterUsername(self, username):
-        uname = self.driver.find_element(By.CSS_SELECTOR, 'input[type="text"]')
+        uname = self.elem(By.CSS_SELECTOR, 'input[type="text"]')
         uname.clear()
         uname.send_keys(username)
 
     def selectGroup(self, groupname):
-        select = Select(self.driver.find_element(By.TAG_NAME, 'select'))
+        select = Select(self.elem(By.TAG_NAME, 'select'))
         select.select_by_visible_text(groupname)
 
     def createUser(self, username, groupname):
         self.enterUsername(username)
         self.selectGroup(groupname)
-        btn = self.driver.find_element(By.CSS_SELECTOR, 'input[value="Create"]')
+        btn = self.elem(By.CSS_SELECTOR, 'input[value="Create"]')
         btn.click()
         return UserEditPage.fromDriver(self.driver)
 
-def edit_page_is_saved(driver):
-    return driver.execute_script('return !("isBusy" in (document.querySelector(".autosave")?.dataset || {}))')
-
-class UserEditPage:
+class UserEditPage(Page):
     @classmethod
     def fromDriver(cls, driver):
+        wait_save(driver)
         h1s = driver.find_elements(By.TAG_NAME, 'h1')
         mainHeading = next((h for h in h1s if h.text == 'Edit User'), None)
         return None if mainHeading is None else UserEditPage(driver)
 
     def __init__(self, driver):
         self.driver = driver
+        super().__init__(driver)
 
     def _usernameInput(self):
-        return self.driver.find_element(By.CSS_SELECTOR, 'input[name="username"]')
+        return self.elem(By.CSS_SELECTOR, 'input[name="username"]')
 
     def setUsername(self, username):
         elem = self._usernameInput()
@@ -64,7 +65,7 @@ class UserEditPage:
         return self._usernameInput().get_attribute('value')
 
     def _primaryGroupSelect(self):
-        return Select(self.driver.find_element(By.TAG_NAME, 'select'))
+        return Select(self.elem(By.TAG_NAME, 'select'))
     def primaryGroup(self):
         select = self._primaryGroupSelect()
         return select.all_selected_options[0].text
@@ -74,7 +75,7 @@ class UserEditPage:
         select.select_by_visible_text(groupname)
 
     def _groupCbox(self, groupname):
-        return self.driver.find_element(By.CSS_SELECTOR, f"input[data-groupname=\"{groupname}\"]")
+        return self.elem(By.CSS_SELECTOR, f"input[data-groupname=\"{groupname}\"]")
 
     def _groupCboxIsChecked(self, groupname):
         return self.driver.execute_script(f"return !!document.querySelector('input[data-groupname=\"{groupname}\"]').checked")
@@ -86,14 +87,14 @@ class UserEditPage:
         return self._groupCboxIsChecked(groupname)
 
     def _emailButtons(self):
-        return self.driver.find_elements(By.CSS_SELECTOR, '.siwg .array button')
+        return self.elems(By.CSS_SELECTOR, '.siwg .array button')
 
     def _siwgBtn(self, text):
-        btns = self.driver.find_elements(By.CSS_SELECTOR, '.siwg button')
+        btns = self.elems(By.CSS_SELECTOR, '.siwg button')
         return next((b for b in btns if b.text == text), None)
 
     def typeEmail(self, email):
-        elem = self.driver.find_element(By.CSS_SELECTOR, 'input[type="email"]')
+        elem = self.elem(By.CSS_SELECTOR, 'input[type="email"]')
         elem.clear()
         elem.send_keys(email)
 
@@ -105,4 +106,4 @@ class UserEditPage:
         self.typeEmail(email)
 
     def waitSave(self):
-        WebDriverWait(self.driver, timeout=10).until(edit_page_is_saved)
+        wait_save(self.driver)

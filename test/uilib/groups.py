@@ -1,19 +1,22 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support.wait import WebDriverWait
+from .autosave import wait_save
+from .page import Page
 
-class GroupSelectPage:
+class GroupSelectPage(Page):
     @classmethod
     def fromDriver(cls, driver):
+        wait_save(driver)
         h1s = driver.find_elements(By.TAG_NAME, 'h1')
         mainHeading = next((h for h in h1s if h.text == 'Select a group'), None)
         return None if mainHeading is None else GroupSelectPage(driver)
 
     def __init__(self, driver):
         self.driver = driver
+        super().__init__(driver)
 
     def _findGroupBtn(self, groupname):
-        btns = self.driver.find_elements(By.CSS_SELECTOR, '.group-container button')
+        btns = self.elems(By.CSS_SELECTOR, '.group-container button')
         return next((b for b in btns if b.text == groupname), None)
 
 
@@ -25,31 +28,33 @@ class GroupSelectPage:
         return self._findGroupBtn(username) is not None
 
     def enterGroupname(self, groupname):
-        gname = self.driver.find_element(By.CSS_SELECTOR, 'input[type="text"]')
+        gname = self.elem(By.CSS_SELECTOR, 'input[type="text"]')
         gname.clear()
         gname.send_keys(groupname)
 
     def createGroup(self, groupname):
         self.enterGroupname(groupname)
-        btn = self.driver.find_element(By.CSS_SELECTOR, 'input[value="Create"]')
+        btn = self.elem(By.CSS_SELECTOR, 'input[value="Create"]')
         btn.click()
         return GroupEditPage.fromDriver(self.driver)
 
 def edit_page_is_saved(driver):
     return driver.execute_script('return !("isBusy" in document.querySelector(".autosave").dataset)')
 
-class GroupEditPage:
+class GroupEditPage(Page):
     @classmethod
     def fromDriver(cls, driver):
+        wait_save(driver)
         h1s = driver.find_elements(By.TAG_NAME, 'h1')
         mainHeading = next((h for h in h1s if h.text == 'Edit group'), None)
         return None if mainHeading is None else GroupEditPage(driver)
 
     def __init__(self, driver):
         self.driver = driver
+        super().__init__(driver)
 
     def _groupnameInput(self):
-        return self.driver.find_element(By.CSS_SELECTOR, 'input[type="text"]')
+        return self.elem(By.CSS_SELECTOR, 'input[type="text"]')
 
     def setGroupname(self, groupname):
         elem = self._groupnameInput()
@@ -63,7 +68,7 @@ class GroupEditPage:
         return f"div[data-app=\"{app}\"] input[data-capability=\"{capName}\"]"
 
     def selectApp(self, app):
-        select = Select(self.driver.find_element(By.TAG_NAME, 'select'))
+        select = Select(self.elem(By.TAG_NAME, 'select'))
         select.select_by_visible_text(app)
 
     def hasSecurity(self, app, capName):
@@ -73,8 +78,8 @@ class GroupEditPage:
 
     def toggleSecurity(self, app, capName):
         self.selectApp(app)
-        cbox = self.driver.find_element(By.CSS_SELECTOR, self._capSelector(app, capName))
+        cbox = self.elem(By.CSS_SELECTOR, self._capSelector(app, capName))
         cbox.click()
 
     def waitSave(self):
-        WebDriverWait(self.driver, timeout=10).until(edit_page_is_saved)
+        wait_save(self.driver)
