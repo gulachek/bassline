@@ -7,11 +7,31 @@ function is_json_obj(mixed $obj): bool
 	return is_array($obj) && !array_is_list($obj);
 }
 
+class SaveResponse extends Responder
+{
+	public function __construct(
+		private int $errorCode,
+		private array $obj
+	)
+	{
+	}
+
+	public function respond(RespondArg $arg): mixed
+	{
+		\http_response_code($this->errorCode);
+		\header('Content-Type: application/json');
+		echo \json_encode($this->obj);
+		return null;
+	}
+}
+
 class UserSaveRequest
 {
 	public User $user;
 
 	public mixed $pluginData;
+
+	public string $key;
 }
 
 class UserEditPage extends Responder
@@ -123,19 +143,69 @@ class UserEditPage extends Responder
 		return $pdata;
 	}
 
-	private function doSave(SecurityDatabase $db, UserSaveRequest $save): ?string
+	private function save(RespondArg $arg, SecurityDatabase $db): SaveResponse
 	{
-		$db->saveUser($save->user, $error);
-		if ($error) return $error;
+		$save = $arg->parseBody(UserSaveRequest::class);
 
-		foreach ($save->pluginData as $key => $data)
+		if (!$save)
+			return new SaveResponse(400, [
+				'errorMsg' => 'Bad request'
+			]);
+
+		// TODO validate request more strictly
+
+		if (!$db->lock())
+			return new SaveResponse(503, [
+				'errorMsg' => 'System unavailable'
+			]);
+
+		try
 		{
-			$p = $this->auth_plugins[$key];
-			if (!$p->invokeSaveUserEditData($save->user->id, $data, $db, $error))
-				return $error;
-		}
+			$current_user = $db->loadUser($save->user->id);
+			if (!$current_user)
+				return new SaveResponse(404, [
+					'errorMsg' => "User not found"
+				]);
 
-		return null;
+			$token = SaveToken::tryReserveEncoded(
+				$arg->uid(),
+				$current_user['save_token'],
+				$save->key
+			);
+
+			if (!$token)
+			{
+				$currentToken = SaveToken::decode($current_user['save_token']);
+				$uname = $arg->username($currentToken->userId);
+				return new SaveResponse(409, [
+					'errorMsg' => "This user is being edited by '{$uname}'. Try again when the user is no longer being edited."
+				]);
+			}
+
+			$save->user->save_token = $token->encode();
+			$db->saveUser($save->user, $error);
+			if ($error)
+				return new SaveResponse(400, [
+					'errorMsg' => $error
+				]);
+
+			foreach ($save->pluginData as $key => $data)
+			{
+				$p = $this->auth_plugins[$key];
+				if (!$p->invokeSaveUserEditData($save->user->id, $data, $db, $error))
+					return new SaveResponse(400, [
+						'errorMsg' => $error
+					]);
+			}
+
+			return new SaveResponse(200, [
+				'newKey' => $token->key
+			]);
+		}
+		finally
+		{
+			$db->unlock();
+		}
 	}
 
 	public function respond(RespondArg $arg): mixed
@@ -177,10 +247,27 @@ class UserEditPage extends Responder
 		}
 		else if ($action === 'edit')
 		{
-			$user = $db->loadUser($user_id);
+			if (!$db->lock())
+				return self::systemUnavailable();
 
-			if ($user)
+			try
 			{
+				$user = $db->loadUser($user_id);
+				if (!$user)
+					return new ErrorPage(404, 'Not Found', "User '$user_id' doesn't exist.");
+
+				$token = SaveToken::tryReserveEncoded($arg->uid(), $user['save_token']);
+				if (!$token)
+				{
+					$currentToken = SaveToken::decode($user['save_token']);
+					$uname = $arg->username($currentToken->userId);
+					return self::userUnavailable($uname);
+				}
+
+				$user['save_token'] = $token->encode();
+				$userToSave = User::fromArray($user);
+				$db->saveUser($userToSave, $error);
+
 				$pluginData = [];
 				foreach ($this->auth_plugins as $key => $plugin)
 				{
@@ -198,7 +285,8 @@ class UserEditPage extends Responder
 						'username' => self::USERNAME_PATTERN
 					],
 					'authPlugins' => $pluginData,
-					'groups' => $db->loadGroups()
+					'groups' => $db->loadGroups(),
+					'initialSaveKey' => $token->key
 				];
 
 				ReactPage::render($arg, [
@@ -211,8 +299,10 @@ class UserEditPage extends Responder
 				]);
 				return null;
 			}
-
-			$error = "User not found for id $user_id";
+			finally
+			{
+				$db->unlock();
+			}
 		}
 		else if ($action === 'create')
 		{
@@ -232,14 +322,7 @@ class UserEditPage extends Responder
 		}
 		else if ($action === 'save')
 		{
-			$save = $arg->parseBody(UserSaveRequest::class);
-
-			$error = $this->doSave($db, $save);
-
-			echo json_encode([
-				'errorMsg' => $error
-			]);
-			return null;
+			return $this->save($arg, $db);
 		}
 
 		$query = [];
@@ -254,4 +337,20 @@ class UserEditPage extends Responder
 		header("Location: /site/admin/users?$query_str");
 		return null;
 	}
+
+	private static function systemUnavailable(): ErrorPage
+	{
+		\header('Retry-After: 5');
+		return new ErrorPage(503, 'System Unavailable', 'The system is currently too busy to allow editing users. Try again.');
+	}
+
+	private static function userUnavailable(string $uname): ErrorPage
+	{
+		return new ErrorPage(
+			errorCode: 409, 
+			title: 'User Unavailable',
+			msg: "This user is being edited by '{$uname}'. Try again when the user is no longer being edited."
+		);
+	}
+
 }

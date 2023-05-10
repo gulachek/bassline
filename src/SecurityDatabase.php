@@ -270,6 +270,9 @@ class SecurityDatabase
 	public function loadUser(int $user_id): ?array
 	{
 		$user = $this->db->queryRow('load-user', $user_id);
+		if (!$user)
+			return null;
+
 		$user['groups'] = $this->db->query('load-user-groups', $user_id)->column('group_id');
 		return $user;
 	}
@@ -464,7 +467,8 @@ class SecurityDatabase
 			':id' => $id,
 			':username' => $name,
 			':is_superuser' => $current['is_superuser'],
-			':primary_group' => $user->primary_group
+			':primary_group' => $user->primary_group,
+			':save_token' => $user->save_token
 		]);
 
 		$this->db->query('forget-user-groups', $id);

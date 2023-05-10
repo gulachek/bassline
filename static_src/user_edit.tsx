@@ -29,6 +29,7 @@ import './user_edit.scss';
 interface ISaveReponse
 {
 	errorMsg?: string|null;
+	newKey?: string|null;
 }
 
 const UserDispatchContext = createContext(null);
@@ -89,6 +90,7 @@ interface IUser
 	is_superuser: boolean;
 	groups: number[];
 	primary_group: number;
+	save_token: string;
 }
 
 function userEquals(left: IUser, right: IUser)
@@ -122,6 +124,7 @@ interface IFormData
 {
 	user: IUser;
 	pluginData: { [key: string]: any };
+	key: string;
 }
 
 interface IGroup
@@ -207,6 +210,7 @@ interface IPageUpdateSavedDataAction
 {
 	type: 'updateSavedData';
 	savedData: IFormData;
+	response: ISaveReponse;
 }
 
 type PageAction =
@@ -222,7 +226,15 @@ function reducer(state: IPageState, action: PageAction): IPageState
 	let { savedData } = state;
 	const { data } = state;
 	const { user } = data;
-	let { username, groups, primary_group, id, is_superuser  } = user;
+	let { key } = data;
+	let {
+		username,
+		groups,
+		primary_group,
+		id,
+		is_superuser,
+		save_token
+	 } = user;
 	const pluginData = {...data.pluginData};
 
 	const groupSet = new Set(groups);
@@ -239,6 +251,9 @@ function reducer(state: IPageState, action: PageAction): IPageState
 	else if (action.type === 'updateSavedData')
 	{
 		savedData = action.savedData;
+		if (action.response.newKey) {
+			key = action.response.newKey;
+		}
 	}
 	else if (action.type === 'joinGroup')
 	{
@@ -274,9 +289,11 @@ function reducer(state: IPageState, action: PageAction): IPageState
 			id,
 			groups,
 			primary_group,
-			is_superuser
+			is_superuser,
+			save_token
 		},
-		pluginData
+		pluginData,
+		key
 	} };
 }
 
@@ -287,6 +304,7 @@ interface IPageModel
 	patterns: IPatterns;
 	authPlugins: IAuthPluginData[];
 	groups: Groups;
+	initialSaveKey: string;
 }
 
 interface IPageProps extends IPageModel
@@ -296,7 +314,7 @@ interface IPageProps extends IPageModel
 
 function Page(props: IPageProps)
 {
-	const { user, patterns, authPlugins, pluginModules, groups } = props;
+	const { user, patterns, authPlugins, pluginModules, groups, initialSaveKey } = props;
 
 	const [errorMsg, setErrorMsg] = useState(props.errorMsg);
 
@@ -305,7 +323,8 @@ function Page(props: IPageProps)
 	const initState = useMemo(() => {
 		const data: IFormData = {
 			user,
-			pluginData: {}
+			pluginData: {},
+			key: initialSaveKey
 		};
 
 		const pluginHasChange: { [key: string]: boolean } = {};
@@ -349,19 +368,19 @@ function Page(props: IPageProps)
 	const onSave = useCallback(async () => {
 		const submittedData = structuredClone(data);
 		
-		const { errorMsg } = await postJson<ISaveReponse>('/site/admin/users', {
+		const response = await postJson<ISaveReponse>('/site/admin/users', {
 			body: submittedData,
 			query: {
 				action: 'save'
 			}
 		});
 
-		setErrorMsg(errorMsg);
+		setErrorMsg(response.errorMsg);
 
-		if (errorMsg)
+		if (response.errorMsg)
 			return;
 
-		dispatch({ type: 'updateSavedData', savedData: submittedData });
+		dispatch({ type: 'updateSavedData', savedData: submittedData, response });
 		
 	}, [data]);
 

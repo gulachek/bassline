@@ -7,7 +7,8 @@ CREATE TABLE users (
 	id INTEGER PRIMARY KEY,
 	username TEXT UNIQUE NOT NULL,
 	is_superuser INTEGER NOT NULL DEFAULT 0, -- user can do anything
-	primary_group INTEGER NOT NULL
+	primary_group INTEGER NOT NULL,
+	save_token TEXT
 );
 
 CREATE TABLE groups (

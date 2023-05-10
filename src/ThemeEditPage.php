@@ -396,15 +396,7 @@ class ThemeEditPage extends Responder
 
 	private function tryReserveTheme(int $uid, array $theme, ?string $key = null): ?SaveToken
 	{
-		if ($theme['save_token'])
-		{
-			$token = SaveToken::decode($theme['save_token']);
-			return $token->tryReserve($uid, $key);
-		}
-		else
-		{
-			return SaveToken::createForUser($uid);
-		}
+		return SaveToken::tryReserveEncoded($uid, $theme['save_token'], $key);
 	}
 }
 

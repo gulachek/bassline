@@ -1,1 +1,1 @@
-SELECT id, username, is_superuser,primary_group FROM users WHERE id=?;
+SELECT id, username, is_superuser, primary_group, save_token FROM users WHERE id=?;

@@ -55,4 +55,17 @@ class SaveToken
 	{
 		return new SaveToken($userId, \time(), self::newKey());
 	}
+
+	public static function tryReserveEncoded(int $userId, ?string $encodedToken, ?string $key = null): ?SaveToken
+	{
+		if ($encodedToken)
+		{
+			$token = self::decode($encodedToken);
+			return $token->tryReserve($userId, $key);
+		}
+		else
+		{
+			return self::createForUser($userId);
+		}
+	}
 }

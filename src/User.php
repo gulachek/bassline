@@ -12,4 +12,10 @@ class User
 
 	public int $primary_group;
 	public bool $is_superuser;
+	public string $save_token;
+
+	public static function fromArray(array $user): User
+	{
+		return Conversion::fromAssoc(User::class, $user);
+	}
 }
