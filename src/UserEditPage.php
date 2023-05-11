@@ -149,7 +149,7 @@ class UserEditPage extends Responder
 				$currentToken = SaveToken::decode($current_user['save_token']);
 				$uname = $arg->username($currentToken->userId);
 				return new SaveResponse(409, [
-					'errorMsg' => "This user is being edited by '{$uname}'. Try again when the user is no longer being edited."
+					'errorMsg' => "This user was recently edited by '{$uname}' and the information you see may be inaccurate. You will not be able to edit this user until you successfully reload the page."
 				]);
 			}
 
