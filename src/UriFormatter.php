@@ -6,18 +6,27 @@ class UriFormatter
 {
 	public function __construct(
 		private string $app,
-		private PathInfo $path
+		private PathInfo $path,
+		private bool $escapeHTML = false
 	)
 	{
 	}
 
-	private static function addQuery(string $path, ?array $query): string
+	private function filter(string $str): string
+	{
+		if ($this->escapeHTML)
+			return \htmlspecialchars($str);
+
+		return $str;
+	}
+
+	private function addQuery(string $path, ?array $query): string
 	{
 		if (\is_null($query))
-			return \htmlspecialchars($path);
+			return $this->filter($path);
 
 		$queryStr = \http_build_query($query);
-		return \htmlspecialchars("{$path}?{$queryStr}");
+		return $this->filter("{$path}?{$queryStr}");
 	}
 
 	public function abs(string $path,
@@ -31,17 +40,17 @@ class UriFormatter
 		}
 
 		$app = $app ?? $this->app;
-		return self::addQuery("/$app$path", $query);
+		return $this->addQuery("/$app$path", $query);
 	}
 
 	public function rel(string $path, ?array $query = null): string
 	{
 		$cat = $this->path->concat($path);
-		return self::addQuery($cat->path(), $query);
+		return $this->addQuery($cat->path(), $query);
 	}
 
 	public function cur(?array $query = null)
 	{
-		return self::addQuery($this->path->path(), $query);
+		return $this->addQuery($this->path->path(), $query);
 	}
 }

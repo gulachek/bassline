@@ -2,47 +2,18 @@
 
 namespace Gulachek\Bassline;
 
-function is_json_obj(mixed $obj): bool
-{
-	return is_array($obj) && !array_is_list($obj);
-}
-
-class SaveResponse extends Responder
-{
-	public function __construct(
-		private int $errorCode,
-		private array $obj
-	)
-	{
-	}
-
-	public function respond(RespondArg $arg): mixed
-	{
-		\http_response_code($this->errorCode);
-		\header('Content-Type: application/json');
-		echo \json_encode($this->obj);
-		return null;
-	}
-}
-
-class UserSaveRequest
-{
-	public User $user;
-
-	public mixed $pluginData;
-
-	public string $key;
-}
-
 class UserEditPage extends Responder
 {
 	const USERNAME_PATTERN = "^[a-zA-Z0-9_]+$";
+
+	private SecurityDatabase $db;
 
 	public function __construct(
 		private Config $config,
 		private array $auth_plugins
 	)
 	{
+		$this->db = SecurityDatabase::fromConfig($this->config);
 	}
 
 	private function parsePattern(string $name, string $pattern, ?string &$err, ?array $obj = null): ?string
@@ -143,7 +114,7 @@ class UserEditPage extends Responder
 		return $pdata;
 	}
 
-	private function save(RespondArg $arg, SecurityDatabase $db): SaveResponse
+	private function save(RespondArg $arg): SaveResponse
 	{
 		$save = $arg->parseBody(UserSaveRequest::class);
 
@@ -154,14 +125,14 @@ class UserEditPage extends Responder
 
 		// TODO validate request more strictly
 
-		if (!$db->lock())
+		if (!$this->db->lock())
 			return new SaveResponse(503, [
 				'errorMsg' => 'System unavailable'
 			]);
 
 		try
 		{
-			$current_user = $db->loadUser($save->user->id);
+			$current_user = $this->db->loadUser($save->user->id);
 			if (!$current_user)
 				return new SaveResponse(404, [
 					'errorMsg' => "User not found"
@@ -183,7 +154,7 @@ class UserEditPage extends Responder
 			}
 
 			$save->user->save_token = $token->encode();
-			$db->saveUser($save->user, $error);
+			$this->db->saveUser($save->user, $error);
 			if ($error)
 				return new SaveResponse(400, [
 					'errorMsg' => $error
@@ -192,7 +163,7 @@ class UserEditPage extends Responder
 			foreach ($save->pluginData as $key => $data)
 			{
 				$p = $this->auth_plugins[$key];
-				if (!$p->invokeSaveUserEditData($save->user->id, $data, $db, $error))
+				if (!$p->invokeSaveUserEditData($save->user->id, $data, $this->db, $error))
 					return new SaveResponse(400, [
 						'errorMsg' => $error
 					]);
@@ -204,138 +175,111 @@ class UserEditPage extends Responder
 		}
 		finally
 		{
-			$db->unlock();
+			$this->db->unlock();
 		}
 	}
 
 	public function respond(RespondArg $arg): mixed
 	{
 		if (!$arg->userCan('edit_security'))
-		{
-			http_response_code(401);
-			echo "Not authorized\n";
-			return null;
+			return new ErrorPage(401, 'Not authorized', "You don't have permission to edit users.");
+
+		$action = \strtolower($_REQUEST['action'] ?? 'select');
+
+		switch ($action) {
+			case 'select':
+				return $this->select($arg);
+			case 'edit':
+				return $this->edit($arg);
+			case 'create':
+				return $this->create($arg);
+			case 'save':
+				return $this->save($arg);
+			default:
+				return new ErrorPage(404, 'Not Found', "Unknown action '$action'");
 		}
+	}
 
-		$db = SecurityDatabase::fromConfig($this->config);
-		$USERNAME_PATTERN = self::USERNAME_PATTERN;
+	private function select(RespondArg $arg): mixed
+	{
+		$arg->renderPage([
+			'title' => 'Select User',
+			'template' => __DIR__ . '/../template/user_edit_select.php',
+			'args' => [
+				'users' => $this->db->loadUsers(),
+				'groups' => $this->db->loadGroups(),
+				'username_pattern' => self::USERNAME_PATTERN
+			]
+		]);
 
-		$error = null;
-		$user_id = $this->parseId('user_id', $error);
-		$action = $this->parseAction();
-		$ERROR = $this->parseErrMsg() ?? $error;
-
-		if (is_null($action))
-		{
-			$action = is_null($user_id) ? 'select' : 'edit';
-		}
-
-		if ($action === 'select')
-		{
-			$arg->renderPage([
-				'title' => 'Select User',
-				'template' => __DIR__ . '/../template/user_edit_select.php',
-				'args' => [
-					'users' => $db->loadUsers(),
-					'groups' => $db->loadGroups(),
-					'error' => $ERROR,
-					'username_pattern' => self::USERNAME_PATTERN
-				]
-			]);
-
-			return null;
-		}
-		else if ($action === 'edit')
-		{
-			if (!$db->lock())
-				return self::systemUnavailable();
-
-			try
-			{
-				$user = $db->loadUser($user_id);
-				if (!$user)
-					return new ErrorPage(404, 'Not Found', "User '$user_id' doesn't exist.");
-
-				$token = SaveToken::tryReserveEncoded($arg->uid(), $user['save_token']);
-				if (!$token)
-				{
-					$currentToken = SaveToken::decode($user['save_token']);
-					$uname = $arg->username($currentToken->userId);
-					return self::userUnavailable($uname);
-				}
-
-				$user['save_token'] = $token->encode();
-				$userToSave = User::fromArray($user);
-				$db->saveUser($userToSave, $error);
-
-				$pluginData = [];
-				foreach ($this->auth_plugins as $key => $plugin)
-				{
-					if ($data = $plugin->getUserEditData($user_id, $db))
-					{
-						$data['key'] = $key;
-						array_push($pluginData, $data);
-					}
-				}
-
-				$MODEL = [
-					'errorMsg' => $ERROR,
-					'user' => $user,
-					'patterns' => [
-						'username' => self::USERNAME_PATTERN
-					],
-					'authPlugins' => $pluginData,
-					'groups' => $db->loadGroups(),
-					'initialSaveKey' => $token->key
-				];
-
-				ReactPage::render($arg, [
-					'title' => 'Edit User',
-					'scripts' => [
-						'/assets/require.js',
-						'/assets/user_edit.js'
-					],
-					'model' => $MODEL
-				]);
-				return null;
-			}
-			finally
-			{
-				$db->unlock();
-			}
-		}
-		else if ($action === 'create')
-		{
-			$username = $this->parseUserName('username', $error);
-			$group_id = $this->parseId('group_id', $error);
-			if (is_null($username))
-			{
-				$error = $error ?? 'No username specified';
-			}
-			else
-			{
-				$user = $db->createUser($username, $group_id, $error);
-
-				if ($user)
-					$user_id = $user['id'];
-			}
-		}
-		else if ($action === 'save')
-		{
-			return $this->save($arg, $db);
-		}
-
-		$query = [];
-		if (!is_null($user_id))
-			$query['user_id'] = $user_id;
-		if (!is_null($error))
-			$query['error'] = $error; // TODO: make error codes so that site can't render bad words from crafted links
-
-		$query_str = http_build_query($query);
-
-		http_response_code(301);
-		header("Location: /site/admin/users?$query_str");
 		return null;
+	}
+
+	private function edit(RespondArg $arg): mixed
+	{
+		$user_id = \intval($_REQUEST['user_id'] ?? 0);
+
+		if (!$this->db->lock())
+			return self::systemUnavailable();
+
+		try
+		{
+			$user = $this->db->loadUser($user_id);
+			if (!$user)
+				return new ErrorPage(404, 'Not Found', "User '$user_id' doesn't exist.");
+
+			$token = SaveToken::tryReserveEncoded($arg->uid(), $user['save_token']);
+			if (!$token)
+			{
+				$currentToken = SaveToken::decode($user['save_token']);
+				$uname = $arg->username($currentToken->userId);
+				return self::userUnavailable($uname);
+			}
+
+			$user['save_token'] = $token->encode();
+			$userToSave = User::fromArray($user);
+			$this->db->saveUser($userToSave, $error);
+
+			$pluginData = [];
+			foreach ($this->auth_plugins as $key => $plugin)
+			{
+				if ($data = $plugin->getUserEditData($user_id, $this->db))
+				{
+					$data['key'] = $key;
+					array_push($pluginData, $data);
+				}
+			}
+
+			$model = [
+				'user' => $user,
+				'patterns' => [
+					'username' => self::USERNAME_PATTERN
+				],
+				'authPlugins' => $pluginData,
+				'groups' => $this->db->loadGroups(),
+				'initialSaveKey' => $token->key
+			];
+
+			ReactPage::render($arg, [
+				'title' => 'Edit User',
+				'scripts' => [
+					'/assets/require.js',
+					'/assets/user_edit.js'
+				],
+				'model' => $model
+			]);
+			return null;
+		}
+		finally
+		{
+			$this->db->unlock();
+		}
+	}
+
+	private function create(RespondArg $arg): mixed
+	{
+		$user = $this->db->createUser();
+		return new Redirect($arg->uriCur(['action' => 'edit', 'user_id' => $user['id']]));
 	}
 
 	private static function systemUnavailable(): ErrorPage
@@ -352,5 +296,37 @@ class UserEditPage extends Responder
 			msg: "This user is being edited by '{$uname}'. Try again when the user is no longer being edited."
 		);
 	}
-
 }
+
+function is_json_obj(mixed $obj): bool
+{
+	return is_array($obj) && !array_is_list($obj);
+}
+
+class SaveResponse extends Responder
+{
+	public function __construct(
+		private int $errorCode,
+		private array $obj
+	)
+	{
+	}
+
+	public function respond(RespondArg $arg): mixed
+	{
+		\http_response_code($this->errorCode);
+		\header('Content-Type: application/json');
+		echo \json_encode($this->obj);
+		return null;
+	}
+}
+
+class UserSaveRequest
+{
+	public User $user;
+
+	public mixed $pluginData;
+
+	public string $key;
+}
+

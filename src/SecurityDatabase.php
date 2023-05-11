@@ -67,20 +67,7 @@ class SecurityDatabase
 		}
 
 		$this->db->exec('init-security');
-
-		$group = $this->createGroup('staff', $err);
-		if (!$group) return $err;
-
-		$user = $this->createUser(
-			'admin',
-			$group['id'],
-			$err,
-			is_superuser: true,
-		);
-
-		if (!$user) return $err;
-
-		if ($err) return $err;
+		$this->db->exec('init-default-security');
 
 		return null;
 	}
@@ -378,37 +365,13 @@ class SecurityDatabase
 	}
 
 	public function createUser(
-		string $username,
-		int $group_id,
-		?string &$err,
 		bool $is_superuser = false,
 	): ?array
 	{
-		$current = $this->loadUserByName($username);
-		if (!is_null($current))
-		{
-			$err = "User with username '$username' already exists.";
-			return null;
-		}
-
-		$group = $this->loadGroup($group_id);
-		if (!$group)
-		{
-			$err = "Group $group_id does not exist";
-			return null;
-		}
-
-		$this->db->query('add-user', [
-			':username' => $username,
-			':group' => $group_id,
-			':is_superuser' => $is_superuser
-		]);
+		$this->db->query('add-user');
 
 		$id = $this->db->lastInsertRowId();
-		$this->db->query('join-group', [
-			':user' => $id,
-			':group' => $group_id,
-		]);
+		$this->db->query('join-group', [ ':user' => $id ]);
 
 		return $this->loadUser($id);
 	}

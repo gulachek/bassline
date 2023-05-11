@@ -111,7 +111,11 @@ class RespondArg
 			$USERNAME = $this->user['username'];
 		}
 
-		$URI = $this->uri;
+		$URI = new UriFormatter(
+			$this->app_key,
+			$this->request_path,
+			escapeHTML: true
+		);
 
 		$RENDER_BODY = function() use ($args, $template, $URI) {
 			$TEMPLATE = $args;

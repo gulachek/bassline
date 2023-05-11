@@ -170,8 +170,18 @@ class Site:
         page.waitSave()
 
     def createUser(self, username, groupname):
-        page = self.gotoUserSelectPage()
-        return page.createUser(username, groupname)
+        select = self.gotoUserSelectPage()
+        edit = select.createUser()
+        edit.setUsername(username)
+
+        if not edit.isGroupMember(groupname):
+            edit.toggleGroup(groupname)
+            oldPrimary = edit.primaryGroup()
+            edit.setPrimaryGroup(groupname)
+            edit.toggleGroup(oldPrimary)
+
+        edit.waitSave()
+        return edit
 
     def editUser(self, username):
         page = self.gotoUserSelectPage()

@@ -25,19 +25,8 @@ class UserSelectPage(Page):
     def hasUsername(self, username):
         return self._findUserLink(username) != None
 
-    def enterUsername(self, username):
-        uname = self.elem(By.CSS_SELECTOR, 'input[type="text"]')
-        uname.clear()
-        uname.send_keys(username)
-
-    def selectGroup(self, groupname):
-        select = Select(self.elem(By.TAG_NAME, 'select'))
-        select.select_by_visible_text(groupname)
-
-    def createUser(self, username, groupname):
-        self.enterUsername(username)
-        self.selectGroup(groupname)
-        btn = self.elem(By.CSS_SELECTOR, 'input[value="Create"]')
+    def createUser(self):
+        btn = self.elem(By.CSS_SELECTOR, 'button[value="Create"]')
         btn.click()
         return UserEditPage.fromDriver(self.driver)
 
