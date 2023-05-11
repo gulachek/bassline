@@ -23,6 +23,7 @@ import { requireAsync } from './requireAsync';
 import { AuthPluginUserEditComponent } from './authPluginUserEdit';
 import { AutoSaveForm } from './autosave/AutoSaveForm';
 import { SaveIndicator } from './autosave/SaveIndicator';
+import { ErrorBanner } from './ErrorBanner';
 
 import './user_edit.scss';
 
@@ -402,53 +403,55 @@ function Page(props: IPageProps)
 		</option>;
 	});
 
+	const shouldSave = hasChange && !errorMsg;
+
 	return <div className="editor">
+		{errorMsg && <ErrorBanner msg={errorMsg} />}
 		<UserDispatchContext.Provider value={dispatch}>
-		<ModalErrorMsg msg={errorMsg || null} />
 
 		<h1> Edit User </h1>
-		<AutoSaveForm onSave={onSave} hasChange={hasChange} />
-			<div className="section-container">
+		<AutoSaveForm onSave={onSave} hasChange={shouldSave} />
+		<div className="section-container">
 
-				<section className="section">
-					<h3> User Properties </h3>
-					<div>
-						<label> username:
-							<input type="text"
-								name="username"
-								title="Enter a username (letters, numbers, or underscores)"
-								pattern={patterns.username}
-								value={data.user.username}
-								onChange={setUsername}
-								required
-								/>
-						</label>
-					</div>
-					<div>
-						<label> Primary Group:
-							<select
-								onChange={setPrimaryGroup}
-								value={data.user.primary_group}
-							>
-								{primaryGroupOptions}
-							</select>
-						</label>
-					</div>
-				
-				</section>
+			<section className="section">
+				<h3> User Properties </h3>
+				<div>
+					<label> username:
+						<input type="text"
+							name="username"
+							title="Enter a username (letters, numbers, or underscores)"
+							pattern={patterns.username}
+							value={data.user.username}
+							onChange={setUsername}
+							required
+							/>
+					</label>
+				</div>
+				<div>
+					<label> Primary Group:
+						<select
+							onChange={setPrimaryGroup}
+							value={data.user.primary_group}
+						>
+							{primaryGroupOptions}
+						</select>
+					</label>
+				</div>
+			
+			</section>
 
-				<GroupMembership
-					allGroups={groups}
-					groupMembership={data.user.groups}
-					primaryId={data.user.primary_group}
-				/>
+			<GroupMembership
+				allGroups={groups}
+				groupMembership={data.user.groups}
+				primaryId={data.user.primary_group}
+			/>
 
-				{plugins}
-			</div>
+			{plugins}
+		</div>
 
-			<p className="status-bar">
-				<SaveIndicator isSaving={hasChange} hasError={!!errorMsg} />
-			</p>
+		<p className="status-bar">
+			<SaveIndicator isSaving={shouldSave} hasError={!!errorMsg} />
+		</p>
 
 		</UserDispatchContext.Provider>
 	</div>;
