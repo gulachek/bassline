@@ -278,8 +278,21 @@ class UserEditPage extends Responder
 
 	private function create(RespondArg $arg): mixed
 	{
-		$user = $this->db->createUser();
-		return new Redirect($arg->uriCur(['action' => 'edit', 'user_id' => $user['id']]));
+		if (!$this->db->lock())
+		{
+			// TODO - redirect to error page
+			return new Redirect($arg->uriCur(['action' => 'select']));
+		}
+
+		try
+		{
+			$user = $this->db->createUser();
+			return new Redirect($arg->uriCur(['action' => 'edit', 'user_id' => $user['id']]));
+		}
+		finally
+		{
+			$this->db->unlock();
+		}
 	}
 
 	private static function systemUnavailable(): ErrorPage

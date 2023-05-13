@@ -57,9 +57,25 @@ class GroupEditPage extends Responder
 					'errorMsg' => "Group not found"
 				]);
 
+			$token = SaveToken::tryReserveEncoded(
+				$arg->uid(),
+				$current_group['save_token'],
+				$req->saveKey
+			);
+
+			if (!$token)
+			{
+				$currentToken = SaveToken::decode($current_group['save_token']);
+				$uname = $arg->username($currentToken->userId);
+				return new GroupSaveResponse(409, [
+					'errorMsg' => "This group was recently edited by '{$uname}' and the information you see may be inaccurate. You will not be able to edit this group until you successfully reload the page."
+				]);
+			}
+
+			$req->group->save_token = $token->encode();
 			$this->db->saveGroup($req->group, $error);
 
-			return new GroupSaveResponse(200, ['error' => null]);
+			return new GroupSaveResponse(200, ['newSaveKey' => $token->key]);
 		}
 		finally
 		{
@@ -84,30 +100,70 @@ class GroupEditPage extends Responder
 
 	private function edit(RespondArg $arg): mixed
 	{
-		$id = intval($_REQUEST['id']);
-		$group = $this->db->loadGroup($id);
-		if (!$group)
-			return new NotFound();
+		$id = \intval($_REQUEST['id'] ?? 0);
 
-		$caps = $this->allCapabilities();
+		if (!$this->db->lock())
+			return self::systemUnavailable();
 
-		$model = [
-			'group' => $group,
-			'capabilities' => $caps
-		];
+		try
+		{
+			$group = $this->db->loadGroup($id);
+			if (!$group)
+				return new NotFound();
 
-		ReactPage::render($arg, [
-			'title' => "Edit {$group['groupname']}",
-			'scripts' => ['/assets/group_edit.js'],
-			'model' => $model
-		]);
-		return null;
+			$token = SaveToken::tryReserveEncoded($arg->uid(), $group['save_token']);
+			if (!$token)
+			{
+				$currentToken = SaveToken::decode($group['save_token']);
+				$uname = $arg->username($currentToken->userId);
+				return self::groupUnavailable($uname);
+			}
+
+			$group['save_token'] = $token->encode();
+			$groupToSave = Group::fromArray($group);
+			$this->db->saveGroup($groupToSave, $error);
+
+			if ($error)
+				return new ErrorPage(400, "Failed to save group", $error);
+
+			$caps = $this->allCapabilities();
+
+			$model = [
+				'group' => $group,
+				'capabilities' => $caps,
+				'initialSaveKey' => $token->key
+			];
+
+			ReactPage::render($arg, [
+				'title' => "Edit {$group['groupname']}",
+				'scripts' => ['/assets/group_edit.js'],
+				'model' => $model
+			]);
+			return null;
+		}
+		finally
+		{
+			$this->db->unlock();
+		}
 	}
 
 	private function create(RespondArg $arg): mixed
 	{
-		$group = $this->db->createGroup();
-		return new Redirect("/site/admin/groups/edit?id={$group['id']}");
+		if (!$this->db->lock())
+		{
+			// TODO - redirect to error page
+			return new Redirect("/site/admin/groups");
+		}
+
+		try
+		{
+			$group = $this->db->createGroup();
+			return new Redirect("/site/admin/groups/edit?id={$group['id']}");
+		}
+		finally
+		{
+			$this->db->unlock();
+		}
 	}
 
 	private static function systemUnavailable(): ErrorPage
@@ -116,12 +172,12 @@ class GroupEditPage extends Responder
 		return new ErrorPage(503, 'System Unavailable', 'The system is currently too busy to allow editing users. Try again.');
 	}
 
-	private static function userUnavailable(string $uname): ErrorPage
+	private static function groupUnavailable(string $uname): ErrorPage
 	{
 		return new ErrorPage(
 			errorCode: 409, 
-			title: 'User Unavailable',
-			msg: "This user is being edited by '{$uname}'. Try again when the user is no longer being edited."
+			title: 'Group Unavailable',
+			msg: "This group is being edited by '{$uname}'. Try again when the group is no longer being edited."
 		);
 	}
 
@@ -180,5 +236,6 @@ class GroupSaveResponse extends Responder
 class GroupSaveRequest
 {
 	public Group $group;
+	public string $saveKey;
 }
 

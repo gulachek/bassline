@@ -42,6 +42,7 @@ interface IPageModel
 {
 	group: IGroup;
 	capabilities: { [appKey: string]: ICapability[] };
+	initialSaveKey: string;
 }
 
 interface IEditState
@@ -49,6 +50,7 @@ interface IEditState
 	group: IGroup;
 	savedGroup: IGroup;
 	isSaving: boolean;
+	saveKey: string;
 }
 
 const GroupDispatchContext = createContext(null);
@@ -67,11 +69,13 @@ interface IBeginSaveAction
 interface ISaveResponse
 {
 	error?: string|null;
+	newSaveKey?: string|null;
 }
 
 interface ISaveRequest
 {
 	group: IGroup;
+	saveKey: string;
 }
 
 interface IEndSaveAction
@@ -99,11 +103,12 @@ type EditAction = ISetGroupnameAction
 	| IRemoveCapabilityAction
 ;
 
-function reducer(state: IEditState, action: EditAction)
+function reducer(state: IEditState, action: EditAction): IEditState
 {
 	const group = {...state.group};
 	let savedGroup = { ...state.savedGroup };
 	let isSaving = state.isSaving;
+	let saveKey = state.saveKey;
 	const caps = new Set(group.capabilities);
 
 	if (action.type === 'setGroupname')
@@ -124,6 +129,7 @@ function reducer(state: IEditState, action: EditAction)
 		else
 		{
 			savedGroup = {...group};
+			saveKey = response.newSaveKey;
 		}
 
 		isSaving = false;
@@ -138,7 +144,7 @@ function reducer(state: IEditState, action: EditAction)
 	}
 
 	group.capabilities = Array.from(caps);
-	return { group, savedGroup, isSaving };
+	return { group, savedGroup, isSaving, saveKey };
 }
 
 function groupsAreEqual(a: IGroup, b: IGroup): boolean
@@ -274,17 +280,18 @@ function GroupProperties(props: IGroupPropertiesProps)
 
 function Page(props: IPageModel)
 {
-	const initialState = {
+	const initialState: IEditState = {
 		group: props.group,
 		savedGroup: props.group,
-		isSaving: false
+		isSaving: false,
+		saveKey: props.initialSaveKey
 	};
 
 	const id = props.group.id;
 
 	const [state, dispatch] = useReducer(reducer, initialState);
 
-	const { isSaving, group, savedGroup } = state;
+	const { isSaving, group, savedGroup, saveKey } = state;
 
 	const hasChange = !groupsAreEqual(group, savedGroup);
 
@@ -292,7 +299,8 @@ function Page(props: IPageModel)
 		dispatch({ type: 'beginSave' });
 
 		const request: ISaveRequest = {
-			group: structuredClone(group)
+			group: structuredClone(group),
+			saveKey
 		};
 
 		const response = await postJson<ISaveResponse>('./save', { body: request });
