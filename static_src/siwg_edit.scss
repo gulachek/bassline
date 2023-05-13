@@ -17,10 +17,15 @@
 		display: block;
 
 		@include c.clickable();
-	}
 
-	.cell.selected {
-		color: var(--system-theme-selected-item-text);
-		background-color: var(--system-theme-selected-item);
+		&.invalid {
+			color: var(--system-theme-error-text);
+			background-color: var(--system-theme-error);
+		}
+
+		&.selected {
+			color: var(--system-theme-selected-item-text);
+			background-color: var(--system-theme-selected-item);
+		}
 	}
 }

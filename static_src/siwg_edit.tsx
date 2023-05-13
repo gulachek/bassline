@@ -5,6 +5,7 @@ import {
 	useEffect,
 	useMemo,
 	useReducer,
+	useRef,
 	ChangeEvent,
 	KeyboardEvent,
 	MouseEvent,
@@ -23,6 +24,7 @@ type SiwgData = string[];
 interface IEmailArrayState
 {
 	emails: string[];
+	validity: boolean[];
 	index: number;
 }
 
@@ -30,6 +32,7 @@ interface IEmailUpdateAction
 {
 	type: 'update';
 	value: string;
+	isValid: boolean;
 }
 
 interface IEmailAddAction
@@ -63,21 +66,25 @@ type IEmailAction = IEmailUpdateAction
 function emailArrayReducer(state: IEmailArrayState, action: IEmailAction)
 {
 	const emails = [...state.emails];
+	const validity = [...state.validity];
 	let index = state.index;
 
 	if (action.type === 'update')
 	{
-		const { value } = action;
+		const { value, isValid } = action;
 		emails[index] = value;
+		validity[index] = isValid;
 	}
 	else if (action.type === 'add')
 	{
 		emails.push('');
+		validity.push(false); // empty email is invalid
 		index = emails.length - 1;
 	}
 	else if (action.type === 'remove')
 	{
 		emails.splice(index, 1);
+		validity.splice(index, 1);
 	}
 	else if (action.type === 'cycle')
 	{
@@ -96,7 +103,7 @@ function emailArrayReducer(state: IEmailArrayState, action: IEmailAction)
 
 	index = Math.max(index, 0);
 	index = Math.min(index, emails.length - 1);
-	return { emails, index };
+	return { emails, index, validity };
 }
 
 function arrayEqual(left: string[], right: string[])
@@ -115,15 +122,21 @@ export const UserEditor: AuthPluginUserEditComponent<SiwgData> = (props) =>
 {
 	const { data, setData } = props;
 
-	const initialState = { emails: data, index: 0 };
+	const initValid = data.map((e: any) => true);
+	const initialState = { emails: data, index: 0, validity: initValid };
 
 	const [state, dispatch] = useReducer(emailArrayReducer, initialState);
-	useEffect(() => setData(state.emails), [state.emails]);
+	const { emails, index, validity } = state;
 
-	const { emails, index } = state;
+	const allValid = validity.every(e => e);
+	useEffect(() => setData(emails, allValid), [emails, allValid]);
 
 	const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-		dispatch({ type: 'update', value: e.target.value });
+		dispatch({
+			type: 'update',
+			value: e.target.value,
+			isValid: e.target.reportValidity()
+		});
 	}, []);
 
 	const keyDown = useCallback((e: KeyboardEvent) => {
@@ -153,6 +166,9 @@ export const UserEditor: AuthPluginUserEditComponent<SiwgData> = (props) =>
 		if (i === index)
 			classNames += ' selected';
 
+		if (!validity[i])
+			classNames += ' invalid';
+
 		return <button
 			key={i}
 			className={classNames}
@@ -163,11 +179,21 @@ export const UserEditor: AuthPluginUserEditComponent<SiwgData> = (props) =>
 		</button>;
 	});
 
-	const value = emails.length > index ? emails[index] : '';
+	let value = '';
+	if (emails.length && index < emails.length)
+		value = emails[index];
+
+	const inputRef = useRef<HTMLInputElement>();
+	useEffect(() => {
+		// when we rerender, just do this
+		inputRef.current.reportValidity();
+	});
 
 	return <div className="siwg" onKeyDown={keyDown}>
 		<div className="controls">
-			<input type="email"
+			<input ref={inputRef} type="email"
+				required={!!emails.length}
+				maxLength={128}
 				onChange={onChange}
 				value={value}
 			/>

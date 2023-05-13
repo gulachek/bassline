@@ -175,16 +175,36 @@ function GroupMembership(props: IGroupMembershipProps)
 	</section>;
 }
 
+interface IFieldValidation
+{
+	username: boolean;
+	plugins: { [key: string]: boolean };
+}
+
+function areFieldsValid(fields: IFieldValidation)
+{
+	if (!fields.username)
+		return false;
+
+	for (const key in fields.plugins)
+		if (!fields.plugins[key])
+			return false;
+
+	return true;
+}
+
 interface IPageState
 {
 	data: IFormData;
 	savedData: IFormData;
+	validity: IFieldValidation;
 }
 
 interface IPageSetUsernameAction
 {
 	type: 'setUsername';
 	username: string;
+	isValid: boolean;
 }
 
 interface IPageJoinGroupAction
@@ -205,6 +225,7 @@ interface IPageSetPluginDataAction
 	type: 'setPluginData';
 	key: string;
 	data: any;
+	isValid: boolean;
 }
 
 interface IPageUpdateSavedDataAction
@@ -225,6 +246,7 @@ type PageAction =
 function reducer(state: IPageState, action: PageAction): IPageState
 {
 	let { savedData } = state;
+	const validity = structuredClone(state.validity);
 	const { data } = state;
 	const { user } = data;
 	let { key } = data;
@@ -243,11 +265,13 @@ function reducer(state: IPageState, action: PageAction): IPageState
 	if (action.type === 'setUsername')
 	{
 		username = action.username;
+		validity.username = action.isValid;
 	}
 	else if (action.type === 'setPluginData')
 	{
-		const { key, data } = action;
+		const { key, data, isValid } = action;
 		pluginData[key] = data;
+		validity.plugins[key] = isValid;
 	}
 	else if (action.type === 'updateSavedData')
 	{
@@ -284,7 +308,7 @@ function reducer(state: IPageState, action: PageAction): IPageState
 
 	groups = Array.from(groupSet);
 
-	return { savedData, data: {
+	return { savedData, validity, data: {
 		user: {
 			username,
 			id,
@@ -328,15 +352,19 @@ function Page(props: IPageProps)
 			key: initialSaveKey
 		};
 
-		const pluginHasChange: { [key: string]: boolean } = {};
-
+		const pluginValidity: Record<string, boolean> = {};
 		for (const p of authPlugins)
 		{
 			data.pluginData[p.key] = p.data;
-			pluginHasChange[p.key] = false;
+			pluginValidity[p.key] = true;
 		}
 
-		return { data, savedData: data, pluginHasChange };
+		const validity = {
+			username: true,
+			plugins: pluginValidity
+		};
+
+		return { data, savedData: data, validity };
 	}, [user, userId, authPlugins]);
 
 	const [state, dispatch] = useReducer(reducer, initState); 
@@ -359,8 +387,8 @@ function Page(props: IPageProps)
 				<h3> {p.title} </h3>
 				<UserEditor
 					data={data.pluginData[p.key]}
-					setData={(data: any) => dispatch(
-						{ type: 'setPluginData', key: p.key, data }
+					setData={(data: any, isValid: boolean) => dispatch(
+						{ type: 'setPluginData', key: p.key, data, isValid }
 					)}
 				/>
 		</section>);
@@ -389,7 +417,11 @@ function Page(props: IPageProps)
 		|| pluginHasChange;
 
 	const setUsername = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-		dispatch({ type: 'setUsername', username: e.target.value });
+		dispatch({
+			type: 'setUsername',
+			username: e.target.value,
+			isValid: e.target.reportValidity()
+		});
 	}, []);
 
 	const setPrimaryGroup = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
@@ -403,7 +435,9 @@ function Page(props: IPageProps)
 		</option>;
 	});
 
-	const shouldSave = hasChange && !errorMsg;
+	const isClientValid = areFieldsValid(state.validity);
+
+	const shouldSave = hasChange && isClientValid && !errorMsg;
 
 	return <div className="editor">
 		{errorMsg && <ErrorBanner msg={errorMsg} />}
@@ -450,7 +484,7 @@ function Page(props: IPageProps)
 		</div>
 
 		<p className="status-bar">
-			<SaveIndicator isSaving={shouldSave} hasError={!!errorMsg} />
+			<SaveIndicator isSaving={shouldSave} hasError={!!errorMsg || !isClientValid} />
 		</p>
 
 		</UserDispatchContext.Provider>

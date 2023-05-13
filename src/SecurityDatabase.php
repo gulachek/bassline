@@ -273,9 +273,10 @@ class SecurityDatabase
 	{
 		foreach ($emails as $email)
 		{
-			if (!filter_var($email, FILTER_VALIDATE_EMAIL))
+			$len = \strlen($email);
+			if ($len > 128)
 			{
-				$error = "Invalid email '$email'";
+				$error = "email '$email' exceeds max of 128 characters.";
 				return false;
 			}
 		}

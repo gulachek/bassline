@@ -111,6 +111,13 @@ input, textarea {
 	color: var(--system-theme-field-text);
 	background-color: var(--system-theme-field);
 	border-color: var(--system-theme-button-border);
+	border-width: thin;
+
+	&:invalid {
+		color: var(--system-theme-error-text);
+		background-color: var(--system-theme-error);
+		border-color: var(--system-theme-error-text);
+	}
 
 	@include disabled-style();
 }
