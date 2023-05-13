@@ -1,1 +1,1 @@
-SELECT id, groupname FROM groups WHERE id=?;
+SELECT id, groupname, save_token FROM groups WHERE id=?;

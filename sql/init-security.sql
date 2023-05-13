@@ -13,7 +13,8 @@ CREATE TABLE users (
 
 CREATE TABLE groups (
 	id INTEGER PRIMARY KEY,
-	groupname TEXT UNIQUE NOT NULL
+	groupname TEXT UNIQUE NOT NULL,
+	save_token TEXT
 );
 
 -- Primary group is redundant for query simplicity

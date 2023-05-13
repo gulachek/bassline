@@ -44,9 +44,27 @@ class GroupEditPage extends Responder
 		if (!$group)
 			return new GroupSaveResponse(400, ['error' => 'Bad group format']);
 
-		$this->db->saveGroup($group, $error);
+		if (!$this->db->lock())
+			return new GroupSaveResponse(503, [
+				'errorMsg' => 'System unavailable'
+			]);
 
-		return new GroupSaveResponse(200, ['error' => null]);
+		try
+		{
+			$current_group = $this->db->loadGroup($group->id);
+			if (!$current_group)
+				return new GroupSaveResponse(404, [
+					'errorMsg' => "Group not found"
+				]);
+
+			$this->db->saveGroup($group, $error);
+
+			return new GroupSaveResponse(200, ['error' => null]);
+		}
+		finally
+		{
+			$this->db->unlock();
+		}
 	}
 
 	private function select(RespondArg $arg): mixed
