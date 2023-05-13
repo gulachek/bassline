@@ -353,6 +353,7 @@ class SecurityDatabase
 		$this->db->query('save-group', [
 			':id' => $group->id,
 			':groupname' => $name,
+			':save_token' => $group->save_token
 		]);
 
 		$this->db->query('delete-group-capabilities', $group->id);

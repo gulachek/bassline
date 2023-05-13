@@ -46,7 +46,7 @@ class GroupEditPage extends Responder
 
 		if (!$this->db->lock())
 			return new GroupSaveResponse(503, [
-				'errorMsg' => 'System unavailable'
+				'error' => 'System unavailable'
 			]);
 
 		try
@@ -54,13 +54,13 @@ class GroupEditPage extends Responder
 			$current_group = $this->db->loadGroup($req->group->id);
 			if (!$current_group)
 				return new GroupSaveResponse(404, [
-					'errorMsg' => "Group not found"
+					'error' => "Group not found"
 				]);
 
 			$token = SaveToken::tryReserveEncoded(
 				$arg->uid(),
 				$current_group['save_token'],
-				$req->saveKey
+				$req->saveKey ?? 'bad key'
 			);
 
 			if (!$token)
@@ -68,7 +68,7 @@ class GroupEditPage extends Responder
 				$currentToken = SaveToken::decode($current_group['save_token']);
 				$uname = $arg->username($currentToken->userId);
 				return new GroupSaveResponse(409, [
-					'errorMsg' => "This group was recently edited by '{$uname}' and the information you see may be inaccurate. You will not be able to edit this group until you successfully reload the page."
+					'error' => "This group was recently edited by '{$uname}' and the information you see may be inaccurate. You will not be able to edit this group until you successfully reload the page."
 				]);
 			}
 

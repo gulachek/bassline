@@ -18,6 +18,7 @@ import { postJson } from './postJson';
 import { OneVisibleChild } from './containers';
 import { AutoSaveForm } from './autosave/AutoSaveForm';
 import { SaveIndicator } from './autosave/SaveIndicator';
+import { ErrorBanner } from './ErrorBanner';
 
 import './group_edit.scss';
 
@@ -51,6 +52,7 @@ interface IEditState
 	savedGroup: IGroup;
 	isSaving: boolean;
 	saveKey: string;
+	fatalMsg: string|null;
 }
 
 const GroupDispatchContext = createContext(null);
@@ -107,8 +109,7 @@ function reducer(state: IEditState, action: EditAction): IEditState
 {
 	const group = {...state.group};
 	let savedGroup = { ...state.savedGroup };
-	let isSaving = state.isSaving;
-	let saveKey = state.saveKey;
+	let { isSaving, saveKey, fatalMsg } = state;
 	const caps = new Set(group.capabilities);
 
 	if (action.type === 'setGroupname')
@@ -125,6 +126,7 @@ function reducer(state: IEditState, action: EditAction): IEditState
 		if (response.error)
 		{
 			console.error(response.error);
+			fatalMsg = response.error;
 		}
 		else
 		{
@@ -144,7 +146,7 @@ function reducer(state: IEditState, action: EditAction): IEditState
 	}
 
 	group.capabilities = Array.from(caps);
-	return { group, savedGroup, isSaving, saveKey };
+	return { group, savedGroup, isSaving, saveKey, fatalMsg };
 }
 
 function groupsAreEqual(a: IGroup, b: IGroup): boolean
@@ -284,14 +286,15 @@ function Page(props: IPageModel)
 		group: props.group,
 		savedGroup: props.group,
 		isSaving: false,
-		saveKey: props.initialSaveKey
+		saveKey: props.initialSaveKey,
+		fatalMsg: null
 	};
 
 	const id = props.group.id;
 
 	const [state, dispatch] = useReducer(reducer, initialState);
 
-	const { isSaving, group, savedGroup, saveKey } = state;
+	const { isSaving, group, savedGroup, saveKey, fatalMsg } = state;
 
 	const hasChange = !groupsAreEqual(group, savedGroup);
 
@@ -308,8 +311,11 @@ function Page(props: IPageModel)
 		dispatch({ type: 'endSave', response });
 	}, [id, group]);
 
+	const shouldSave = hasChange && !fatalMsg;
+
 	return <div className="editor">
-		<AutoSaveForm onSave={onSave} hasChange={hasChange} />
+		{fatalMsg && <ErrorBanner msg={fatalMsg} />}
+		<AutoSaveForm onSave={onSave} hasChange={shouldSave} />
 		<GroupDispatchContext.Provider value={dispatch}>
 			<div className="header">
 				<h1> Edit group </h1>
@@ -326,7 +332,7 @@ function Page(props: IPageModel)
 			</div>
 
 			<p className="status-bar">
-				<SaveIndicator isSaving={hasChange} hasError={false} />
+				<SaveIndicator isSaving={shouldSave} hasError={!!fatalMsg} />
 			</p>
 		</GroupDispatchContext.Provider>
 	</div>;
