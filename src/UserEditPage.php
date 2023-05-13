@@ -114,19 +114,19 @@ class UserEditPage extends Responder
 		return $pdata;
 	}
 
-	private function save(RespondArg $arg): SaveResponse
+	private function save(RespondArg $arg): UserSaveResponse
 	{
 		$save = $arg->parseBody(UserSaveRequest::class);
 
 		if (!$save)
-			return new SaveResponse(400, [
+			return new UserSaveResponse(400, [
 				'errorMsg' => 'Bad request'
 			]);
 
 		// TODO validate request more strictly
 
 		if (!$this->db->lock())
-			return new SaveResponse(503, [
+			return new UserSaveResponse(503, [
 				'errorMsg' => 'System unavailable'
 			]);
 
@@ -134,7 +134,7 @@ class UserEditPage extends Responder
 		{
 			$current_user = $this->db->loadUser($save->user->id);
 			if (!$current_user)
-				return new SaveResponse(404, [
+				return new UserSaveResponse(404, [
 					'errorMsg' => "User not found"
 				]);
 
@@ -148,7 +148,7 @@ class UserEditPage extends Responder
 			{
 				$currentToken = SaveToken::decode($current_user['save_token']);
 				$uname = $arg->username($currentToken->userId);
-				return new SaveResponse(409, [
+				return new UserSaveResponse(409, [
 					'errorMsg' => "This user was recently edited by '{$uname}' and the information you see may be inaccurate. You will not be able to edit this user until you successfully reload the page."
 				]);
 			}
@@ -156,7 +156,7 @@ class UserEditPage extends Responder
 			$save->user->save_token = $token->encode();
 			$this->db->saveUser($save->user, $error);
 			if ($error)
-				return new SaveResponse(400, [
+				return new UserSaveResponse(400, [
 					'errorMsg' => $error
 				]);
 
@@ -164,12 +164,12 @@ class UserEditPage extends Responder
 			{
 				$p = $this->auth_plugins[$key];
 				if (!$p->invokeSaveUserEditData($save->user->id, $data, $this->db, $error))
-					return new SaveResponse(400, [
+					return new UserSaveResponse(400, [
 						'errorMsg' => $error
 					]);
 			}
 
-			return new SaveResponse(200, [
+			return new UserSaveResponse(200, [
 				'newKey' => $token->key
 			]);
 		}
@@ -303,7 +303,7 @@ function is_json_obj(mixed $obj): bool
 	return is_array($obj) && !array_is_list($obj);
 }
 
-class SaveResponse extends Responder
+class UserSaveResponse extends Responder
 {
 	public function __construct(
 		private int $errorCode,

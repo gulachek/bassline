@@ -2,12 +2,6 @@
 
 namespace Gulachek\Bassline;
 
-function isName(string $name): bool
-{
-	$name_pattern = UserEditPage::USERNAME_PATTERN;
-	return preg_match("/^$name_pattern$/", $name);
-}
-
 class ShellApp extends App
 {
 	public function __construct(
@@ -109,39 +103,6 @@ class ShellApp extends App
 			$apps[$key] = $app;
 
 		return $apps;
-	}
-
-	private function allCapabilities(): array
-	{
-		$db = SecurityDatabase::fromConfig($this->config);
-		$caps = $db->loadCapabilities();
-		$apps = $this->allApps();
-		$merged = [];
-
-		$last_app = null;
-		$app_caps = null;
-
-		foreach ($caps as $id => $cap)
-		{
-			$app_key = $cap['app'];
-			$cap_name = $cap['name'];
-
-			if ($last_app !== $app_key)
-			{
-				$merged[$app_key] = [];
-				$app_caps = $apps[$app_key]->capabilities();
-				$last_app = $app_key;
-			}
-
-			array_push($merged[$app_key], [
-				'id' => $id,
-				'app' => $app_key,
-				'name' => $cap_name,
-				'description' => $app_caps[$cap_name]['description']
-			]);
-		}
-
-		return $merged;
 	}
 
 	public function colors(): array
@@ -393,88 +354,10 @@ class ShellApp extends App
 
 	public function renderGroups(RespondArg $arg): mixed
 	{
-		if (!$arg->userCan('edit_security'))
-		{
-			http_response_code(401);
-			echo "Not authorized";
-			return null;
-		}
-
-		$name_pattern = UserEditPage::USERNAME_PATTERN;
-		$path = $arg->path;
-		$db = SecurityDatabase::fromConfig($this->config);
-
-		if ($path->count() > 1)
-			return new NotFound();
-
-		$action = $path->isRoot() ? 'select' : $path->at(0);
-
-		if ($action === 'select')
-		{
-			$groups = $db->loadGroups();
-			if (count($groups) < 1)
-			{
-				$groups = [$db->createGroup('new_group', $err)];
-			}
-
-			$arg->renderPage([
-				'template' => __DIR__ . '/../template/group_select.php',
-				'title' => 'Select a group',
-				'args' => [
-					'groups' => $groups,
-					'name_pattern' => $name_pattern
-				]
-			]);
-		}
-		else if ($action === 'create')
-		{
-			$groupname = $_REQUEST['groupname'] ?? 'new_group';
-			if (!isName($groupname))
-			{
-				http_response_code(400);
-				echo "bad groupname";
-				return null;
-			}
-
-			$group = $db->createGroup($groupname, $err);
-			return new Redirect("/site/admin/groups/edit?id={$group['id']}");
-		}
-		else if ($action === 'edit')
-		{
-			$id = intval($_REQUEST['id']);
-			$group = $db->loadGroup($id);
-			if (!$group)
-				return new NotFound();
-
-			$caps = $this->allCapabilities();
-
-			$model = [
-				'group' => $group,
-				'capabilities' => $caps
-			];
-
-			ReactPage::render($arg, [
-				'title' => "Edit {$group['groupname']}",
-				'scripts' => ['/assets/group_edit.js'],
-				'model' => $model
-			]);
-		}
-		else if ($action === 'save')
-		{
-			$group = $arg->parseBody(Group::class);
-			if (!$group)
-			{
-				http_response_code(400);
-				echo "Bad group";
-				return null;
-			}
-
-			$db->saveGroup($group, $error);
-
-			echo json_encode(['error' => $error]);
-		}
-
-		return null;
+		return new GroupEditPage(
+			SecurityDatabase::fromConfig($this->config),
+			$this->allApps()
+		);
 	}
 
 	public function renderAuthConfig(RespondArg $arg): mixed
