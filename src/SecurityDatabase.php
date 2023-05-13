@@ -283,14 +283,14 @@ class SecurityDatabase
 
 		$this->db->query('delete-gmail', $user_id);
 
+		$stmt = $this->db->prepare('add-gmail');
 		foreach ($emails as $email)
-		{
-			$this->db->query('add-gmail', [
+			$stmt->execWith([
 				':email' => $email,
 				':id' => $user_id
 			]);
-		}
 
+		$stmt->close();
 		return true;
 	}
 
