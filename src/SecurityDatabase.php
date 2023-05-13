@@ -488,4 +488,21 @@ class SecurityDatabase
 			$this->db->query('delete-prop', $prop);
 		}
 	}
+
+	function getAuthSaveToken(): ?SaveToken
+	{
+		$encoded = $this->db->queryValue('get-prop', 'auth-save-token');
+		if ($encoded)
+			return SaveToken::decode($encoded);
+
+		return null;
+	}
+
+	function setAuthSaveToken(SaveToken $token): void
+	{
+		$this->db->query('set-prop', [
+			':name' => 'auth-save-token',
+			':value' => $token->encode()
+		]);
+	}
 }

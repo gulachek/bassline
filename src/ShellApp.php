@@ -362,67 +362,10 @@ class ShellApp extends App
 
 	public function renderAuthConfig(RespondArg $arg): mixed
 	{
-		if (!$arg->userCan('edit_security'))
-		{
-			http_response_code(401);
-			echo "Not authorized";
-			return null;
-		}
-
-		$path = $arg->path;
-		$db = SecurityDatabase::fromConfig($this->config);
-
-		if ($path->count() > 1)
-			return new NotFound();
-
-		$action = $path->isRoot() ? 'edit' : $path->at(0);
-
-		$plugins = $this->allAuthPlugins();
-
-		if ($action === 'edit')
-		{
-			$pluginData = [];
-			foreach ($plugins as $key => $plugin)
-			{
-				if ($data = $plugin->getConfigEditData($key, $db))
-				{
-					array_push($pluginData, $data);
-				}
-			}
-
-			$model = [
-				'errorMsg' => null,
-				'authPlugins' => $pluginData
-			];
-
-			ReactPage::render($arg, [
-				'title' => 'Authentication Configuration',
-				'scripts' => [
-					'/assets/require.js',
-					'/assets/authConfigEdit.js'
-				],
-				'model' => $model
-			]);
-			return null;
-		}
-		else if ($action === 'save')
-		{
-			$save = $arg->parseBody(AuthConfigSaveRequest::class);
-
-			foreach ($save->pluginData as $key => $data)
-			{
-				$p = $plugins[$key];
-				if (!$p->invokeSaveConfigEditData($data, $db, $error))
-					break;
-			}
-
-			echo json_encode([
-				'errorMsg' => $error
-			]);
-			return null;
-		}
-
-		return null;
+		return new AuthEditPage(
+			SecurityDatabase::fromConfig($this->config),
+			$this->allAuthPlugins()
+		);
 	}
 
 	public function renderColorPalette(RespondArg $arg): mixed
@@ -430,9 +373,4 @@ class ShellApp extends App
 		$db = ColorDatabase::fromConfig($this->config);
 		return new ColorPalettePage($db);
 	}
-}
-
-class AuthConfigSaveRequest
-{
-	public mixed $pluginData;
 }

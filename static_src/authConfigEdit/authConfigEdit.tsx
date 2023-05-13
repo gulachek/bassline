@@ -17,12 +17,14 @@ import { requireAsync } from '../requireAsync';
 import { AuthPluginConfigEditComponent } from './authPluginConfigEdit';
 import { AutoSaveForm } from '../autosave/AutoSaveForm';
 import { SaveIndicator } from '../autosave/SaveIndicator';
+import { ErrorBanner } from '../ErrorBanner';
 
 import './authConfigEdit.scss';
 
-interface ISaveReponse
+interface ISaveResponse
 {
 	errorMsg?: string|null;
+	newSaveKey?: string|null;
 }
 
 const AuthConfigDispatchContext = createContext(null);
@@ -43,38 +45,23 @@ interface IAuthPluginData
 	data: any;
 }
 
-function ModalErrorMsg(props: {msg: string|null})
-{
-	const dialogRef = useRef<HTMLDialogElement>();
-	const { msg } = props;
-
-	useEffect(() => {
-
-		if (msg)
-			dialogRef.current.showModal();
-		else
-			dialogRef.current.close();
-
-	}, [dialogRef.current, msg]);
-
-	return <dialog ref={dialogRef}>
-		<h2> Error </h2>
-		<p> {msg} </p>
-		<form method="dialog">
-			<button> Ok </button>
-		</form>
-	</dialog>;
-}
-
-interface IFormData
+interface IFormData // weird name
 {
 	pluginData: { [key: string]: any };
+}
+
+interface ISaveRequest
+{
+	pluginData: { [key: string]: any };
+	saveKey: string;
 }
 
 interface IPageState
 {
 	data: IFormData;
 	savedData: IFormData;
+	saveKey: string;
+	errorMsg: string;
 }
 
 interface IPageSetPluginDataAction
@@ -84,20 +71,21 @@ interface IPageSetPluginDataAction
 	data: any;
 }
 
-interface IPageUpdateSavedDataAction
+interface IPageEndSave
 {
-	type: 'updateSavedData';
+	type: 'endSave';
 	savedData: IFormData;
+	response: ISaveResponse;
 }
 
 type PageAction =
 	| IPageSetPluginDataAction
-	| IPageUpdateSavedDataAction
+	| IPageEndSave
 ;
 
 function reducer(state: IPageState, action: PageAction): IPageState
 {
-	let { savedData } = state;
+	let { savedData, saveKey, errorMsg } = state;
 	const { data } = state;
 	const pluginData = {...data.pluginData};
 
@@ -106,22 +94,32 @@ function reducer(state: IPageState, action: PageAction): IPageState
 		const { key, data } = action;
 		pluginData[key] = data;
 	}
-	else if (action.type === 'updateSavedData')
+	else if (action.type === 'endSave')
 	{
-		savedData = action.savedData;
+		if (action.response.errorMsg) 
+		{
+			console.error(action.response.errorMsg);
+			errorMsg = action.response.errorMsg;
+		}
+		else
+		{
+			savedData = action.savedData;
+			saveKey = action.response.newSaveKey;
+		}
 	}
 	else
 	{
 		throw new Error('Unknown action type');
 	}
 
-	return { savedData, data: { pluginData } };
+	return { savedData, saveKey, errorMsg, data: { pluginData } };
 }
 
 interface IPageModel
 {
 	errorMsg?: string|null;
 	authPlugins: IAuthPluginData[];
+	initialSaveKey: string;
 }
 
 interface IPageProps extends IPageModel
@@ -132,8 +130,6 @@ interface IPageProps extends IPageModel
 function Page(props: IPageProps)
 {
 	const { authPlugins, pluginModules } = props;
-
-	const [errorMsg, setErrorMsg] = useState(props.errorMsg);
 
 	const initState = useMemo(() => {
 		const data: IFormData = {
@@ -148,12 +144,12 @@ function Page(props: IPageProps)
 			pluginHasChange[p.key] = false;
 		}
 
-		return { data, savedData: data, pluginHasChange };
-	}, [authPlugins]);
+		return { data, savedData: data, pluginHasChange, saveKey: props.initialSaveKey, errorMsg: null };
+	}, [authPlugins, props.initialSaveKey]);
 
 	const [state, dispatch] = useReducer(reducer, initState); 
 
-	const { data, savedData } = state;
+	const { data, savedData, errorMsg, saveKey } = state;
 
 	const plugins: ReactNode[] = [];
 	let pluginHasChange = false;
@@ -181,34 +177,34 @@ function Page(props: IPageProps)
 
 	const onSave = useCallback(async () => {
 		const submittedData = structuredClone(data);
+		const request: ISaveRequest = {
+			pluginData: submittedData.pluginData,
+			saveKey
+		};
 		
-		const { errorMsg } = await postJson<ISaveReponse>('/site/admin/auth_config/save', {
-			body: submittedData,
+		const response = await postJson<ISaveResponse>('/site/admin/auth_config/save', {
+			body: request,
 		});
 
-		setErrorMsg(errorMsg);
-
-		if (errorMsg)
-			return;
-
-		dispatch({ type: 'updateSavedData', savedData: submittedData });
+		dispatch({ type: 'endSave', savedData: submittedData, response });
 		
-	}, [data]);
+	}, [data, saveKey]);
+
+	const shouldSave = pluginHasChange && !errorMsg;
 
 	return <div className="editor">
 		<AuthConfigDispatchContext.Provider value={dispatch}>
-		<ModalErrorMsg msg={errorMsg || null} />
+		{errorMsg && <ErrorBanner msg={errorMsg} />}
 
 		<h1> Authentication Configuration </h1>
-		<AutoSaveForm onSave={onSave} hasChange={pluginHasChange} />
+		<AutoSaveForm onSave={onSave} hasChange={shouldSave} />
 
 		<div className="section-container">
 			{plugins}
 		</div>
 
-
 		<p className="status-bar">
-			<SaveIndicator isSaving={pluginHasChange} hasError={false} />
+			<SaveIndicator isSaving={shouldSave} hasError={!!errorMsg} />
 		</p>
 		</AuthConfigDispatchContext.Provider>
 	</div>;
