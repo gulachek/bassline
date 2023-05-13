@@ -40,8 +40,8 @@ class GroupEditPage extends Responder
 
 	private function save(RespondArg $arg): GroupSaveResponse
 	{
-		$group = $arg->parseBody(Group::class);
-		if (!$group)
+		$req = $arg->parseBody(GroupSaveRequest::class);
+		if (!$req)
 			return new GroupSaveResponse(400, ['error' => 'Bad group format']);
 
 		if (!$this->db->lock())
@@ -51,13 +51,13 @@ class GroupEditPage extends Responder
 
 		try
 		{
-			$current_group = $this->db->loadGroup($group->id);
+			$current_group = $this->db->loadGroup($req->group->id);
 			if (!$current_group)
 				return new GroupSaveResponse(404, [
 					'errorMsg' => "Group not found"
 				]);
 
-			$this->db->saveGroup($group, $error);
+			$this->db->saveGroup($req->group, $error);
 
 			return new GroupSaveResponse(200, ['error' => null]);
 		}
@@ -180,6 +180,5 @@ class GroupSaveResponse extends Responder
 class GroupSaveRequest
 {
 	public Group $group;
-	public string $key;
 }
 

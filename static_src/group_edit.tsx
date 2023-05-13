@@ -69,6 +69,11 @@ interface ISaveResponse
 	error?: string|null;
 }
 
+interface ISaveRequest
+{
+	group: IGroup;
+}
+
 interface IEndSaveAction
 {
 	type: 'endSave';
@@ -286,7 +291,11 @@ function Page(props: IPageModel)
 	const onSave = useCallback(async () => {
 		dispatch({ type: 'beginSave' });
 
-		const response = await postJson<ISaveResponse>('./save', { body: group });
+		const request: ISaveRequest = {
+			group: structuredClone(group)
+		};
+
+		const response = await postJson<ISaveResponse>('./save', { body: request });
 
 		dispatch({ type: 'endSave', response });
 	}, [id, group]);
