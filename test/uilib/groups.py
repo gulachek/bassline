@@ -27,14 +27,8 @@ class GroupSelectPage(Page):
     def hasGroupname(self, username):
         return self._findGroupBtn(username) is not None
 
-    def enterGroupname(self, groupname):
-        gname = self.elem(By.CSS_SELECTOR, 'input[type="text"]')
-        gname.clear()
-        gname.send_keys(groupname)
-
-    def createGroup(self, groupname):
-        self.enterGroupname(groupname)
-        btn = self.elem(By.CSS_SELECTOR, 'input[value="Create"]')
+    def createGroup(self):
+        btn = self.elem(By.CSS_SELECTOR, 'button[value="Create"]')
         btn.click()
         return GroupEditPage.fromDriver(self.driver)
 

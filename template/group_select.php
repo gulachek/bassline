@@ -16,12 +16,6 @@
 </form>
 </div>
 
-	<form method="POST" action="<?=$URI->rel('create')?>">
-	<label> groupname:
-		<input
-			type="text"
-			name="groupname"
-		/>
-	</label>
-	<input type="submit" value="Create" />
+<form method="POST" action="<?=$URI->rel('create')?>">
+	<button type="submit" value="Create"> New Group </button>
 </form>

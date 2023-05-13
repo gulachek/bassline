@@ -365,9 +365,7 @@ class SecurityDatabase
 		}
 	}
 
-	public function createUser(
-		bool $is_superuser = false,
-	): ?array
+	public function createUser(): ?array
 	{
 		$this->db->query('add-user');
 
@@ -377,15 +375,8 @@ class SecurityDatabase
 		return $this->loadUser($id);
 	}
 
-	public function createGroup(string $groupname, ?string &$err): ?array
+	public function createGroup(): ?array
 	{
-		$current = $this->loadGroupByName($groupname);
-		if (!is_null($current))
-		{
-			$err = "Group with groupname '$groupname' already exists.";
-			return null;
-		}
-
 		$this->db->query('create-group', $groupname);
 		return $this->db->loadRowUnsafe('groups', $this->db->lastInsertRowId());
 	}

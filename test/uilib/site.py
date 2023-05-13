@@ -188,8 +188,11 @@ class Site:
         return page.selectUser(username)
 
     def createGroup(self, groupname):
-        page = self.gotoGroupSelectPage()
-        return page.createGroup(groupname)
+        select = self.gotoGroupSelectPage()
+        edit = select.createGroup()
+        edit.setGroupname(groupname)
+        edit.waitSave()
+        return edit
 
     def createPalette(self, name):
         page = self.gotoColorPaletteSelectPage()

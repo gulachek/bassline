@@ -2,12 +2,6 @@
 
 namespace Gulachek\Bassline;
 
-function isName(string $name): bool
-{
-	$name_pattern = GroupEditPage::GROUPNAME_PATTERN;
-	return preg_match("/^$name_pattern$/", $name);
-}
-
 class GroupEditPage extends Responder
 {
 	const GROUPNAME_PATTERN = "^[a-zA-Z0-9_]+$";
@@ -63,8 +57,7 @@ class GroupEditPage extends Responder
 			'template' => __DIR__ . '/../template/group_select.php',
 			'title' => 'Select a group',
 			'args' => [
-				'groups' => $groups,
-				'name_pattern' => self::GROUPNAME_PATTERN
+				'groups' => $groups
 			]
 		]);
 
@@ -95,15 +88,7 @@ class GroupEditPage extends Responder
 
 	private function create(RespondArg $arg): mixed
 	{
-		$groupname = $_REQUEST['groupname'] ?? 'new_group';
-		if (!isName($groupname))
-		{
-			http_response_code(400);
-			echo "bad groupname";
-			return null;
-		}
-
-		$group = $this->db->createGroup($groupname, $err);
+		$group = $this->db->createGroup();
 		return new Redirect("/site/admin/groups/edit?id={$group['id']}");
 	}
 
