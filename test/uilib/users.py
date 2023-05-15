@@ -33,10 +33,9 @@ class UserSelectPage(Page):
 class UserEditPage(Page):
     @classmethod
     def fromDriver(cls, driver):
-        wait_save(driver)
-        h1s = driver.find_elements(By.TAG_NAME, 'h1')
-        mainHeading = next((h for h in h1s if h.text == 'Edit User'), None)
-        return None if mainHeading is None else UserEditPage(driver)
+        page = UserEditPage(driver)
+        _ = page._usernameInput()
+        return page
 
     def __init__(self, driver):
         self.driver = driver

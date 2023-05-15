@@ -476,7 +476,7 @@ function Page(props: IPageModel)
 	const shouldSave = hasChange && !errorMsg;
 
 	return <div className="editor">
-		<AutoSaveForm onSave={onSave} shouldSave={shouldSave} />
+		<AutoSaveForm onSave={onSave} shouldSave={shouldSave && !isSaving} />
 		{errorMsg && <ErrorBanner msg={errorMsg} />}
 		<PaletteDispatchContext.Provider value={dispatch}>
 			<div className="header">
@@ -488,7 +488,7 @@ function Page(props: IPageModel)
 				<PaletteColors selectedId={state.selectedColorId} colors={palette.colors} />
 			</div>
 			<p className="status-bar">
-				<SaveIndicator isSaving={shouldSave} hasError={!!errorMsg} />
+				<SaveIndicator isSaving={shouldSave || isSaving} hasError={!!errorMsg} />
 			</p>
 		</PaletteDispatchContext.Provider>
 	</div>;

@@ -998,7 +998,7 @@ function Page(props: IPageModel)
 					open={state.changePaletteVisible}
 					themeId={theme.id}
 				/>
-				<AutoSaveForm onSave={onSave} shouldSave={shouldSave} />
+				<AutoSaveForm onSave={onSave} shouldSave={shouldSave && !isSaving} />
 				<div className="header">
 					<h1> Edit theme </h1>
 				</div>
@@ -1023,7 +1023,7 @@ function Page(props: IPageModel)
 					/>
 				</div>
 				<p className="status-bar">
-					<SaveIndicator isSaving={shouldSave} hasError={!!errorMsg} />
+					<SaveIndicator isSaving={shouldSave || isSaving} hasError={!!errorMsg} />
 				</p>
 			</ThemeDispatchContext.Provider>
 		</div>;

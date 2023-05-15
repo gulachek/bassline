@@ -315,7 +315,7 @@ function Page(props: IPageModel)
 
 	return <div className="editor">
 		{fatalMsg && <ErrorBanner msg={fatalMsg} />}
-		<AutoSaveForm onSave={onSave} shouldSave={shouldSave} />
+		<AutoSaveForm onSave={onSave} shouldSave={shouldSave && !isSaving} />
 		<GroupDispatchContext.Provider value={dispatch}>
 			<div className="header">
 				<h1> Edit group </h1>
@@ -332,7 +332,7 @@ function Page(props: IPageModel)
 			</div>
 
 			<p className="status-bar">
-				<SaveIndicator isSaving={shouldSave} hasError={!!fatalMsg} />
+				<SaveIndicator isSaving={shouldSave || isSaving} hasError={!!fatalMsg} />
 			</p>
 		</GroupDispatchContext.Provider>
 	</div>;

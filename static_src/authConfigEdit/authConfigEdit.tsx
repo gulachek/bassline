@@ -62,6 +62,7 @@ interface IPageState
 	savedData: IFormData;
 	saveKey: string;
 	errorMsg: string;
+	isSaving: boolean;
 }
 
 interface IPageSetPluginDataAction
@@ -69,6 +70,11 @@ interface IPageSetPluginDataAction
 	type: 'setPluginData';
 	key: string;
 	data: any;
+}
+
+interface IPageBeginSave
+{
+	type: 'beginSave';
 }
 
 interface IPageEndSave
@@ -80,12 +86,13 @@ interface IPageEndSave
 
 type PageAction =
 	| IPageSetPluginDataAction
+	| IPageBeginSave
 	| IPageEndSave
 ;
 
 function reducer(state: IPageState, action: PageAction): IPageState
 {
-	let { savedData, saveKey, errorMsg } = state;
+	let { savedData, saveKey, errorMsg, isSaving } = state;
 	const { data } = state;
 	const pluginData = {...data.pluginData};
 
@@ -94,8 +101,13 @@ function reducer(state: IPageState, action: PageAction): IPageState
 		const { key, data } = action;
 		pluginData[key] = data;
 	}
+	else if (action.type === 'beginSave')
+	{
+		isSaving = true;
+	}
 	else if (action.type === 'endSave')
 	{
+		isSaving = false;
 		if (action.response.errorMsg) 
 		{
 			console.error(action.response.errorMsg);
@@ -112,7 +124,7 @@ function reducer(state: IPageState, action: PageAction): IPageState
 		throw new Error('Unknown action type');
 	}
 
-	return { savedData, saveKey, errorMsg, data: { pluginData } };
+	return { savedData, saveKey, errorMsg, isSaving, data: { pluginData } };
 }
 
 interface IPageModel
@@ -144,12 +156,19 @@ function Page(props: IPageProps)
 			pluginHasChange[p.key] = false;
 		}
 
-		return { data, savedData: data, pluginHasChange, saveKey: props.initialSaveKey, errorMsg: null };
+		return {
+			data,
+			savedData: data,
+			pluginHasChange,
+			saveKey: props.initialSaveKey,
+			errorMsg: null,
+			isSaving: false
+		};
 	}, [authPlugins, props.initialSaveKey]);
 
 	const [state, dispatch] = useReducer(reducer, initState); 
 
-	const { data, savedData, errorMsg, saveKey } = state;
+	const { data, savedData, errorMsg, saveKey, isSaving } = state;
 
 	const plugins: ReactNode[] = [];
 	let pluginHasChange = false;
@@ -176,6 +195,8 @@ function Page(props: IPageProps)
 	}
 
 	const onSave = useCallback(async () => {
+		dispatch({ type: 'beginSave' });
+
 		const submittedData = structuredClone(data);
 		const request: ISaveRequest = {
 			pluginData: submittedData.pluginData,
@@ -197,14 +218,14 @@ function Page(props: IPageProps)
 		{errorMsg && <ErrorBanner msg={errorMsg} />}
 
 		<h1> Authentication Configuration </h1>
-		<AutoSaveForm onSave={onSave} shouldSave={shouldSave} />
+		<AutoSaveForm onSave={onSave} shouldSave={shouldSave && !isSaving} />
 
 		<div className="section-container">
 			{plugins}
 		</div>
 
 		<p className="status-bar">
-			<SaveIndicator isSaving={shouldSave} hasError={!!errorMsg} />
+			<SaveIndicator isSaving={shouldSave || isSaving} hasError={!!errorMsg} />
 		</p>
 		</AuthConfigDispatchContext.Provider>
 	</div>;

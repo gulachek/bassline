@@ -198,6 +198,7 @@ interface IPageState
 	data: IFormData;
 	savedData: IFormData;
 	validity: IFieldValidation;
+	isSaving: boolean;
 }
 
 interface IPageSetUsernameAction
@@ -228,9 +229,14 @@ interface IPageSetPluginDataAction
 	isValid: boolean;
 }
 
-interface IPageUpdateSavedDataAction
+interface IPageBeginSaveAction
 {
-	type: 'updateSavedData';
+	type: 'beginSave';
+}
+
+interface IPageEndSaveAction
+{
+	type: 'endSave';
 	savedData: IFormData;
 	response: ISaveReponse;
 }
@@ -238,14 +244,15 @@ interface IPageUpdateSavedDataAction
 type PageAction =
 	IPageSetUsernameAction
 	| IPageSetPluginDataAction
-	| IPageUpdateSavedDataAction
+	| IPageBeginSaveAction
+	| IPageEndSaveAction
 	| IPageJoinGroupAction
 	| IPageChangePrimaryGroupAction
 ;
 
 function reducer(state: IPageState, action: PageAction): IPageState
 {
-	let { savedData } = state;
+	let { savedData, isSaving } = state;
 	const validity = structuredClone(state.validity);
 	const { data } = state;
 	const { user } = data;
@@ -273,8 +280,13 @@ function reducer(state: IPageState, action: PageAction): IPageState
 		pluginData[key] = data;
 		validity.plugins[key] = isValid;
 	}
-	else if (action.type === 'updateSavedData')
+	else if (action.type === 'beginSave')
 	{
+		isSaving = true;
+	}
+	else if (action.type === 'endSave')
+	{
+		isSaving = false;
 		savedData = action.savedData;
 		if (action.response.newKey) {
 			key = action.response.newKey;
@@ -308,7 +320,7 @@ function reducer(state: IPageState, action: PageAction): IPageState
 
 	groups = Array.from(groupSet);
 
-	return { savedData, validity, data: {
+	return { savedData, validity, isSaving: false, data: {
 		user: {
 			username,
 			id,
@@ -318,7 +330,7 @@ function reducer(state: IPageState, action: PageAction): IPageState
 			save_token
 		},
 		pluginData,
-		key
+		key,
 	} };
 }
 
@@ -364,12 +376,12 @@ function Page(props: IPageProps)
 			plugins: pluginValidity
 		};
 
-		return { data, savedData: data, validity };
+		return { data, savedData: data, validity, isSaving: false };
 	}, [user, userId, authPlugins]);
 
 	const [state, dispatch] = useReducer(reducer, initState); 
 
-	const { data, savedData } = state;
+	const { data, savedData, isSaving } = state;
 
 	const plugins: ReactNode[] = [];
 	let pluginHasChange = false;
@@ -395,6 +407,8 @@ function Page(props: IPageProps)
 	}
 
 	const onSave = useCallback(async () => {
+		dispatch({ type: 'beginSave' });
+
 		const submittedData = structuredClone(data);
 		
 		const response = await postJson<ISaveReponse>('/site/admin/users', {
@@ -409,7 +423,7 @@ function Page(props: IPageProps)
 		if (response.errorMsg)
 			return;
 
-		dispatch({ type: 'updateSavedData', savedData: submittedData, response });
+		dispatch({ type: 'endSave', savedData: submittedData, response });
 		
 	}, [data]);
 
@@ -444,7 +458,7 @@ function Page(props: IPageProps)
 		<UserDispatchContext.Provider value={dispatch}>
 
 		<h1> Edit User </h1>
-		<AutoSaveForm onSave={onSave} shouldSave={shouldSave} />
+		<AutoSaveForm onSave={onSave} shouldSave={shouldSave && !isSaving} />
 		<div className="section-container">
 
 			<section className="section">
@@ -484,7 +498,7 @@ function Page(props: IPageProps)
 		</div>
 
 		<p className="status-bar">
-			<SaveIndicator isSaving={shouldSave} hasError={!!errorMsg || !isClientValid} />
+			<SaveIndicator isSaving={shouldSave || isSaving} hasError={!!errorMsg || !isClientValid} />
 		</p>
 
 		</UserDispatchContext.Provider>
