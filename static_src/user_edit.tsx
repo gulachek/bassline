@@ -444,7 +444,7 @@ function Page(props: IPageProps)
 		<UserDispatchContext.Provider value={dispatch}>
 
 		<h1> Edit User </h1>
-		<AutoSaveForm onSave={onSave} hasChange={shouldSave} />
+		<AutoSaveForm onSave={onSave} shouldSave={shouldSave} />
 		<div className="section-container">
 
 			<section className="section">

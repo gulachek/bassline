@@ -998,7 +998,7 @@ function Page(props: IPageModel)
 					open={state.changePaletteVisible}
 					themeId={theme.id}
 				/>
-				<AutoSaveForm onSave={onSave} hasChange={shouldSave} />
+				<AutoSaveForm onSave={onSave} shouldSave={shouldSave} />
 				<div className="header">
 					<h1> Edit theme </h1>
 				</div>

@@ -476,7 +476,7 @@ function Page(props: IPageModel)
 	const shouldSave = hasChange && !errorMsg;
 
 	return <div className="editor">
-		<AutoSaveForm onSave={onSave} hasChange={shouldSave} />
+		<AutoSaveForm onSave={onSave} shouldSave={shouldSave} />
 		{errorMsg && <ErrorBanner msg={errorMsg} />}
 		<PaletteDispatchContext.Provider value={dispatch}>
 			<div className="header">

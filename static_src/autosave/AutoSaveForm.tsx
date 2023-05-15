@@ -11,7 +11,7 @@ import { DebounceTimer } from './debounceTimer';
 
 interface IAutoSaveFormProps
 {
-	hasChange: boolean; // triggers save when true
+	shouldSave: boolean; // triggers save when true
 	onSave(): void; // provide implementation to save
 	debounceMs?: number; // wait at least this long after change introduced to save
 	maxDebounceMs?: number; // after this much time passes just save
@@ -19,7 +19,7 @@ interface IAutoSaveFormProps
 
 export function AutoSaveForm(props: PropsWithChildren<IAutoSaveFormProps>)
 {
-	const { debounceMs, maxDebounceMs, hasChange, onSave } = props;
+	const { debounceMs, maxDebounceMs, shouldSave, onSave } = props;
 
 	const timer = useRef(new DebounceTimer({
 		debounceMs: debounceMs || 500,
@@ -37,7 +37,7 @@ export function AutoSaveForm(props: PropsWithChildren<IAutoSaveFormProps>)
 		window.removeEventListener('beforeunload', preventUnload);
 		delete formElem.current.dataset.isBusy;
 
-		if (hasChange)
+		if (shouldSave)
 		{
 			timer.current.restart(() => onSave());
 			window.addEventListener('beforeunload', preventUnload);

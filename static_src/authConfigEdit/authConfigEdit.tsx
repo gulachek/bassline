@@ -197,7 +197,7 @@ function Page(props: IPageProps)
 		{errorMsg && <ErrorBanner msg={errorMsg} />}
 
 		<h1> Authentication Configuration </h1>
-		<AutoSaveForm onSave={onSave} hasChange={shouldSave} />
+		<AutoSaveForm onSave={onSave} shouldSave={shouldSave} />
 
 		<div className="section-container">
 			{plugins}
