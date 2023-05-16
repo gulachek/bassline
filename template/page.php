@@ -41,10 +41,8 @@
 
 </nav>
 
-<main class="main">
-	<loading-overlay>
-		<?php $RENDER_BODY(); ?>
-	</loading-overlay>
+<main class="main <?=text($LAYOUT_CLASSNAME)?>">
+<?php $RENDER_BODY(); ?>
 </main>
 
 </body>

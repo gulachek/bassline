@@ -2,6 +2,14 @@
 
 namespace Gulachek\Bassline;
 
+enum PageLayout {
+	// Needs explanation
+	case manual;
+
+	// needs explanation
+	case auto;
+}
+
 class ResponderDelegate
 {
 	public function __construct(
@@ -87,7 +95,10 @@ class RespondArg
 		return in_array($cap, $caps);
 	}
 
-	public function renderPage(array $page_args): void
+	public function renderPage(
+		array $page_args,
+		PageLayout $layout = PageLayout::auto
+	): null
 	{
 		$UTIL = __DIR__ . '/template_util.php';
 
@@ -122,6 +133,15 @@ class RespondArg
 			require($template);
 		};
 
+		switch ($layout) {
+			case PageLayout::manual:
+				$LAYOUT_CLASSNAME = 'layout-manual';
+				break;
+			default:
+				$LAYOUT_CLASSNAME = 'layout-auto';
+				break;
+		}
+
 		$SITE_NAME = $this->config->siteName();
 		$APPS = $this->config->apps();
 		$SHOW_ADMIN_LINK =
@@ -129,6 +149,7 @@ class RespondArg
 			|| $this->userCan('edit_themes', 'shell');
 
 		include __DIR__ . '/../template/page.php';
+		return null;
 	}
 
 	private function child(): RespondArg

@@ -15,6 +15,24 @@ body {
 	overflow: hidden;
 }
 
+:root.loading {
+	.main {
+		display: none;
+	}
+}
+
+.main {
+	overflow-y: hidden;
+	flex: auto;
+
+	&.layout-manual {
+	}
+
+	&.layout-auto {
+		margin: 0.5em 1em;
+	}
+}
+
 .nav-bar {
 	background-color: var(--theme-banner-bg);
 	color: var(--theme-banner-fg);
@@ -76,11 +94,6 @@ body {
 			visibility: visible;
 		}
 	}
-}
-
-.main {
-	overflow-y: hidden;
-	flex: auto;
 }
 
 ::selection {

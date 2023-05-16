@@ -19,6 +19,6 @@ class ReactPage
 			]
 		];
 
-		$arg->renderPage($renderPageArgs);
+		$arg->renderPage($renderPageArgs, layout: PageLayout::manual);
 	}
 }
