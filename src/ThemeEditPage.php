@@ -104,10 +104,10 @@ class ThemeEditPage extends Responder
 		$NAME_PATTERN = self::NAME_PATTERN;
 		$THEME_COLOR_HEX = [];
 
-		$arg->renderPage([
-			'title' => 'Edit Theme',
-			'template' => __DIR__ . '/../template/theme_page.php',
-			'args' => [
+		return $arg->renderPage(
+			title: 'Edit Theme',
+			template: __DIR__ . '/../template/theme_page.php',
+			args: [
 				'theme' => $THEME,
 				'name_pattern' => $NAME_PATTERN,
 				'available_palettes' => $AVAILABLE_PALETTES,
@@ -115,9 +115,7 @@ class ThemeEditPage extends Responder
 				'available_themes' => $AVAILABLE_THEMES,
 				'self' => $this
 			]
-		]);
-
-		return null;
+		);
 	}
 
 	private static function systemUnavailable(): ErrorPage

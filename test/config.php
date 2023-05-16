@@ -33,12 +33,10 @@ class TestConfig extends Config
 
 	public function landingPage(RespondArg $arg): mixed
 	{
-		$arg->renderPage([
-			'title' => 'Landing Page',
-			'template' => __DIR__ . '/landing_page.php'
-		]);
-
-		return null;
+		return $arg->renderPage(
+			title: 'Landing Page',
+			template: __DIR__ . '/landing_page.php'
+		);
 	}
 }
 

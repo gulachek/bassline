@@ -15,15 +15,13 @@ class HelloPage extends \Gulachek\Bassline\Responder
 
 	public function respond($arg): mixed
 	{
-		$arg->renderPage([
-			'title' => "Hello {$this->msg}",
-			'template' => __DIR__ . '/hello_page.php',
-			'args' => [
+		return $arg->renderPage(
+			title: "Hello {$this->msg}",
+			template: __DIR__ . '/hello_page.php',
+			args: [
 				'msg' => $this->msg
 			]
-		]);
-
-		return null;
+		);
 	}
 }
 
@@ -31,14 +29,13 @@ class LandingPage extends \Gulachek\Bassline\Responder
 {
 	public function respond($arg): mixed
 	{
-		$arg->renderPage([
-			'title' => 'Hello',
-			'template' => __DIR__ . '/landing_page.php',
-			'args' => [
+		return $arg->renderPage(
+			title: 'Hello',
+			template: __DIR__ . '/landing_page.php',
+			args: [
 				'steve_uri' => $arg->uriAbs('/steve')
 			]
-		]);
-		return null;
+		);
 	}
 }
 

@@ -202,17 +202,15 @@ class UserEditPage extends Responder
 
 	private function select(RespondArg $arg): mixed
 	{
-		$arg->renderPage([
-			'title' => 'Select User',
-			'template' => __DIR__ . '/../template/user_edit_select.php',
-			'args' => [
+		return $arg->renderPage(
+			title: 'Select User',
+			template: __DIR__ . '/../template/user_edit_select.php',
+			args: [
 				'users' => $this->db->loadUsers(),
 				'groups' => $this->db->loadGroups(),
 				'username_pattern' => self::USERNAME_PATTERN
 			]
-		]);
-
-		return null;
+		);
 	}
 
 	private function edit(RespondArg $arg): mixed

@@ -222,16 +222,14 @@ class ColorPalettePage extends Responder
 
 	private function select(RespondArg $arg): mixed
 	{
-		$arg->renderPage([
-			'title' => 'Select Color Palette',
-			'template' => __DIR__ . '/../template/color_palette_select.php',
-			'args' => [
+		return $arg->renderPage(
+			title: 'Select Color Palette',
+			template: __DIR__ . '/../template/color_palette_select.php',
+			args: [
 				'name_pattern' => self::NAME_PATTERN,
 				'available_palettes' => $this->db->availablePalettes()
 			]
-		]);
-
-		return null;
+		);
 	}
 
 	private function create(RespondArg $arg): mixed

@@ -12,15 +12,13 @@ class AdminPage extends Responder
 	
 	public function respond(RespondArg $arg): mixed
 	{
-		$arg->renderPage([
-			'title' => 'Admin',
-			'template' => __DIR__ . '/../template/admin_page.php',
-			'args' => [
+		return $arg->renderPage(
+			title: 'Admin',
+			template: __DIR__ . '/../template/admin_page.php',
+			args: [
 				'access_security' => $arg->userCan('edit_security', 'shell'),
 				'access_themes' => $arg->userCan('edit_themes', 'shell')
 			]
-		]);
-
-		return null;
+		);
 	}
 }

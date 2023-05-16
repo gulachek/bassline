@@ -15,14 +15,13 @@ class ErrorPage extends Responder
 	public function respond(RespondArg $arg): mixed
 	{
 		\http_response_code($this->errorCode);
-		$arg->renderPage([
-			'title' => $this->title,
-			'template' => __DIR__ . '/../template/error_page.php',
-			'args' => [
+		return $arg->renderPage(
+			title: $this->title,
+			template: __DIR__ . '/../template/error_page.php',
+			args: [
 				'msg' => $this->msg,
 				'title' => $this->title
 			]
-		]);
-		return null;
+		);
 	}
 }

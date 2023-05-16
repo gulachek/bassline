@@ -96,22 +96,19 @@ class RespondArg
 	}
 
 	public function renderPage(
-		array $page_args,
+		string $template = 'renderPage: missing template',
+		string $title = 'renderPage: missing title',
+		array $args = [],
 		PageLayout $layout = PageLayout::auto
 	): null
 	{
 		$UTIL = __DIR__ . '/template_util.php';
 
 		// TODO: use requested app title as default title
-		$TITLE = "{$page_args['title']}" ?? '[Title]';
+		$TITLE = $title;
 
-		$template = $page_args['template'];
-		if (!is_readable($template))
+		if (!\is_readable($template))
 			throw new \Exception("renderPage: 'template' is not a readable file: $template");
-
-		$args = $page_args['args'] ?? [];
-		if (!is_array($args))
-			throw new \Exception("renderPage: 'args' is not an array");
 
 		$USER = null;
 		$USERNAME = null;

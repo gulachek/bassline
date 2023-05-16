@@ -87,15 +87,13 @@ class GroupEditPage extends Responder
 	{
 		$groups = $this->db->loadGroups();
 
-		$arg->renderPage([
-			'template' => __DIR__ . '/../template/group_select.php',
-			'title' => 'Select a group',
-			'args' => [
+		return $arg->renderPage(
+			template: __DIR__ . '/../template/group_select.php',
+			title: 'Select a group',
+			args: [
 				'groups' => $groups
 			]
-		]);
-
-		return null;
+		);
 	}
 
 	private function edit(RespondArg $arg): mixed
