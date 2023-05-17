@@ -339,6 +339,7 @@ interface IPageModel
 	errorMsg?: string|null;
 	user: IUser;
 	patterns: IPatterns;
+	usernameMaxLen: number;
 	authPlugins: IAuthPluginData[];
 	groups: Groups;
 	initialSaveKey: string;
@@ -351,7 +352,15 @@ interface IPageProps extends IPageModel
 
 function Page(props: IPageProps)
 {
-	const { user, patterns, authPlugins, pluginModules, groups, initialSaveKey } = props;
+	const {
+		user,
+		patterns,
+		authPlugins,
+		pluginModules,
+		groups,
+		initialSaveKey,
+		usernameMaxLen
+	} = props;
 
 	const [errorMsg, setErrorMsg] = useState(props.errorMsg);
 
@@ -466,12 +475,13 @@ function Page(props: IPageProps)
 				<div>
 					<label> username:
 						<input type="text"
-							name="username"
-							title="Enter a username (letters, numbers, or underscores)"
-							pattern={patterns.username}
 							value={data.user.username}
 							onChange={setUsername}
+							name="username"
+							title="Enter a username (letters, numbers, or underscores)"
 							required
+							pattern={patterns.username}
+							maxLength={usernameMaxLen}
 							/>
 					</label>
 				</div>

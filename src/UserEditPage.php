@@ -5,6 +5,7 @@ namespace Gulachek\Bassline;
 class UserEditPage extends Responder
 {
 	const USERNAME_PATTERN = "^[a-zA-Z0-9_]+$";
+	const USERNAME_MAX_LEN = 128;
 
 	private SecurityDatabase $db;
 
@@ -138,6 +139,13 @@ class UserEditPage extends Responder
 					'errorMsg' => "User not found"
 				]);
 
+			if (\strlen($save->user->username) > self::USERNAME_MAX_LEN)
+			{
+				return new UserSaveResponse(404, [
+					'errorMsg' => "username too long"
+				]);
+			}
+
 			$token = SaveToken::tryReserveEncoded(
 				$arg->uid(),
 				$current_user['save_token'],
@@ -244,12 +252,13 @@ class UserEditPage extends Responder
 				if ($data = $plugin->getUserEditData($user_id, $this->db))
 				{
 					$data['key'] = $key;
-					array_push($pluginData, $data);
+					\array_push($pluginData, $data);
 				}
 			}
 
 			$model = [
 				'user' => $user,
+				'usernameMaxLen' => self::USERNAME_MAX_LEN,
 				'patterns' => [
 					'username' => self::USERNAME_PATTERN
 				],
@@ -258,7 +267,7 @@ class UserEditPage extends Responder
 				'initialSaveKey' => $token->key
 			];
 
-			ReactPage::render($arg, [
+			return ReactPage::render($arg, [
 				'title' => 'Edit User',
 				'scripts' => [
 					'/assets/require.js',
@@ -266,7 +275,6 @@ class UserEditPage extends Responder
 				],
 				'model' => $model
 			]);
-			return null;
 		}
 		finally
 		{
