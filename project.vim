@@ -1,4 +1,5 @@
-set path=.,buildlib,doc,scripts,sql/**/*,src/**/*,static_src/**/*,template/**/*,test/**/*
+set path=,,buildlib,doc,scripts,sql/**,src/**,static_src/**,template/**
+set path+=test,test/hello/**,test/phpunit/**,test/uilib
 nnoremap <SPACE> :find<SPACE>
 
 " build
