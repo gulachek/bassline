@@ -44,6 +44,8 @@ interface IPageModel
 	group: IGroup;
 	capabilities: { [appKey: string]: ICapability[] };
 	initialSaveKey: string;
+	groupnameMaxLen: number;
+	groupnamePattern: string;
 }
 
 interface IEditState
@@ -53,6 +55,7 @@ interface IEditState
 	isSaving: boolean;
 	saveKey: string;
 	fatalMsg: string|null;
+	groupnameIsValid: boolean;
 }
 
 const GroupDispatchContext = createContext(null);
@@ -61,6 +64,7 @@ interface ISetGroupnameAction
 {
 	type: 'setGroupname';
 	value: string;
+	isValid: boolean;
 }
 
 interface IBeginSaveAction
@@ -109,12 +113,13 @@ function reducer(state: IEditState, action: EditAction): IEditState
 {
 	const group = {...state.group};
 	let savedGroup = { ...state.savedGroup };
-	let { isSaving, saveKey, fatalMsg } = state;
+	let { isSaving, saveKey, fatalMsg, groupnameIsValid } = state;
 	const caps = new Set(group.capabilities);
 
 	if (action.type === 'setGroupname')
 	{
 		group.groupname = action.value;
+		groupnameIsValid = action.isValid;
 	}
 	else if (action.type === 'beginSave')
 	{
@@ -146,7 +151,14 @@ function reducer(state: IEditState, action: EditAction): IEditState
 	}
 
 	group.capabilities = Array.from(caps);
-	return { group, savedGroup, isSaving, saveKey, fatalMsg };
+	return {
+		group,
+		savedGroup,
+		isSaving,
+		saveKey,
+		fatalMsg,
+		groupnameIsValid
+	};
 }
 
 function groupsAreEqual(a: IGroup, b: IGroup): boolean
@@ -244,16 +256,22 @@ function Capabilities(props: ICapabilitiesProps)
 interface IGroupNameProps
 {
 	groupname: string;
+	maxLen: number;
+	pattern: string;
 }
 
 function GroupName(props: IGroupNameProps)
 {
-	const { groupname } = props;
+	const { groupname, maxLen, pattern } = props;
 
 	const dispatch = useContext(GroupDispatchContext);
 
 	const onChangeGroupname = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-		dispatch({ type: 'setGroupname', value: e.target.value });
+		dispatch({
+			type: 'setGroupname',
+			value: e.target.value,
+			isValid: e.target.reportValidity()
+		});
 	}, []);
 
 	return <label> groupname:
@@ -261,6 +279,10 @@ function GroupName(props: IGroupNameProps)
 			type="text"
 			value={groupname}
 			onChange={onChangeGroupname}
+			required
+			maxLength={maxLen}
+			pattern={pattern}
+			title="Letters, numbers, and underscores are allowed."
 			/>
 	</label>;
 }
@@ -268,15 +290,17 @@ function GroupName(props: IGroupNameProps)
 interface IGroupPropertiesProps
 {
 	groupname: string;
+	maxLen: number;
+	pattern: string;
 }
 
 function GroupProperties(props: IGroupPropertiesProps)
 {
-	const { groupname } = props;
+	const { groupname, maxLen, pattern } = props;
 
 	return <section className="section">
 		<h3> Group properties </h3>
-		<GroupName groupname={groupname} />
+		<GroupName groupname={groupname} maxLen={maxLen} pattern={pattern} />
 	</section>;
 }
 
@@ -287,14 +311,15 @@ function Page(props: IPageModel)
 		savedGroup: props.group,
 		isSaving: false,
 		saveKey: props.initialSaveKey,
-		fatalMsg: null
+		fatalMsg: null,
+		groupnameIsValid: true
 	};
 
 	const id = props.group.id;
 
 	const [state, dispatch] = useReducer(reducer, initialState);
 
-	const { isSaving, group, savedGroup, saveKey, fatalMsg } = state;
+	const { isSaving, group, savedGroup, saveKey, fatalMsg, groupnameIsValid } = state;
 
 	const hasChange = !groupsAreEqual(group, savedGroup);
 
@@ -311,7 +336,7 @@ function Page(props: IPageModel)
 		dispatch({ type: 'endSave', response });
 	}, [id, group]);
 
-	const shouldSave = hasChange && !fatalMsg;
+	const shouldSave = hasChange && !fatalMsg && groupnameIsValid;
 
 	return <div className="editor">
 		{fatalMsg && <ErrorBanner msg={fatalMsg} />}
@@ -322,7 +347,11 @@ function Page(props: IPageModel)
 			</div>
 
 			<div className="section-container">
-				<GroupProperties groupname={group.groupname} />
+				<GroupProperties
+					groupname={group.groupname}
+					maxLen={props.groupnameMaxLen}
+					pattern={props.groupnamePattern}
+				/>
 
 				<Capabilities
 					allCapabilities={props.capabilities}
@@ -332,7 +361,10 @@ function Page(props: IPageModel)
 			</div>
 
 			<p className="status-bar">
-				<SaveIndicator isSaving={shouldSave || isSaving} hasError={!!fatalMsg} />
+				<SaveIndicator
+					isSaving={shouldSave || isSaving}
+					hasError={!!fatalMsg || !groupnameIsValid}
+				/>
 			</p>
 		</GroupDispatchContext.Provider>
 	</div>;

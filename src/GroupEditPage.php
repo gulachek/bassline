@@ -5,6 +5,7 @@ namespace Gulachek\Bassline;
 class GroupEditPage extends Responder
 {
 	const GROUPNAME_PATTERN = "^[a-zA-Z0-9_]+$";
+	const GROUPNAME_MAX_LEN = 128;
 
 	public function __construct(
 		private SecurityDatabase $db,
@@ -57,6 +58,40 @@ class GroupEditPage extends Responder
 					'error' => "Group not found"
 				]);
 
+			if (\strlen($req->group->groupname) > self::GROUPNAME_MAX_LEN)
+			{
+				return new GroupSaveResponse(400, [
+					'error' => "groupname exceeds maximum length"
+				]);
+			}
+
+			$same_name = $this->db->loadGroupByName($req->group->groupname);
+			if ($same_name && $same_name['id'] !== $req->group->id)
+			{
+				return new GroupSaveResponse(400, [
+					'error' => "group with name '{$req->group->groupname}' already exists"
+				]);
+			}
+
+			$pattern = self::GROUPNAME_PATTERN;
+			if (!\preg_match("/$pattern/", $req->group->groupname))
+			{
+				return new GroupSaveResponse(400, [
+					'error' => "invalid groupname format"
+				]);
+			}
+
+			$caps = $this->db->loadCapabilities();
+			foreach ($req->group->capabilities as $id)
+			{
+				if (!\array_key_exists($id, $caps))
+				{
+					return new GroupSaveResponse(400, [
+						'error' => "invalid capability id"
+					]);
+				}
+			}
+
 			$token = SaveToken::tryReserveEncoded(
 				$arg->uid(),
 				$current_group['save_token'],
@@ -73,7 +108,7 @@ class GroupEditPage extends Responder
 			}
 
 			$req->group->save_token = $token->encode();
-			$this->db->saveGroup($req->group, $error);
+			$this->db->saveGroup($req->group);
 
 			return new GroupSaveResponse(200, ['newSaveKey' => $token->key]);
 		}
@@ -119,17 +154,16 @@ class GroupEditPage extends Responder
 
 			$group['save_token'] = $token->encode();
 			$groupToSave = Group::fromArray($group);
-			$this->db->saveGroup($groupToSave, $error);
-
-			if ($error)
-				return new ErrorPage(400, "Failed to save group", $error);
+			$this->db->saveGroup($groupToSave);
 
 			$caps = $this->allCapabilities();
 
 			$model = [
 				'group' => $group,
 				'capabilities' => $caps,
-				'initialSaveKey' => $token->key
+				'initialSaveKey' => $token->key,
+				'groupnameMaxLen' => self::GROUPNAME_MAX_LEN,
+				'groupnamePattern' => self::GROUPNAME_PATTERN
 			];
 
 			ReactPage::render($arg, [
