@@ -135,14 +135,16 @@ class UserEditPage extends Responder
 		{
 			$current_user = $this->db->loadUser($save->user->id);
 			if (!$current_user)
+			{
 				return new UserSaveResponse(404, [
 					'errorMsg' => "User not found"
 				]);
+			}
 
-			if (\strlen($save->user->username) > self::USERNAME_MAX_LEN)
+			if ($err = $save->prepare($current_user, $this->db, $errorCode))
 			{
-				return new UserSaveResponse(404, [
-					'errorMsg' => "username too long"
+				return new UserSaveResponse($errorCode ?? 400, [
+					'errorMsg' => $err
 				]);
 			}
 
@@ -157,16 +159,13 @@ class UserEditPage extends Responder
 				$currentToken = SaveToken::decode($current_user['save_token']);
 				$uname = $arg->username($currentToken->userId);
 				return new UserSaveResponse(409, [
-					'errorMsg' => "This user was recently edited by '{$uname}' and the information you see may be inaccurate. You will not be able to edit this user until you successfully reload the page."
+					'errorMsg' =>  "This user was recently edited by '{$uname}' and the information you see may be inaccurate. You will not be able to edit this user until you successfully reload the page."
 				]);
 			}
 
 			$save->user->save_token = $token->encode();
-			$this->db->saveUser($save->user, $error);
-			if ($error)
-				return new UserSaveResponse(400, [
-					'errorMsg' => $error
-				]);
+
+			$this->db->saveUser($save->user);
 
 			foreach ($save->pluginData as $key => $data)
 			{
@@ -244,7 +243,7 @@ class UserEditPage extends Responder
 
 			$user['save_token'] = $token->encode();
 			$userToSave = User::fromArray($user);
-			$this->db->saveUser($userToSave, $error);
+			$this->db->saveUser($userToSave);
 
 			$pluginData = [];
 			foreach ($this->auth_plugins as $key => $plugin)
@@ -347,5 +346,35 @@ class UserSaveRequest
 	public mixed $pluginData;
 
 	public string $key;
+
+	// tweak to be in good shape, return error message if necessary
+	public function prepare(array $current_user, SecurityDatabase $db, ?int &$code): ?string
+	{
+		if (\strlen($this->user->username) > UserEditPage::USERNAME_MAX_LEN)
+			return "username too long";
+
+		$same_name = $db->loadUserByName($this->user->username);
+		if ($same_name && $same_name['id'] != $this->user->id)
+			return "username '{$this->user->username}' already taken";
+
+		// no changing this
+		$this->user->is_superuser = $current_user['is_superuser'];
+
+		$found_primary = false;
+		foreach ($this->user->groups as $gid)
+		{
+			$group = $db->loadGroup($gid);
+			if (!$group)
+				return "Invalid group id $gid";
+
+			if ($gid === $this->user->primary_group)
+				$found_primary = true;
+		}
+
+		if (!$found_primary)
+			return "Expected user groups to contain primary group";
+
+		return null;
+	}
 }
 
