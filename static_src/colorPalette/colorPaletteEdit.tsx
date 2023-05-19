@@ -62,12 +62,17 @@ interface IPageModel
 interface IFieldValidity
 {
 	name: boolean;
+	colors: Map<string, boolean>;
 }
 
 function fieldsAreValid(fields: IFieldValidity): boolean
 {
 	if (!fields.name)
 		return false;
+
+	for (const [id, isValid] of fields.colors)
+		if (!isValid)
+			return false;
 
 	return true;
 }
@@ -116,6 +121,7 @@ interface ISetColorNameAction
 	type: 'setColorName';
 	id: string;
 	name: string;
+	isValid: boolean;
 }
 
 interface ISetColorHexAction
@@ -189,6 +195,8 @@ function reducer(state: IEditState, action: EditAction)
 
 				items[mappedId] = newItems[tempId];
 				delete newItems[tempId]; 
+				fieldValidity.colors.set(`${mappedId}`, fieldValidity.colors.get(tempId));
+				fieldValidity.colors.delete(tempId);
 
 				if (tempId === selectedColorId)
 					selectedColorId = `${mappedId}`;
@@ -211,10 +219,11 @@ function reducer(state: IEditState, action: EditAction)
 	}
 	else if (action.type === 'setColorName')
 	{
-		const { id, name } = action;
+		const { id, name, isValid } = action;
 		const { items, newItems } = palette.colors;
 		if (id in items) items[id].name = name;
 		if (id in newItems) newItems[id].name = name;
+		fieldValidity.colors.set(id, isValid);
 	}
 	else if (action.type === 'setColorHex')
 	{
@@ -233,6 +242,7 @@ function reducer(state: IEditState, action: EditAction)
 		const tempId = `temp${tempIdCounter++}`;
 		palette.colors.newItems[tempId] = newColor;
 		selectedColorId = tempId;
+		fieldValidity.colors.set(tempId, true);
 	}
 	else if (action.type === 'deleteColor')
 	{
@@ -254,6 +264,7 @@ function reducer(state: IEditState, action: EditAction)
 				delete items[id];
 			}
 			if (id in newItems) delete newItems[id];
+			fieldValidity.colors.delete(id);
 		}
 	}
 
@@ -387,11 +398,12 @@ interface IPaletteColorsProperties
 {
 	colors: IEditableMap<IPaletteColor>;
 	selectedId: string;
+	nameField: IInputField;
 }
 
 function PaletteColors(props: IPaletteColorsProperties)
 {
-	const { colors, selectedId } = props;
+	const { colors, selectedId, nameField } = props;
 	const { items, newItems, deletedItems } = colors;
 
 	const dispatch = useContext(PaletteDispatchContext);
@@ -427,8 +439,19 @@ function PaletteColors(props: IPaletteColorsProperties)
 			key={id} id={id} color={newItems[id]} selected={selected} />);
 	}
 
+	const nameRef = useRef<HTMLInputElement>();
+
+	useEffect(() => {
+		nameRef.current.reportValidity();
+	});
+
 	const setName = useCallback((e: InputChangeEvent) => {
-		dispatch({ type: 'setColorName', id: selectedId, name: e.target.value });
+		dispatch({
+			type: 'setColorName',
+			id: selectedId,
+			name: e.target.value,
+			isValid: e.target.reportValidity()
+		});
 	}, [selectedId]);
 
 	const setHex = useCallback((e: InputChangeEvent) => {
@@ -445,11 +468,11 @@ function PaletteColors(props: IPaletteColorsProperties)
 		<h3> Colors </h3>
 		<div> 
 			<label> name:
-			<input
-				type="text"
+			<input type="text" ref={nameRef}
 				className="current-color-name"
 				value={selectedColor.name}
 				onChange={setName}
+				{...nameField}
 			/>
 			</label>
 			<label> color:
@@ -486,7 +509,8 @@ function Page(props: IPageModel)
 		errorMsg: null,
 		selectedColorId: Object.keys(colors)[0],
 		fieldValidity: {
-			name: true
+			name: true,
+			colors: new Map<string,boolean>()
 		}
 	};
 
@@ -525,7 +549,11 @@ function Page(props: IPageModel)
 
 			<div className="section-container">
 				<PaletteProperties name={palette.name} nameField={nameField} />
-				<PaletteColors selectedId={state.selectedColorId} colors={palette.colors} />
+				<PaletteColors
+					selectedId={state.selectedColorId}
+					colors={palette.colors}
+					nameField={nameField}
+				/>
 			</div>
 			<p className="status-bar">
 				<SaveIndicator
