@@ -16,6 +16,7 @@ import { AutoSaveForm } from '../autosave/AutoSaveForm';
 import { SaveIndicator } from '../autosave/SaveIndicator';
 import { SRGB } from '../srgb';
 import { ErrorBanner } from '../ErrorBanner';
+import { IInputField } from '../InputField';
 
 import './colorPaletteEdit.scss';
 
@@ -55,6 +56,20 @@ interface IPageModel
 {
 	palette: IPalette;
 	initialSaveKey: string;
+	nameField: IInputField;
+}
+
+interface IFieldValidity
+{
+	name: boolean;
+}
+
+function fieldsAreValid(fields: IFieldValidity): boolean
+{
+	if (!fields.name)
+		return false;
+
+	return true;
 }
 
 interface IEditState
@@ -65,6 +80,7 @@ interface IEditState
 	tempIdCounter: number;
 	selectedColorId: string;
 	errorMsg: string | null;
+	fieldValidity: IFieldValidity;
 }
 
 const PaletteDispatchContext = createContext(null);
@@ -73,6 +89,7 @@ interface ISetNameAction
 {
 	type: 'setName';
 	value: string;
+	isValid: boolean;
 }
 
 interface IBeginSaveAction
@@ -140,10 +157,12 @@ function reducer(state: IEditState, action: EditAction)
 	const palette = {...state.palette};
 	let savedPalette = { ...state.savedPalette };
 	let { isSaving, tempIdCounter, selectedColorId, errorMsg } = state;
+	let fieldValidity = structuredClone(state.fieldValidity);
 
 	if (action.type === 'setName')
 	{
 		palette.name = action.value;
+		fieldValidity.name = action.isValid;
 	}
 	else if (action.type === 'beginSave')
 	{
@@ -244,7 +263,8 @@ function reducer(state: IEditState, action: EditAction)
 		isSaving,
 		tempIdCounter,
 		selectedColorId,
-		errorMsg
+		errorMsg,
+		fieldValidity
 	};
 }
 
@@ -276,16 +296,21 @@ function paletteHasChange(edit: IPaletteEdit, saved: IPalette): boolean
 interface IPaletteNameProps
 {
 	name: string;
+	field: IInputField;
 }
 
 function PaletteName(props: IPaletteNameProps)
 {
-	const { name } = props;
+	const { name, field } = props;
 
 	const dispatch = useContext(PaletteDispatchContext);
 
 	const onChangeName = useCallback((e: InputChangeEvent) => {
-		dispatch({ type: 'setName', value: e.target.value });
+		dispatch({
+			type: 'setName',
+			value: e.target.value,
+			isValid: e.target.reportValidity()
+		});
 	}, []);
 
 	return <label> name:
@@ -294,6 +319,7 @@ function PaletteName(props: IPaletteNameProps)
 			className="palette-name"
 			value={name}
 			onChange={onChangeName}
+			{...field}
 			/>
 	</label>;
 }
@@ -301,15 +327,16 @@ function PaletteName(props: IPaletteNameProps)
 interface IPalettePropertiesProps
 {
 	name: string;
+	nameField: IInputField;
 }
 
 function PaletteProperties(props: IPalettePropertiesProps)
 {
-	const { name } = props;
+	const { name, nameField } = props;
 
 	return <section className="section">
 		<h3> Palette properties </h3>
-		<PaletteName name={name} />
+		<PaletteName name={name} field={nameField} />
 	</section>;
 }
 
@@ -438,6 +465,9 @@ function PaletteColors(props: IPaletteColorsProperties)
 function Page(props: IPageModel)
 {
 	const colors = props.palette.colors;
+	const {
+		nameField
+	} = props;
 
 	const initialState: IEditState = {
 		palette: {
@@ -454,12 +484,21 @@ function Page(props: IPageModel)
 		isSaving: false,
 		tempIdCounter: 1,
 		errorMsg: null,
-		selectedColorId: Object.keys(colors)[0]
+		selectedColorId: Object.keys(colors)[0],
+		fieldValidity: {
+			name: true
+		}
 	};
 
 	const [state, dispatch] = useReducer(reducer, initialState);
 
-	const { isSaving, palette, savedPalette, errorMsg } = state;
+	const {
+		isSaving,
+		palette,
+		savedPalette,
+		errorMsg,
+		fieldValidity
+	} = state;
 
 	const hasChange = paletteHasChange(palette, savedPalette);
 
@@ -473,7 +512,8 @@ function Page(props: IPageModel)
 		dispatch({ type: 'endSave', response, request });
 	}, [palette]);
 
-	const shouldSave = hasChange && !errorMsg;
+	const fieldsValid = fieldsAreValid(fieldValidity);
+	const shouldSave = hasChange && !errorMsg && fieldsValid;
 
 	return <div className="editor">
 		<AutoSaveForm onSave={onSave} shouldSave={shouldSave && !isSaving} />
@@ -484,11 +524,14 @@ function Page(props: IPageModel)
 			</div>
 
 			<div className="section-container">
-				<PaletteProperties name={palette.name} />
+				<PaletteProperties name={palette.name} nameField={nameField} />
 				<PaletteColors selectedId={state.selectedColorId} colors={palette.colors} />
 			</div>
 			<p className="status-bar">
-				<SaveIndicator isSaving={shouldSave || isSaving} hasError={!!errorMsg} />
+				<SaveIndicator
+					isSaving={shouldSave || isSaving}
+					hasError={!!errorMsg || !fieldsValid}
+				/>
 			</p>
 		</PaletteDispatchContext.Provider>
 	</div>;

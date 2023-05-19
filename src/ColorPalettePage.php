@@ -4,7 +4,6 @@ namespace Gulachek\Bassline;
 
 class ColorPalettePage extends Responder
 {
-	const NAME_PATTERN =  "^[a-zA-Z0-9 ]+$";
 	const HEX_PATTERN = '^#[0-9a-fA-F]{6}$';
 
 	public function __construct(
@@ -13,10 +12,18 @@ class ColorPalettePage extends Responder
 	{
 	}
 
-	private function isNameValid(string $name): bool
+	private static function nameField(): InputField
 	{
-		$pattern = self::NAME_PATTERN;
-		return preg_match("/$pattern/", $name);
+		return new InputField(
+			maxLength: 128,
+			pattern: "^[a-zA-Z0-9 ]+$",
+			title: "Letters, numbers, and spaces"
+		);
+	}
+
+	private static function isNameValid(string $name): bool
+	{
+		return self::nameField()->validate($name);
 	}
 
 	public function respond(RespondArg $arg): mixed
@@ -78,8 +85,7 @@ class ColorPalettePage extends Responder
 			return null;
 		}
 
-		$pattern = self::NAME_PATTERN;
-		if (!preg_match("/$pattern/", $palette->name))
+		if (!self::isNameValid($palette->name))
 		{
 			\http_response_code(400);
 			echo \json_encode(['error' => 'Invalid name format']);
@@ -204,7 +210,8 @@ class ColorPalettePage extends Responder
 
 			$model = [
 				'palette' => $palette,
-				'initialSaveKey' => $token->key
+				'initialSaveKey' => $token->key,
+				'nameField' => self::nameField()->toArray()
 			];
 
 			ReactPage::render($arg, [
@@ -226,7 +233,7 @@ class ColorPalettePage extends Responder
 			title: 'Select Color Palette',
 			template: __DIR__ . '/../template/color_palette_select.php',
 			args: [
-				'name_pattern' => self::NAME_PATTERN,
+				'name_pattern' => self::nameField()->pattern,
 				'available_palettes' => $this->db->availablePalettes()
 			]
 		);
@@ -236,7 +243,7 @@ class ColorPalettePage extends Responder
 	{
 		$name = $_POST['palette-name'];
 
-		if (!$this->isNameValid($name))
+		if (!self::isNameValid($name))
 		{
 			return new ErrorPage(400, 'Invalid Palette Name',
 				"The given palette name is invalid: '$name'");
