@@ -1,6 +1,7 @@
 @use '../editor.scss';
 @use 'sass:list';
 @use 'sass:math';
+@use '../clickable' as c;
 
 /// gradient function to go from 0% to 100% [0, 10] (play around)
 @function lightness($x) {
@@ -16,19 +17,33 @@
 	@return $colors;
 }
 
+.colors {
+	margin: 0.5em;
+	display: grid;
+	grid-template-columns: 1fr 20em;
+	gap: 0.5em;
+}
+
+.color-indicator-label {
+	@include c.clickable;
+	max-width: 12em;
+	padding: 0.5em;
+
+	&.invalid {
+		background-color: var(--system-theme-error);
+		color: var(--system-theme-error-text);
+	}
+
+	&.selected {
+		background-color: var(--system-theme-selected-item);
+		color: var(--system-theme-selected-item-text);
+	}
+}
+
 .color-indicator {
-	width: 16em;
-	height: 1em;
+	cursor: pointer;
 	background: linear-gradient(to right,
 		gradient(var(--hue), var(--saturation))
 		);
-	margin: auto;
-	position: relative;
-
-	&.selected::before {
-		content: '→';
-		position: relative;
-		left: -2em;
-		top: -1em;
-	}
+	border: solid thin var(--system-theme-canvas-text);
 }

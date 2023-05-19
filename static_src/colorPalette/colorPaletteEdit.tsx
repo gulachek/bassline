@@ -356,11 +356,12 @@ interface IPaletteColorEditProps
 	id: string;
 	color: IPaletteColor;
 	selected: boolean;
+	isValid: boolean;
 }
 
 function PaletteColorEdit(props: IPaletteColorEditProps)
 {
-	const { id, color, selected } = props;
+	const { id, color, selected, isValid } = props;
 	const { name, hex } = color;
 
 	const dispatch = useContext(PaletteDispatchContext);
@@ -380,18 +381,19 @@ function PaletteColorEdit(props: IPaletteColorEditProps)
 		dispatch({ type: 'selectColor', id });
 	}, [id]);
 
-	let className = 'color-indicator';
+	let className = 'color-indicator-label';
 	if (selected) className += ' selected';
+	if (!isValid) className += ' invalid';
 
-	return <fieldset 
-		ref={elem}
-		data-hex={hex}
-		data-name={name}
-		onClick={select}
-		className={className}
-		>
-		<legend> {name} </legend>
-	</fieldset>;
+	return <React.Fragment>
+		<span className={className} onClick={select}> {name} </span>
+		<span className="color-indicator"
+			ref={elem}
+			data-hex={hex}
+			data-name={name}
+			onClick={select}
+		/>
+	</React.Fragment>;
 }
 
 interface IPaletteColorsProperties
@@ -399,11 +401,12 @@ interface IPaletteColorsProperties
 	colors: IEditableMap<IPaletteColor>;
 	selectedId: string;
 	nameField: IInputField;
+	validity: Map<string, boolean>;
 }
 
 function PaletteColors(props: IPaletteColorsProperties)
 {
-	const { colors, selectedId, nameField } = props;
+	const { colors, selectedId, nameField, validity } = props;
 	const { items, newItems, deletedItems } = colors;
 
 	const dispatch = useContext(PaletteDispatchContext);
@@ -428,7 +431,12 @@ function PaletteColors(props: IPaletteColorsProperties)
 		const selected = id === selectedId;
 		if (selected) selectedColor = items[id];
 		colorEdits.push(<PaletteColorEdit
-			key={id} id={id} color={items[id]} selected={selected} />);
+			key={id}
+			id={id}
+			color={items[id]}
+			selected={selected}
+			isValid={validity.get(id)}
+		/>);
 	}
 
 	for (const id in newItems)
@@ -436,7 +444,12 @@ function PaletteColors(props: IPaletteColorsProperties)
 		const selected = id === selectedId;
 		if (selected) selectedColor = newItems[id];
 		colorEdits.push(<PaletteColorEdit
-			key={id} id={id} color={newItems[id]} selected={selected} />);
+			key={id}
+			id={id}
+			color={newItems[id]}
+			selected={selected}
+			isValid={validity.get(id)}
+		/>);
 	}
 
 	const nameRef = useRef<HTMLInputElement>();
@@ -481,7 +494,9 @@ function PaletteColors(props: IPaletteColorsProperties)
 			<button className="add-color" onClick={addColor}> + </button>
 			<button className="del-color" onClick={deleteColor}> - </button>
 		</div>
-		{colorEdits}
+		<div className="colors">
+			{colorEdits}
+		</div>
 	</section>;
 }
 
@@ -513,6 +528,9 @@ function Page(props: IPageModel)
 			colors: new Map<string,boolean>()
 		}
 	};
+
+	for (const id in colors)
+		initialState.fieldValidity.colors.set(id, true);
 
 	const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -553,6 +571,7 @@ function Page(props: IPageModel)
 					selectedId={state.selectedColorId}
 					colors={palette.colors}
 					nameField={nameField}
+					validity={fieldValidity.colors}
 				/>
 			</div>
 			<p className="status-bar">
