@@ -26,6 +26,12 @@ class ColorPalettePage extends Responder
 		return self::nameField()->validate($name);
 	}
 
+	private static function isHexValid(string $hex): bool
+	{
+		$pattern = self::HEX_PATTERN;
+		return \preg_match("/$pattern/", $hex);
+	}
+
 	public function respond(RespondArg $arg): mixed
 	{
 		if (!$arg->userCan('edit_themes'))
@@ -140,15 +146,47 @@ class ColorPalettePage extends Responder
 				$color->id = $colorId;
 				$mappedColors[$tempId] = $colorId;
 				$palette->colors->items[$colorId] = $color;
+				$currentPalette['colors'][$colorId] = [
+					'name' => 'dummy color',
+					'hex' => '#000000'
+				];
 			}
 
 			foreach ($palette->colors->deletedItems as $id)
 			{
+				if (!\array_key_exists($id, $currentPalette['colors']))
+				{
+					\http_response_code(409);
+					echo \json_encode(['error' => "Color id not in palette '$id'"]);
+					return null;
+				}
+
 				$db->deletePaletteColor($id);
 			}
 
 			foreach ($palette->colors->items as $id => $color)
 			{
+				if (!\array_key_exists($id, $currentPalette['colors']))
+				{
+					\http_response_code(409);
+					echo \json_encode(['error' => "Color id not in palette '$id'"]);
+					return null;
+				}
+
+				if (!self::isNameValid($color->name))
+				{
+					\http_response_code(409);
+					echo \json_encode(['error' => "Invalid color name '{$color->name}'"]);
+					return null;
+				}
+
+				if (!self::isHexValid($color->hex))
+				{
+					\http_response_code(409);
+					echo \json_encode(['error' => "Invalid hex value '{$color->hex}'"]);
+					return null;
+				}
+
 				$paletteToSave['colors'][$id] = [
 					'id' => $id,
 					'name' => $color->name,
