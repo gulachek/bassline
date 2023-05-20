@@ -9,7 +9,7 @@ function isSystemColor(array $theme_color): bool
 
 class ThemeEditPage extends Responder
 {
-	const NAME_PATTERN =  "^[a-zA-Z0-9 ]+$";
+	const NAME_PATTERN =  "^[a-zA-Z0-9\- ]+$";
 	const HEX_PATTERN = '^#[0-9a-fA-F]{6}$';
 
 	public function __construct(
@@ -254,9 +254,7 @@ class ThemeEditPage extends Responder
 
 				$msg = "This theme was edited by '{$uname}' and the information you're seeing might be inaccurate. You will not be able to continue editing until you reload the page.";
 
-				\http_response_code(409);
-				echo \json_encode(['error' => $msg]);
-				return null;
+				return new ThemeSaveResponse(409, $msg);
 			}
 
 			$themeToSave = [
@@ -271,18 +269,14 @@ class ThemeEditPage extends Responder
 			{
 				if (!array_key_exists($colorId, $currentTheme['themeColors']))
 				{
-					http_response_code(400);
-					echo json_encode(['error' => 'Theme color not part of theme']);
-					return null;
+					return new ThemeSaveResponse(400, ['error' => 'Theme color not part of theme']);
 				}
 
 				$theme_color = $currentTheme['themeColors'][$colorId];
 
 				if (isSystemColor($theme_color))
 				{
-					http_response_code(400);
-					echo json_encode(['error' => 'Cannot delete system color from theme']);
-					return null;
+					return new ThemeSaveResponse(400, ['error' => 'Cannot delete system color from theme']);
 				}
 
 				$this->db->deleteThemeColor($colorId);
@@ -299,20 +293,31 @@ class ThemeEditPage extends Responder
 
 			foreach ($theme->themeColors->items as $colorId => $color)
 			{
-				if (!array_key_exists($colorId, $currentTheme['themeColors']))
+				if (!\array_key_exists($colorId, $currentTheme['themeColors']))
 				{
-					http_response_code(400);
-					echo json_encode(['error' => 'Theme color not part of theme']);
-					return null;
+					return new ThemeSaveResponse(400, ['error' => 'Theme color not part of theme']);
 				}
 
 				$current_color = $currentTheme['themeColors'][$colorId];
 				if (isSystemColor($current_color)
 					&& ($current_color['name'] !== $color->name))
 				{
-					http_response_code(400);
-					echo json_encode(['error' => 'System color names are constant']);
-					return null;
+					return new ThemeSaveResponse(400, ['error' => 'System color names are constant']);
+				}
+
+				if (!self::isName($color->name))
+				{
+					return new ThemeSaveResponse(400, ['error' => 'Theme color name is invalid']);
+				}
+
+				if (!\array_key_exists($color->palette_color, $currentTheme['palette']['colors']))
+				{
+					return new ThemeSaveResponse(400, ['error' => 'Palette color does not belong to palette']);
+				}
+
+				if ($color->lightness < 0 || $color->lightness > 1)
+				{
+					return new ThemeSaveResponse(400, ['error' => 'Palette color lightness is not in range (0-1)']);
 				}
 
 				$themeToSave['themeColors'][$colorId] = [
@@ -325,18 +330,14 @@ class ThemeEditPage extends Responder
 
 			foreach ($theme->mappings as $mappingId => $mapping)
 			{
-				if (!array_key_exists($mappingId, $currentTheme['mappings']))
+				if (!\array_key_exists($mappingId, $currentTheme['mappings']))
 				{
-					http_response_code(400);
-					echo json_encode(['error' => 'Mapping not part of theme']);
-					return null;
+					return new ThemeSaveResponse(400, ['error' => 'Mapping not part of theme']);
 				}
 
-				if (!array_key_exists($mapping->theme_color, $currentTheme['themeColors']))
+				if (!\array_key_exists($mapping->theme_color, $currentTheme['themeColors']))
 				{
-					http_response_code(400);
-					echo json_encode(['error' => 'Mapping theme color not part of theme']);
-					return null;
+					return new ThemeSaveResponse(400, ['error' => 'Mapping theme color not part of theme']);
 				}
 
 				$currentMapping = $currentTheme['mappings'][$mappingId];
@@ -351,20 +352,23 @@ class ThemeEditPage extends Responder
 
 			$this->db->saveTheme($themeToSave);
 
-			if ($req->status === 'inactive')
+			if ($req->status === 'light' || $req->status === 'dark')
+			{
+				$this->db->activateTheme($req->status, $id);
+			}
+			else if ($req->status === 'inactive')
 			{
 				$this->db->deactivateTheme($id);
 			}
 			else
 			{
-				$this->db->activateTheme($req->status, $id);
+				return new ThemeSaveResponse(400, ['error' => 'Invalid theme status']);
 			}
 
-			echo \json_encode([
+			return new ThemeSaveResponse(200, [
 				'mappedColors' => $mappedColors,
 				'newSaveKey' => $token->key
 			]);
-			return null;
 		}
 		finally
 		{
@@ -472,7 +476,7 @@ class ThemeSaveResponse extends Responder
 {
 	public function __construct(
 		public int $code,
-		public ?string $error
+		public string|array $errorOrBody,
 	)
 	{ }
 
@@ -480,11 +484,11 @@ class ThemeSaveResponse extends Responder
 	{
 		\http_response_code($this->code);
 		\header('Content-Type: application/json');
-		$body = [];
-		if ($error)
-			$body['error'] = $this->error;
+		if (\is_array($this->errorOrBody))
+			echo \json_encode($this->errorOrBody);
+		else
+			echo \json_encode(['error' => $this->errorOrBody]);
 
-		echo \json_encode($body);
 		return null;
 	}
 }
