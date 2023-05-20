@@ -18,6 +18,7 @@ import { AutoSaveForm } from '../autosave/AutoSaveForm';
 import { SaveIndicator } from '../autosave/SaveIndicator';
 import { SRGB } from '../srgb';
 import { ErrorBanner } from '../ErrorBanner';
+import { IInputField } from '../InputField';
 
 import './themeEdit.scss';
 
@@ -110,6 +111,21 @@ interface IPageModel
 	available_palettes: JsonMap<IPalettePreview>;
 	status: ThemeStatus;
 	app_colors: JsonMap<AppColors>;
+	nameField: IInputField;
+}
+
+interface IFieldValidity
+{
+	name: boolean;
+}
+
+function fieldsAreValid(fields: IFieldValidity): boolean
+{
+	const { name } = fields;
+	if (!name)
+		return false;
+
+	return true;
 }
 
 interface IEditState
@@ -124,6 +140,7 @@ interface IEditState
 	savedStatus: ThemeStatus;
 	selectedAppName: string;
 	errorMsg: string | null;
+	fieldValidity: IFieldValidity;
 }
 
 const ThemeDispatchContext = createContext(null);
@@ -137,12 +154,17 @@ interface ISetNameAction
 {
 	type: 'setName';
 	value: string;
+	isValid: boolean;
 }
 
 function useSetName()
 {
 	const dispatch = useDispatch();
-	return (name: string) => dispatch({ type: 'setName', value: name });
+	return (name: string, isValid: boolean) => dispatch({
+		type: 'setName',
+		value: name,
+		isValid
+	});
 }
 
 interface IBeginSaveAction
@@ -299,6 +321,8 @@ function reducer(state: IEditState, action: EditAction)
 		errorMsg
 	} = state;
 
+	const fieldValidity = structuredClone(state.fieldValidity);
+
 	const findThemeColor = (id: string) => {
 		const { items, newItems } = theme.themeColors;
 		
@@ -310,6 +334,7 @@ function reducer(state: IEditState, action: EditAction)
 	if (action.type === 'setName')
 	{
 		theme.name = action.value;
+		fieldValidity.name = action.isValid;
 	}
 	else if (action.type === 'beginSave')
 	{
@@ -457,7 +482,8 @@ function reducer(state: IEditState, action: EditAction)
 		status,
 		savedStatus,
 		selectedAppName,
-		errorMsg
+		errorMsg,
+		fieldValidity
 	};
 }
 
@@ -508,16 +534,17 @@ function pageHasChange(state: IEditState): boolean
 interface IThemeNameProps
 {
 	name: string;
+	field: IInputField;
 }
 
 function ThemeName(props: IThemeNameProps)
 {
-	const { name } = props;
+	const { name, field } = props;
 
 	const setName = useSetName();
 
 	const onChangeName = useCallback((e: InputChangeEvent) => {
-		setName(e.target.value);
+		setName(e.target.value, e.target.reportValidity());
 	}, []);
 
 	return <label> name:
@@ -526,6 +553,7 @@ function ThemeName(props: IThemeNameProps)
 			className="theme-name"
 			value={name}
 			onChange={onChangeName}
+			{...field}
 			/>
 	</label>;
 }
@@ -588,15 +616,17 @@ interface IThemePropertiesProps
 	currentPaletteId: number | null;
 	palettes: JsonMap<IPalettePreview>;
 	status: ThemeStatus;
+	nameField: IInputField;
 }
-
+ 
 function ThemeProperties(props: IThemePropertiesProps)
 {
 	const {
 		theme,
 		palettes,
 		currentPaletteId,
-		status
+		status,
+		nameField
 	} = props;
 
 	const { name } = theme;
@@ -621,7 +651,7 @@ function ThemeProperties(props: IThemePropertiesProps)
 	});
 
 	return <Section title="Theme properties">
-		<ThemeName name={name} />
+		<ThemeName name={name} field={nameField} />
 		<div>
 			<label> palette:
 			<button
@@ -969,12 +999,22 @@ function Page(props: IPageModel)
 		status: props.status,
 		savedStatus: props.status,
 		selectedAppName: 'shell',
-		errorMsg: null
+		errorMsg: null,
+		fieldValidity: {
+			name: true
+		}
 	};
 
 	const [state, dispatch] = useReducer(reducer, initialState);
 
-	const { isSaving, theme, savedTheme, status, errorMsg } = state;
+	const {
+		isSaving,
+		theme,
+		savedTheme,
+		status,
+		errorMsg,
+		fieldValidity
+	} = state;
 
 	const hasChange = pageHasChange(state);
 
@@ -988,7 +1028,8 @@ function Page(props: IPageModel)
 		dispatch({ type: 'endSave', response, request });
 	}, [theme, status]);
 
-	const shouldSave = hasChange && !errorMsg;
+	const fieldsValid = fieldsAreValid(fieldValidity);
+	const shouldSave = hasChange && !errorMsg && fieldsValid;
 
 	return <div className="editor">
 			{errorMsg && <ErrorBanner msg={errorMsg} />}
@@ -1009,6 +1050,7 @@ function Page(props: IPageModel)
 						currentPaletteId={savedTheme.palette?.id}
 						palettes={props.available_palettes}
 						status={status}
+						nameField={props.nameField}
 					/>
 					<ThemeColors
 						colors={theme.themeColors}
@@ -1023,7 +1065,10 @@ function Page(props: IPageModel)
 					/>
 				</div>
 				<p className="status-bar">
-					<SaveIndicator isSaving={shouldSave || isSaving} hasError={!!errorMsg} />
+					<SaveIndicator
+						isSaving={shouldSave || isSaving}
+						hasError={!!errorMsg || !fieldsValid}
+					/>
 				</p>
 			</ThemeDispatchContext.Provider>
 		</div>;

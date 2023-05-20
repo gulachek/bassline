@@ -19,6 +19,19 @@ class ThemeEditPage extends Responder
 	{
 	}
 
+	private static function nameField(): InputField
+	{
+		return new InputField(
+			title: 'Letters, numbers, and spaces',
+			pattern: self::NAME_PATTERN
+		);
+	}
+
+	private static function isName(?string $name): bool
+	{
+		return self::nameField()->validate($name);
+	}
+
 	private function parsePattern(string $name, string $pattern): ?string
 	{
 		if (empty($_REQUEST[$name]))
@@ -173,7 +186,7 @@ class ThemeEditPage extends Responder
 
 			$model = [
 				'theme' => $theme,
-				'name_pattern' => self::NAME_PATTERN,
+				'nameField' => self::nameField(),
 				'available_palettes' => $available_palettes,
 				'status' => $status,
 				'app_colors' => $this->colors,
@@ -218,6 +231,24 @@ class ThemeEditPage extends Responder
 			$id = $theme->id;
 
 			$currentTheme = $this->db->loadTheme($id);
+
+			if (!$currentTheme)
+			{
+				$msg = "Theme '$id' not found";
+
+				\http_response_code(404);
+				echo \json_encode(['error' => $msg]);
+				return null;
+			}
+
+			if (!self::isName($theme->name))
+			{
+				$msg = "Invalid theme name '{$theme->name}'";
+
+				\http_response_code(400);
+				echo \json_encode(['error' => $msg]);
+				return null;
+			}
 
 			$token = $this->tryReserveTheme($arg->uid(),
 				$currentTheme, $theme->saveKey);
