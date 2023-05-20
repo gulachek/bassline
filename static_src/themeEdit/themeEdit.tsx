@@ -117,13 +117,18 @@ interface IPageModel
 interface IFieldValidity
 {
 	name: boolean;
+	colors: Map<string, boolean>;
 }
 
 function fieldsAreValid(fields: IFieldValidity): boolean
 {
-	const { name } = fields;
+	const { name, colors } = fields;
 	if (!name)
 		return false;
+
+	for (const [id, isValid] of colors)
+		if (!isValid)
+			return false;
 
 	return true;
 }
@@ -197,13 +202,14 @@ interface ISetColorNameAction
 	type: 'setColorName';
 	id: string;
 	name: string;
+	isValid: boolean;
 }
 
 function useSetColorName()
 {
 	const dispatch = useDispatch();
-	return (id: string, name: string) => dispatch({
-		type: 'setColorName', id, name
+	return (id: string, name: string, isValid: boolean) => dispatch({
+		type: 'setColorName', id, name, isValid
 	});
 }
 
@@ -387,8 +393,9 @@ function reducer(state: IEditState, action: EditAction)
 	}
 	else if (action.type === 'setColorName')
 	{
-		const { id, name } = action;
+		const { id, name, isValid } = action;
 		findThemeColor(id).name = name;
+		fieldValidity.colors.set(id, isValid);
 	}
 	else if (action.type === 'setColorLightness')
 	{
@@ -421,6 +428,7 @@ function reducer(state: IEditState, action: EditAction)
 		const tempId = `temp${tempIdCounter++}`;
 		theme.themeColors.newItems[tempId] = newColor;
 		selectedColorId = tempId;
+		fieldValidity.colors.set(tempId, true);
 	}
 	else if (action.type === 'deleteColor')
 	{
@@ -442,6 +450,7 @@ function reducer(state: IEditState, action: EditAction)
 				delete items[id];
 			}
 			if (id in newItems) delete newItems[id];
+			fieldValidity.colors.delete(id);
 
 			// TODO: only allow mapping to real items (not newItems)
 			const replaceId = Object.keys(items).find(elem => elem !== id);
@@ -741,11 +750,12 @@ interface IThemeColorsProps
 	colors: IEditableMap<IThemeColor>;
 	palette: IPalette;
 	selectedColorId: string;
+	nameField: IInputField;
 }
 
 function ThemeColors(props: IThemeColorsProps)
 {
-	const { colors, palette, selectedColorId } = props;
+	const { colors, palette, selectedColorId, nameField } = props;
 	const { items, newItems } = colors;
 
 	const dispatch = useContext(ThemeDispatchContext);
@@ -753,7 +763,7 @@ function ThemeColors(props: IThemeColorsProps)
 	const setColorName = useSetColorName();
 
 	const setName = useCallback((e: InputChangeEvent) => {
-		setColorName(selectedColorId, e.target.value);
+		setColorName(selectedColorId, e.target.value, e.target.reportValidity());
 	}, [selectedColorId]);
 
 	const setLightnessFn = useSetColorLightness();
@@ -861,6 +871,7 @@ function ThemeColors(props: IThemeColorsProps)
 				className="current-theme-color-name"
 				value={selectedColor.name}
 				onChange={setName}
+				{...nameField}
 			/>
 			<button className="add-color" onClick={addColor}> + </button>
 			<button
@@ -1001,9 +1012,13 @@ function Page(props: IPageModel)
 		selectedAppName: 'shell',
 		errorMsg: null,
 		fieldValidity: {
-			name: true
+			name: true,
+			colors: new Map<string, boolean>()
 		}
 	};
+
+	for (const id in props.theme.themeColors)
+		initialState.fieldValidity.colors.set(id, true);
 
 	const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -1056,6 +1071,7 @@ function Page(props: IPageModel)
 						colors={theme.themeColors}
 						palette={savedTheme.palette}
 						selectedColorId={state.selectedColorId}
+						nameField={props.nameField}
 					/>
 					<ThemeMappings
 						selectedAppName={state.selectedAppName}
