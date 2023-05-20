@@ -234,20 +234,14 @@ class ThemeEditPage extends Responder
 
 			if (!$currentTheme)
 			{
-				$msg = "Theme '$id' not found";
-
-				\http_response_code(404);
-				echo \json_encode(['error' => $msg]);
-				return null;
+				return new ThemeSaveResponse(404,
+					"Theme '$id' not found");
 			}
 
 			if (!self::isName($theme->name))
 			{
-				$msg = "Invalid theme name '{$theme->name}'";
-
-				\http_response_code(400);
-				echo \json_encode(['error' => $msg]);
-				return null;
+				return new ThemeSaveResponse(400,
+					"Invalid theme name '{$theme->name}'");
 			}
 
 			$token = $this->tryReserveTheme($arg->uid(),
@@ -472,4 +466,25 @@ class ThemeSaveRequest
 {
 	public EditedTheme $theme;
 	public string $status;
+}
+
+class ThemeSaveResponse extends Responder
+{
+	public function __construct(
+		public int $code,
+		public ?string $error
+	)
+	{ }
+
+	public function respond(RespondArg $arg): mixed
+	{
+		\http_response_code($this->code);
+		\header('Content-Type: application/json');
+		$body = [];
+		if ($error)
+			$body['error'] = $this->error;
+
+		echo \json_encode($body);
+		return null;
+	}
 }
