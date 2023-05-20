@@ -16,12 +16,20 @@
 	@return $colors;
 }
 
-.theme-color-edit {
-	display: block;
+.theme-color-buttons {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.5em;
 	margin: 0.5em;
+}
 
-	&.selected::before {
-		content: "*";
+.theme-color-edit {
+	display: flex;
+	justify-content: space-between;
+
+	&.selected {
+		background-color: var(--system-theme-selected-item);
+		color: var(--system-theme-selected-item-text);
 	}
 }
 
@@ -58,7 +66,3 @@ input[type="text"] {
 	gap: 0.25em;
 }
 
-.theme-color-buttons {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-}
