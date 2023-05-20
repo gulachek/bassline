@@ -367,6 +367,8 @@ function reducer(state: IEditState, action: EditAction)
 			{
 				const mappedId = response.mappedColors[tempId];
 
+				fieldValidity.colors.set(`${mappedId}`, fieldValidity.colors.get(tempId));
+				fieldValidity.colors.delete(tempId);
 				items[mappedId] = newItems[tempId];
 				delete newItems[tempId]; 
 
@@ -681,13 +683,14 @@ interface IThemeColorEditProps
 	themeColor: IThemeColor;
 	id: string;
 	selected: boolean;
+	isValid: boolean;
 	palette: Map<number, SRGB>;
 	paletteColorName: string;
 }
 
 function ThemeColorEdit(props: IThemeColorEditProps)
 {
-	const { themeColor, id, selected, palette, paletteColorName } = props;
+	const { themeColor, id, selected, palette, paletteColorName, isValid } = props;
 	const { name, palette_color, lightness } = themeColor;
 
 	const dispatch = useContext(ThemeDispatchContext);
@@ -699,6 +702,7 @@ function ThemeColorEdit(props: IThemeColorEditProps)
 
 	let className = 'theme-color-edit';
 	if (selected) className += ' selected';
+	if (!isValid) className += ' invalid';
 	return <button
 		className={className}
 		data-color={paletteColorName}
@@ -733,13 +737,17 @@ interface IColoredButtonProps
 	color: string;
 	text: string;
 	onClick(): void;
+	selected?: boolean;
 }
 
 function ColoredButton(props: IColoredButtonProps)
 {
-	const { color, text, onClick } = props;
+	const { color, text, onClick, selected } = props;
 
-	return <button onClick={onClick}>
+	let className = 'colored-button';
+	if (selected) className += ' selected';
+
+	return <button className={className} onClick={onClick}>
 		{text}
 		<ColorIndicator value={color} />
 	</button>;
@@ -751,11 +759,12 @@ interface IThemeColorsProps
 	palette: IPalette;
 	selectedColorId: string;
 	nameField: IInputField;
+	colorValidity: Map<string, boolean>;
 }
 
 function ThemeColors(props: IThemeColorsProps)
 {
-	const { colors, palette, selectedColorId, nameField } = props;
+	const { colors, palette, selectedColorId, nameField, colorValidity } = props;
 	const { items, newItems } = colors;
 
 	const dispatch = useContext(ThemeDispatchContext);
@@ -772,8 +781,11 @@ function ThemeColors(props: IThemeColorsProps)
 		setLightnessFn(selectedColorId, e.target.valueAsNumber);
 	}, [selectedColorId]);
 
+	const inputRef = useRef<HTMLInputElement>();
+
 	// make this selenium-testable
 	useEffect(() => {
+		inputRef.current?.reportValidity();
 		(window as any)._setThemeColorLightness = (val: number): void => {
 			setLightnessFn(selectedColorId, val);
 		};
@@ -813,7 +825,7 @@ function ThemeColors(props: IThemeColorsProps)
 		const selected = id === selectedColorId; 
 		if (selected) selectedColor = item;
 		names.push(<ThemeColorEdit
-			palette={paletteSrgb}
+			palette={paletteSrgb} isValid={colorValidity.get(id)}
 			key={id} themeColor={item} id={id} selected={selected}
 			paletteColorName={palette.colors[`${item.palette_color}`].name}
 			/>);
@@ -840,10 +852,9 @@ function ThemeColors(props: IThemeColorsProps)
 			id: selectedColorId,
 		});
 
-		const btnText = id === selectedColor.palette_color ? `*${name}` : name;
-
-		paletteBtns.push(<ColoredButton key={id} text={btnText}
+		paletteBtns.push(<ColoredButton key={id} text={name}
 			onClick={setColor}
+			selected={id === selectedColor.palette_color}
 			color={withLightness(srgb, lightness).toHex()} />);
 	}
 
@@ -856,7 +867,7 @@ function ThemeColors(props: IThemeColorsProps)
 		<div className="color-editors">
 		<fieldset className="color-editor">
 			<legend> Palette Color </legend>
-			<div> {paletteBtns} </div>
+			<div className="palette-buttons"> {paletteBtns} </div>
 			<label> lightness:
 			<input type="range" min="0" max="1" step="0.01"
 				value={selectedColor.lightness}
@@ -866,7 +877,7 @@ function ThemeColors(props: IThemeColorsProps)
 		</fieldset>
 		</div>
 		<div>
-			<input type="text"
+			<input type="text" ref={inputRef}
 				disabled={isSystem}
 				className="current-theme-color-name"
 				value={selectedColor.name}
@@ -1072,6 +1083,7 @@ function Page(props: IPageModel)
 						palette={savedTheme.palette}
 						selectedColorId={state.selectedColorId}
 						nameField={props.nameField}
+						colorValidity={fieldValidity.colors}
 					/>
 					<ThemeMappings
 						selectedAppName={state.selectedAppName}

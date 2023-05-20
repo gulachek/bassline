@@ -16,16 +16,30 @@
 	@return $colors;
 }
 
-.theme-color-buttons {
+@mixin button-grid {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
 	gap: 0.5em;
 	margin: 0.5em;
 }
 
-.theme-color-edit {
-	display: flex;
+.theme-color-buttons {
+	@include button-grid;
+	grid-template-columns: 1fr 1fr;
+}
+
+.palette-buttons {
+	@include button-grid;
+	grid-template-columns: repeat(3, 1fr);
+}
+
+.theme-color-edit, .colored-button {
+	display: inline-flex;
 	justify-content: space-between;
+
+	&.invalid {
+		background-color: var(--system-theme-error);
+		color: var(--system-theme-error-text);
+	}
 
 	&.selected {
 		background-color: var(--system-theme-selected-item);
