@@ -103,7 +103,7 @@ class InstallDatabase
 				{
 					if ($err)
 					{
-						\array_push([
+						\array_push($errors, [
 							'app' => $key,
 							'err' => "Failed to install() app '$key': $err"
 						]);
@@ -121,7 +121,7 @@ class InstallDatabase
 			{
 				// was installed, now it isn't. clearly no code to run and we don't know
 				// how to clean up, so best we can do is inform the user
-				\array_push([
+				\array_push($errors, [
 				 	'app' => $key,
 					'err' => "App '$key' was previously installed and still has data on the system, but it is no longer used by this server. Did you rename it?"
 				]);
@@ -145,7 +145,7 @@ class InstallDatabase
 					{
 						if ($err)
 						{
-							\array_push([
+							\array_push($errors, [
 								'app' => $key,
 								'err' => "Failed to upgradeFromVersion() app '$key' from '$installed' to '$src': $err"
 							]);
@@ -159,9 +159,9 @@ class InstallDatabase
 						}
 					}
 				}
-				else
+				else if ($src->isLessThan($installed))
 				{
-					\array_push([
+					\array_push($errors, [
 						'app' => $key,
 						'err' => "Cannot downgrade app '$key' from '$installed' to '$src'"
 					]);
