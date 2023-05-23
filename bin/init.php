@@ -12,7 +12,7 @@ if (!$prjDir)
 
 if ($argc < 2)
 {
-	echo "Usage: {$argv[0]} <config>\n";
+	echo "Usage: {$argv[0]} <config> [--skip-client-build]\n";
 	exit(1);
 }
 
@@ -23,4 +23,5 @@ if (!$server->initializeSystem())
 	exit(1);
 }
 
-\system("$prjDir/bin/build-client.sh");
+if ($argc < 3 || $argv[2] !== '--skip-client-build')
+	\system("$prjDir/bin/build-client.sh");
