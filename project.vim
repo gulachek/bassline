@@ -7,7 +7,7 @@ set makeprg=node\ make.js
 nnoremap <Leader>b :!node make.js<CR>
 
 " test
-nnoremap <Leader>t :!test/uitest.py<CR>
+nnoremap <Leader>t :!scripts/test.sh<CR>
 
 " reset
 nnoremap <Leader>r :!scripts/reset.sh<CR>

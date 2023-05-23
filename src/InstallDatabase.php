@@ -4,21 +4,27 @@ namespace Gulachek\Bassline;
 
 class InstallDatabase
 {
-	private Database $db;
-
 	public function __construct(
-		private string $data_dir
+		private Database $db
 	)
 	{
-		$this->db = new Database(new \Sqlite3("$data_dir/install.db"));
 		$this->db->mountNamedQueries(__DIR__ . '/../sql');
-		//$this->db->attach('color', "$data_dir/color.db");
-		//$this->db->attach('security', "$data_dir/security.db");
 	}
 
-	static function fromConfig(Config $config): InstallDatabase
+	public static function createInMemory()
 	{
-		return new InstallDatabase($config->dataDir());
+		return self::fromSqlite3(new \Sqlite3(':memory:'));
+	}
+
+	public static function fromSqlite3(\Sqlite3 $db)
+	{
+		return new InstallDatabase(new Database($db));
+	}
+
+	public static function fromConfig(Config $config): InstallDatabase
+	{
+		$data_dir = $config->dataDir();
+		return self::fromSqlite3(new \Sqlite3("$data_dir/install.db"));
 	}
 
 	public function lock(): bool
@@ -168,9 +174,10 @@ class InstallDatabase
 				}
 			}
 
-			$set_version->close();
-			return $errors;
 		}
+
+		$set_version->close();
+		return $errors;
 	}
 
 
