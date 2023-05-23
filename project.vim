@@ -8,3 +8,6 @@ nnoremap <Leader>b :!node make.js<CR>
 
 " test
 nnoremap <Leader>t :!test/uitest.py<CR>
+
+" reset
+nnoremap <Leader>r :!scripts/reset.sh<CR>

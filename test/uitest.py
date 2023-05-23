@@ -241,11 +241,11 @@ class TestTheme(unittest.TestCase):
         # Can only map real colors
         edit.waitSave()
 
-        edit.mapColor('shell', 'banner-bg', 'First')
-        edit.mapColor('shell', 'banner-fg', 'First Fg')
-        edit.mapColor('shell', 'banner-hover-bg', 'Christmas')
-        edit.mapColor('hello', 'greeting-bg', 'Christmas')
-        edit.mapColor('hello', 'title-bg', 'Delete me') # don't care about result, just that we handle it
+        edit.mapColor('shell', 'bl-banner', 'First')
+        edit.mapColor('shell', 'bl-banner-text', 'First Fg')
+        edit.mapColor('shell', 'bl-banner-hover', 'Christmas')
+        edit.mapColor('hello', 'greeting', 'Christmas')
+        edit.mapColor('hello', 'title', 'Delete me') # don't care about result, just that we handle it
 
         edit.deleteThemeColor('Delete me')
 
@@ -270,10 +270,10 @@ class TestTheme(unittest.TestCase):
         self.assertFalse('Delete me' in colors)
 
         mappings = edit.mappings()
-        self.assertEqual('First', mappings['shell']['banner-bg'])
-        self.assertEqual('First Fg', mappings['shell']['banner-fg'])
-        self.assertEqual('Christmas', mappings['shell']['banner-hover-bg'])
-        self.assertEqual('Christmas', mappings['hello']['greeting-bg'])
+        self.assertEqual('First', mappings['shell']['bl-banner'])
+        self.assertEqual('First Fg', mappings['shell']['bl-banner-text'])
+        self.assertEqual('Christmas', mappings['shell']['bl-banner-hover'])
+        self.assertEqual('Christmas', mappings['hello']['greeting'])
 
 if __name__ == '__main__':
     unittest.main()

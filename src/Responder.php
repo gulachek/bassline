@@ -139,6 +139,7 @@ class RespondArg
 				break;
 		}
 
+		$APP = $this->app_key;
 		$SITE_NAME = $this->config->siteName();
 		$APPS = $this->config->apps();
 		$SHOW_ADMIN_LINK =

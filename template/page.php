@@ -9,6 +9,7 @@
 <script src="/assets/components.js"></script>
 
 <link rel="stylesheet" type="text/css" href="/shell/theme.css?app=shell" />
+<link rel="stylesheet" type="text/css" href="/shell/theme.css?app=<?=text($APP)?>" />
 <link rel="stylesheet" type="text/css" href="/assets/main.css" />
 </head>
 

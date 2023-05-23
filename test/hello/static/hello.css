@@ -1,0 +1,9 @@
+.title {
+	background-color: var(--theme-title);
+	color: var(--theme-title-text);
+}
+
+.greeting {
+	background-color: var(--theme-greeting);
+	color: var(--theme-greeting-text);
+}

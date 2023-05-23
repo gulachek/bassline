@@ -34,8 +34,8 @@ body {
 }
 
 .nav-bar {
-	background-color: var(--theme-banner-bg);
-	color: var(--theme-banner-fg);
+	background-color: var(--theme-bl-banner);
+	color: var(--theme-bl-banner-text);
 	border-bottom: solid 1px;
 	width: 100%;
 
@@ -53,13 +53,13 @@ body {
 	}
 
 	a, span {
-		color: var(--theme-banner-fg);
+		color: var(--theme-bl-banner-text);
 		text-decoration: none;
 		padding: 0.5em;
 
 		&:hover {
-			background-color: var(--theme-banner-hover-bg);
-			color: var(--theme-banner-hover-fg);
+			background-color: var(--theme-bl-banner-hover);
+			color: var(--theme-bl-banner-hover-text);
 		}
 	}
 
@@ -70,7 +70,7 @@ body {
 		text-align: center;
 
 		.items {
-			background-color: var(--theme-banner-bg);
+			background-color: var(--theme-bl-banner);
 			display: flex;
 			flex-direction: column;
 			visibility: hidden;
@@ -85,8 +85,8 @@ body {
 			}
 
 			& > *:hover {
-				background-color: var(--theme-banner-hover-bg);
-				color: var(--theme-banner-hover-fg);
+				background-color: var(--theme-bl-banner-hover);
+				color: var(--theme-bl-banner-hover-text);
 			}
 		}
 

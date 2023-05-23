@@ -69,22 +69,22 @@ class App extends \Gulachek\Bassline\App
 	public function colors(): array
 	{
 		return [
-			'greeting-bg' => [
+			'greeting' => [
 				'description' => 'Background color for a greeting, duh?',
 				'example-uri' => '/',
 				'default-system' => \Gulachek\Bassline\SystemColor::CANVAS,
 			],
-			'greeting-fg' => [
+			'greeting-text' => [
 				'description' => 'Text color for a greeting, duh?',
 				'example-uri' => '/',
 				'default-system' => \Gulachek\Bassline\SystemColor::CANVAS_TEXT,
 			],
-			'title-bg' => [
+			'title' => [
 				'description' => 'Background color for someone\'s title',
 				'example-uri' => '/',
 				'default-system' => \Gulachek\Bassline\SystemColor::CANVAS,
 			],
-			'title-fg' => [
+			'title-text' => [
 				'description' => 'Text color for someone\'s title',
 				'example-uri' => '/',
 				'default-system' => \Gulachek\Bassline\SystemColor::CANVAS_TEXT,

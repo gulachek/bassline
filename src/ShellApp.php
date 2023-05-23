@@ -108,23 +108,23 @@ class ShellApp extends App
 	public function colors(): array
 	{
 		return [
-			'banner-bg' => [
+			'bl-banner' => [
 				'description' => 'The website navbar banner color',
 				'example-uri' => '/',
 				'default-system' => SystemColor::CANVAS,
 			],
-			'banner-fg' => [
-				'description' => 'The website navbar banner color',
+			'bl-banner-text' => [
+				'description' => 'Text color in the navbar banner',
 				'example-uri' => '/',
 				'default-system' => SystemColor::CANVAS_TEXT,
 			],
-			'banner-hover-bg' => [
+			'bl-banner-hover' => [
 				'description' => 'Color of hovered site-wide navbar items',
 				'example-uri' => '/',
 				'default-system' => SystemColor::HIGHLIGHT,
 			],
-			'banner-hover-fg' => [
-				'description' => 'Color of hovered site-wide navbar items',
+			'bl-banner-hover-text' => [
+				'description' => 'Text color of hovered site-wide navbar items',
 				'example-uri' => '/',
 				'default-system' => SystemColor::HIGHLIGHT_TEXT,
 			],
