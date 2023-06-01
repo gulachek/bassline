@@ -124,8 +124,6 @@ class UserEditPage extends Responder
 				'errorMsg' => 'Bad request'
 			]);
 
-		// TODO validate request more strictly
-
 		if (!$this->db->lock())
 			return new UserSaveResponse(503, [
 				'errorMsg' => 'System unavailable'

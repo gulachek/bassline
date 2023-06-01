@@ -208,7 +208,6 @@ class ThemeEditPage extends Responder
 
 	private function saveTheme(RespondArg $arg): mixed
 	{
-		// TODO: scrutinize client input
 		$req = $arg->parseBody(ThemeSaveRequest::class);
 		if (!$req)
 		{
