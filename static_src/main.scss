@@ -22,14 +22,15 @@ body {
 }
 
 .main {
-	overflow-y: hidden;
 	flex: auto;
 
 	&.layout-manual {
+		overflow-y: hidden;
 	}
 
 	&.layout-auto {
-		margin: 0.5em 1em;
+		overflow-y: auto;
+		padding: 0.5em 1em;
 	}
 }
 
