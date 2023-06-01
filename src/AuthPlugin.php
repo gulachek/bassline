@@ -2,6 +2,35 @@
 
 namespace Gulachek\Bassline;
 
+function origin(?string $uri): ?string
+{
+	if (!$uri)
+		return null;
+
+	$parsed = parse_url($uri);
+	if (!$parsed)
+		return null;
+
+	$origin = '';
+
+	if (\array_key_exists('scheme', $parsed))
+	{
+		$origin .= "{$parsed['scheme']}://";
+	}
+
+	if (\array_key_exists('host', $parsed))
+	{
+		$origin .= $parsed['host'];
+	}
+
+	if (\array_key_exists('port', $parsed))
+	{
+		$origin .= ":{$parsed['port']}";
+	}
+
+	return $origin;
+}
+
 abstract class AuthPlugin
 {
 	abstract function title(): string;
@@ -12,21 +41,21 @@ abstract class AuthPlugin
 	final public function invokeRenderLoginForm(string $key): void
 	{
 		$referrer = '/';
+
+		$referrer_origin = origin($_SERVER['HTTP_REFERER'] ?? null);
+		$host = $_SERVER['HTTP_HOST'] ?? "{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}";
 		$scheme = isset($_SERVER['HTTPS']) ? 'https' : 'http';
-		$self_origin = "$scheme://{$_SERVER['SERVER_NAME']}:{$_SERVER['SERVER_PORT']}";
-		if (array_key_exists('HTTP_REFERER', $_SERVER))
-		{
-			$referrer_origin = origin($_SERVER['HTTP_REFERER']);
-			if ($self_origin && $self_origin === $referrer_origin)
-			{
-				$referrer = $_SERVER['HTTP_REFERER'];
-			}
-		}
+		$host_origin = origin("$scheme://$host");
+
+		if ($referrer_origin && $referrer_origin === $host_origin)
+			$referrer = $_SERVER['HTTP_REFERER'];
 
 		$referrer = urlencode($referrer);
 		$auth = urlencode($key);
 
-		$post_uri = "$self_origin/login/attempt?auth=$auth&redirect_uri=$referrer";
+		$post_uri = "/login/attempt?auth=$auth&redirect_uri=$referrer";
+		if ($host_origin)
+			$post_uri = "$host_origin$post_uri";
 
 		$this->renderLoginForm($post_uri);
 	}

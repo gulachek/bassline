@@ -2,32 +2,6 @@
 
 namespace Gulachek\Bassline;
 
-function origin(string $uri): ?string
-{
-	$parsed = parse_url($uri);
-	if (!$parsed)
-		return null;
-
-	$origin = '';
-
-	if (array_key_exists('scheme', $parsed))
-	{
-		$origin .= "{$parsed['scheme']}://";
-	}
-
-	if (array_key_exists('host', $parsed))
-	{
-		$origin .= $parsed['host'];
-	}
-
-	if (array_key_exists('port', $parsed))
-	{
-		$origin .= ":{$parsed['port']}";
-	}
-
-	return $origin;
-}
-
 class LoginPage extends Responder
 {
 	public function __construct(

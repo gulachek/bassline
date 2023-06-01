@@ -64,7 +64,8 @@ class Site:
         subprocess.run([
             'php', 
             f"{rootDir}/bin/init.php",
-            f"{rootDir}/test/config.php"
+            f"{rootDir}/test/config.php",
+            "--skip-client-build"
             ], env=testEnv) 
 
         # Spawn web server

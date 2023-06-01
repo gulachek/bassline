@@ -25,7 +25,6 @@ class SignInWithGoogle extends AuthPlugin
 	{
 		$GOOGLE_CLIENT_ID = $this->db->googleClientId();
 		$SIWG_REQUEST_URI = $post_uri;
-
 		require(__DIR__ . '/../template/siwg_login_form.php');
 	}
 
