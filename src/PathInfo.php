@@ -14,8 +14,7 @@ class PathInfo
 		$this->info = \pathinfo($path);
 
 		$this->components = [];
-		foreach (\explode('/', $path) as $piece)
-		{
+		foreach (\explode('/', $path) as $piece) {
 			if (!empty($piece))
 				\array_push($this->components, $piece);
 		}
@@ -67,21 +66,18 @@ class PathInfo
 
 	public function at($i)
 	{
-		if ($i >= 0)
-		{
+		if ($i >= 0) {
 			if ($i >= $this->count())
 				throw new \Exception("Path component index out of bounds: $i");
 
 			return $this->components[$i];
-		}
-		else
+		} else
 			return $this->components[$this->count() + $i];
 	}
 
 	public function child(): ?PathInfo
 	{
-		if ($this->isRoot())
-		{
+		if ($this->isRoot()) {
 			return null;
 		}
 
@@ -94,20 +90,18 @@ class PathInfo
 		if ($this->isRoot())
 			return $this;
 
-		$components = \array_slice($this->components, 0, \count($this->components)-1);
+		$components = \array_slice($this->components, 0, \count($this->components) - 1);
 		return new PathInfo(\implode('/', $components));
 	}
 
 	public function concat(string $sub): PathInfo
 	{
 		$pieces = \array_slice($this->components, 0);
-		foreach (\explode('/', $sub) as $piece)
-		{
+		foreach (\explode('/', $sub) as $piece) {
 			if (empty($piece))
 				continue;
 
-			if ($piece === '..')
-			{
+			if ($piece === '..') {
 				\array_pop($pieces);
 				continue;
 			}
@@ -121,7 +115,7 @@ class PathInfo
 	public static function parseURI(string $uri): PathInfo
 	{
 		$parsed = \parse_url($uri);
-		return new PathInfo(\strtolower($parsed['path']));
+		return new PathInfo($parsed['path']);
 	}
 
 	public static function parseRequestURI(): ?PathInfo
