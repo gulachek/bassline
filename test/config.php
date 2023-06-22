@@ -8,7 +8,9 @@ use \Gulachek\Bassline\RespondArg;
 
 class TestConfig extends Config
 {
-	public function __construct() { }
+	public function __construct()
+	{
+	}
 
 	public function apps(): array
 	{
@@ -19,7 +21,7 @@ class TestConfig extends Config
 
 	public function siteName(): string
 	{
-		return 'My Website';
+		return 'My website name that wraps';
 	}
 
 	public function dataDir(): string
