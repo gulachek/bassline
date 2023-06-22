@@ -1,64 +1,68 @@
-@use '../clickable' as c;
+@use "../clickable" as c;
 
 .fixture {
-	display: flex;
-	flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .tab-list-container {
-	align-self: start;
-	display: grid;
+  align-self: start;
+  display: grid;
 }
 
 .tab-list {
-	grid-area: 1/1/2/2;
-	display: flex;
+  grid-area: 1/1/2/2;
+  display: flex;
 }
 
 .dropdown {
-	grid-area: 1/1/2/2;
-	justify-self: start;
-	padding: 1em;
-	margin: 0;
+  grid-area: 1/1/2/2;
+  justify-self: start;
+  padding: 1em;
+  margin: 0;
+
+  background-color: var(--system-theme-button-face);
+  color: var(--system-theme-button-text);
+  border-color: var(--system-theme-button-border);
 }
 
 .tab {
-	visibility: hidden;
-	width: max-content;
-	margin: 0;
+  visibility: hidden;
+  width: max-content;
+  margin: 0;
 
-	@include c.clickable();
+  @include c.clickable();
 }
 
 .tab.selected {
-	background-color: var(--system-theme-selected-item);
-	color: var(--system-theme-selected-item-text);
+  background-color: var(--system-theme-selected-item);
+  color: var(--system-theme-selected-item-text);
 }
 
 .tab-panel-container {
-	border-style: solid;
-	border-width: 1px;
-	display: grid;
-	overflow-x: auto;
+  border-style: solid;
+  border-width: 1px;
+  display: grid;
+  overflow-x: auto;
 }
 
 .tab-panel {
-	padding: 1em;
-	grid-area: 1 / 1 / 2 / 2;
-	visibility: hidden;
+  padding: 1em;
+  grid-area: 1 / 1 / 2 / 2;
+  visibility: hidden;
 }
 
 .tab-panel.selected {
-	visibility: visible;
+  visibility: visible;
 }
 
 @media (min-width: 8in) {
-	.dropdown {
-		visibility: hidden;
-	}
+  .dropdown {
+    visibility: hidden;
+  }
 
-	.tab {
-		visibility: visible;
-		width: initial;
-	}
+  .tab {
+    visibility: visible;
+    width: initial;
+  }
 }
