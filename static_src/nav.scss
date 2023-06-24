@@ -41,6 +41,8 @@
     }
 
     .icon {
+      display: contents;
+
       fill: var(--theme-bl-banner-text);
 
       &:hover {
