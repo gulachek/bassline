@@ -34,8 +34,7 @@
     text-decoration: none;
     padding: 0.5em;
 
-    &:hover,
-    &.click-hover {
+    &:hover {
       background-color: var(--theme-bl-banner-hover);
       color: var(--theme-bl-banner-hover-text);
     }
@@ -84,15 +83,14 @@
         min-width: max-content;
       }
 
-      & > *:hover,
-      & > .click-hover {
+      & > *:hover {
         background-color: var(--theme-bl-banner-hover);
         color: var(--theme-bl-banner-hover-text);
       }
     }
 
     &:hover > .items,
-    &.click-hover > .items {
+    &:focus-within > .items {
       visibility: visible;
     }
   }

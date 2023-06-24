@@ -38,7 +38,7 @@ function blLinkItem(string $href, string $text, string $iconPath)
 
 		<?php if (isset($USER)) : ?>
 			<div class="right">
-				<div class="item menu">
+				<div class="item menu" tabindex="0">
 					<span class="icon"> <?php include __DIR__ . '/svg/gear.svg' ?> </span>
 					<span class="item-text username"><?= text($USERNAME) ?></span>
 					<div class="items popup">
