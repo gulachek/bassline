@@ -1,3 +1,5 @@
+@use './nav.scss';
+
 body,
 dialog {
   color: var(--system-theme-canvas-text);
@@ -36,100 +38,7 @@ body {
   }
 }
 
-.nav-bar {
-  background-color: var(--theme-bl-banner);
-  color: var(--theme-bl-banner-text);
-  border-bottom: solid 1px;
-  width: 100%;
-
-  flex: none;
-
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-
-  .icon-link {
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: center;
-    gap: 0.5em;
-
-    .icon {
-      fill: var(--theme-bl-banner-text);
-
-      &:hover {
-        fill: var(--theme-bl-banner-hover-text);
-      }
-    }
-
-    .link-text {
-      display: none;
-    }
-  }
-
-  & > div {
-    display: flex;
-  }
-
-  .right {
-    justify-content: end;
-  }
-
-  a,
-  span:not(.link-text) {
-    color: var(--theme-bl-banner-text);
-    text-decoration: none;
-    padding: 0.5em;
-
-    &:hover {
-      background-color: var(--theme-bl-banner-hover);
-      color: var(--theme-bl-banner-hover-text);
-    }
-  }
-
-  .menu {
-    justify-self: end;
-
-    position: relative;
-    text-align: center;
-
-    .items {
-      background-color: var(--theme-bl-banner);
-      display: flex;
-      flex-direction: column;
-      visibility: hidden;
-      position: absolute;
-      top: 100%;
-      right: 0;
-      border: solid 1px;
-
-      & > * {
-        padding: 0.5em;
-        min-width: max-content;
-      }
-
-      & > *:hover {
-        background-color: var(--theme-bl-banner-hover);
-        color: var(--theme-bl-banner-hover-text);
-      }
-    }
-
-    &:hover > .items {
-      visibility: visible;
-    }
-  }
-}
-
-@media (min-width: 6in) {
-  .nav-bar {
-    .icon-link {
-      .link-text {
-        display: inline;
-      }
-    }
-  }
-}
-
-::selection {
+.nav-bar ::selection {
   background-color: var(--system-theme-highlight);
   color: var(--system-theme-highlight-text);
 }
@@ -174,7 +83,7 @@ fieldset {
 }
 
 button,
-input[type="submit"],
+input[type='submit'],
 select {
   color: var(--system-theme-button-text);
   border-color: var(--system-theme-button-border);

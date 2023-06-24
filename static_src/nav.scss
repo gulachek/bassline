@@ -1,0 +1,107 @@
+@mixin flex-row {
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+.nav-bar {
+  background-color: var(--theme-bl-banner);
+  color: var(--theme-bl-banner-text);
+  border-bottom: solid 1px;
+  width: 100%;
+
+  flex: none;
+
+  @include flex-row;
+
+  .left {
+    flex: auto;
+
+    @include flex-row;
+  }
+
+  .right {
+    flex: auto;
+
+    @include flex-row;
+    justify-content: end;
+  }
+
+  .item {
+    @include flex-row;
+    align-items: center;
+    gap: 0.5em;
+    color: var(--theme-bl-banner-text);
+    text-decoration: none;
+    padding: 0.5em;
+
+    &:hover,
+    &.click-hover {
+      background-color: var(--theme-bl-banner-hover);
+      color: var(--theme-bl-banner-hover-text);
+    }
+
+    .icon {
+      fill: var(--theme-bl-banner-text);
+
+      &:hover {
+        fill: var(--theme-bl-banner-hover-text);
+      }
+    }
+
+    .item-text {
+      display: none;
+    }
+  }
+
+  .popup {
+    .item {
+      .item-text {
+        display: inline;
+      }
+    }
+  }
+
+  .menu {
+    justify-self: end;
+
+    position: relative;
+    text-align: center;
+
+    .items {
+      background-color: var(--theme-bl-banner);
+      display: flex;
+      flex-direction: column;
+      visibility: hidden;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      border: solid 1px;
+
+      & > * {
+        padding: 0.5em;
+        min-width: max-content;
+      }
+
+      & > *:hover,
+      & > .click-hover {
+        background-color: var(--theme-bl-banner-hover);
+        color: var(--theme-bl-banner-hover-text);
+      }
+    }
+
+    &:hover > .items,
+    &.click-hover > .items {
+      visibility: visible;
+    }
+  }
+}
+
+@media (min-width: 6in) {
+  .nav-bar {
+    .item {
+      .item-text {
+        display: inline;
+      }
+    }
+  }
+}
