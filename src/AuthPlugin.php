@@ -13,18 +13,15 @@ function origin(?string $uri): ?string
 
 	$origin = '';
 
-	if (\array_key_exists('scheme', $parsed))
-	{
+	if (\array_key_exists('scheme', $parsed)) {
 		$origin .= "{$parsed['scheme']}://";
 	}
 
-	if (\array_key_exists('host', $parsed))
-	{
+	if (\array_key_exists('host', $parsed)) {
 		$origin .= $parsed['host'];
 	}
 
-	if (\array_key_exists('port', $parsed))
-	{
+	if (\array_key_exists('port', $parsed)) {
 		$origin .= ":{$parsed['port']}";
 	}
 
@@ -60,11 +57,16 @@ abstract class AuthPlugin
 		$this->renderLoginForm($post_uri);
 	}
 
+	public function isVisible(
+		SecurityDatabase $db
+	) {
+		return true;
+	}
+
 	protected function userEditData(
 		int $user_id,
 		SecurityDatabase $db
-	): ?array
-	{
+	): ?array {
 		return null;
 	}
 
@@ -73,8 +75,7 @@ abstract class AuthPlugin
 		array $data,
 		SecurityDatabase $db,
 		?string &$error
-	): bool
-	{
+	): bool {
 		$error = 'not supported';
 		return false;
 	}
@@ -84,16 +85,14 @@ abstract class AuthPlugin
 		array $data,
 		SecurityDatabase $db,
 		?string &$error
-	): bool
-	{
+	): bool {
 		return $this->saveUserEditData($user_id, $data, $db, $error);
 	}
 
 	final public function getUserEditData(
 		int $user_id,
 		SecurityDatabase $db
-	): ?array
-	{
+	): ?array {
 		$props = $this->userEditData($user_id, $db);
 		if (!$props)
 			return null;
@@ -111,8 +110,7 @@ abstract class AuthPlugin
 
 	protected function configEditData(
 		SecurityDatabase $db
-	): ?array
-	{
+	): ?array {
 		return null;
 	}
 
@@ -120,8 +118,7 @@ abstract class AuthPlugin
 		array $data,
 		SecurityDatabase $db,
 		?string &$error
-	): bool
-	{
+	): bool {
 		$error = 'not supported';
 		return false;
 	}
@@ -130,16 +127,14 @@ abstract class AuthPlugin
 		array $data,
 		SecurityDatabase $db,
 		?string &$error
-	): bool
-	{
+	): bool {
 		return $this->saveConfigEditData($data, $db, $error);
 	}
 
 	final public function getConfigEditData(
 		string $key,
 		SecurityDatabase $db
-	): ?array
-	{
+	): ?array {
 		$props = $this->configEditData($db);
 		if (!$props)
 			return null;

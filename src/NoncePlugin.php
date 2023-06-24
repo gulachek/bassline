@@ -6,8 +6,7 @@ class NoncePlugin extends AuthPlugin
 {
 	public function __construct(
 		private SecurityDatabase $db
-	)
-	{
+	) {
 	}
 
 	public function title(): string
@@ -18,6 +17,11 @@ class NoncePlugin extends AuthPlugin
 	public function enabled(): bool
 	{
 		return true;
+	}
+
+	public function isVisible(SecurityDatabase $db)
+	{
+		return $db->authPluginVisible('nonce');
 	}
 
 	protected function renderLoginForm(string $post_uri): void
@@ -33,5 +37,26 @@ class NoncePlugin extends AuthPlugin
 			return null;
 
 		return $this->db->nonceAuthUserId($_REQUEST['nonce']);
+	}
+
+	protected function saveConfigEditData(
+		array $data,
+		SecurityDatabase $db,
+		?string &$error
+	): bool {
+		$visible = \boolval($data['visible']);
+		$db->setAuthPluginVisible('nonce', $visible);
+		return true;
+	}
+
+	protected function configEditData(
+		SecurityDatabase $db
+	): ?array {
+		return [
+			'script' => '/assets/nonceConfigEdit.js',
+			'data' => [
+				'visible' => $this->isVisible($db)
+			]
+		];
 	}
 }

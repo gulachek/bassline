@@ -5,9 +5,9 @@
 <h1> Log in </h1>
 
 <nav-tab class="tab-strip">
-<?php foreach ($TEMPLATE['plugins'] as $key => $plugin): ?>
-	<tab-item key="<?=text($key)?>" title="<?=text($plugin->title())?>">
-		<?php $plugin->invokeRenderLoginForm($key); ?>
-	</tab-item>
-<?php endforeach; ?>
+	<?php foreach ($TEMPLATE['plugins'] as $key => $plugin) : ?>
+		<tab-item key="<?= text($key) ?>" title="<?= text($plugin->title()) ?>">
+			<?php $plugin->invokeRenderLoginForm($key); ?>
+		</tab-item>
+	<?php endforeach; ?>
 </nav-tab>

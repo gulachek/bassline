@@ -6,15 +6,14 @@ class SecurityDatabase
 {
 	public function __construct(
 		private Database $db
-	)
-	{
+	) {
 		$this->db->mountNamedQueries(__DIR__ . '/../sql');
 	}
 
 	static function fromConfig(Config $config): SecurityDatabase
 	{
 		$path = "{$config->dataDir()}/security.db";
-		return new SecurityDatabase(new Database( new \Sqlite3($path)));
+		return new SecurityDatabase(new Database(new \Sqlite3($path)));
 	}
 
 	public function lock(): bool
@@ -32,11 +31,9 @@ class SecurityDatabase
 		$this->db->exec('temp-src-caps');
 
 		$stmt = $this->db->prepare('insert-src-cap');
-		foreach ($apps as $key => $app)
-		{
+		foreach ($apps as $key => $app) {
 			$caps = $app->capabilities();
-			foreach ($caps as $name => $def)
-			{
+			foreach ($caps as $name => $def) {
 				$stmt->execWith([
 					':app' => $key,
 					':name' => $name
@@ -60,8 +57,7 @@ class SecurityDatabase
 
 	private function initReentrant(): ?string
 	{
-		if ($this->db->queryValue('table-exists', 'props'))
-		{
+		if ($this->db->queryValue('table-exists', 'props')) {
 			// assume this was already created and we just need to update
 			return null;
 		}
@@ -127,26 +123,22 @@ class SecurityDatabase
 	// https://developers.google.com/identity/gsi/web/guides/verify-google-id-token
 	public function signInWithGoogle(?string &$err = null): ?int
 	{
-		if (empty($_POST["g_csrf_token"]))
-		{
+		if (empty($_POST["g_csrf_token"])) {
 			$err = "POST does not contain CSRF token.";
 			return null;
 		}
 
-		if (empty($_COOKIE["g_csrf_token"]))
-		{
+		if (empty($_COOKIE["g_csrf_token"])) {
 			$err = "Cookie does not contain CSRF token.\n";
 			return null;
 		}
 
-		if ($_POST["g_csrf_token"] != $_COOKIE["g_csrf_token"])
-		{
+		if ($_POST["g_csrf_token"] != $_COOKIE["g_csrf_token"]) {
 			$err = "Failed to validate CSRF token.";
 			return null;
 		}
 
-		if (empty($_POST["credential"]))
-		{
+		if (empty($_POST["credential"])) {
 			$err = "POST does not contain credentials.";
 			return null;
 		}
@@ -156,66 +148,52 @@ class SecurityDatabase
 
 		$old_leeway = \Firebase\JWT\JWT::$leeway;
 
-		try
-		{
+		try {
 			// let's give 5min buffer for server time offset
 			// see https://github.com/firebase/php-jwt/issues/475
-			\Firebase\JWT\JWT::$leeway = 5*60;
+			\Firebase\JWT\JWT::$leeway = 5 * 60;
 			$payload = $client->verifyIdToken($_POST['credential']);
-		}
-		catch (\Exception $e)
-		{
+		} catch (\Exception $e) {
 			$err = $e->getMessage();
 			return null;
-		}
-		finally
-		{
+		} finally {
 			\Firebase\JWT\JWT::$leeway = $old_leeway;
 		}
 
-		if (!$payload)
-		{
+		if (!$payload) {
 			$err = "Invalid credentials";
 			return null;
 		}
 
 		$google_id = $payload['sub'] ?? null;
-		if (!$google_id)
-		{
+		if (!$google_id) {
 			$err = 'Google changed the way they send a user ID and this website does not yet handle the new way.';
 			return null;
 		}
 
 		$email = $payload['email'] ?? null;
-		if (!$email)
-		{
+		if (!$email) {
 			$err = 'The signed in user did not give this site access to his/her email, so authentication is impossible.';
 			return null;
 		}
 
-		if (!($payload['email_verified'] ?? false))
-		{
+		if (!($payload['email_verified'] ?? false)) {
 			$err = 'The signed in user\'s email could not be verified.';
 			return null;
 		}
 
 		$google_user = $this->db->queryRow('get-google-user', $email);
-		if (!$google_user)
-		{
+		if (!$google_user) {
 			$err = 'The user is not registered on the system.';
 			return null;
 		}
 
-		if (isset($google_user['google_user_id']))
-		{
-			if ($google_user['google_user_id'] != $google_id)
-			{
+		if (isset($google_user['google_user_id'])) {
+			if ($google_user['google_user_id'] != $google_id) {
 				$err = 'Something seems wrong with the signed in user\'s google account.';
 				return null;
 			}
-		}
-		else
-		{
+		} else {
 			$this->db->query('update-google-user-id', [
 				':email' => $email,
 				':id' => $google_id
@@ -271,11 +249,9 @@ class SecurityDatabase
 
 	public function saveGmail(int $user_id, array $emails, ?string &$error): bool
 	{
-		foreach ($emails as $email)
-		{
+		foreach ($emails as $email) {
 			$len = \strlen($email);
-			if ($len > 128)
-			{
+			if ($len > 128) {
 				$error = "email '$email' exceeds max of 128 characters.";
 				return false;
 			}
@@ -339,8 +315,7 @@ class SecurityDatabase
 		]);
 
 		$this->db->query('delete-group-capabilities', $group->id);
-		foreach ($group->capabilities as $id)
-		{
+		foreach ($group->capabilities as $id) {
 			$this->db->query('add-group-capability', [
 				':group' => $group->id,
 				':cap' => $id
@@ -353,7 +328,7 @@ class SecurityDatabase
 		$this->db->query('add-user');
 
 		$id = $this->db->lastInsertRowId();
-		$this->db->query('join-group', [ ':user' => $id ]);
+		$this->db->query('join-group', [':user' => $id]);
 
 		return $this->loadUser($id);
 	}
@@ -380,8 +355,7 @@ class SecurityDatabase
 
 		$this->db->query('forget-user-groups', $id);
 
-		foreach ($user->groups as $gid)
-		{
+		foreach ($user->groups as $gid) {
 			$this->db->query('join-group', [
 				':user' => $id,
 				':group' => $gid
@@ -403,8 +377,7 @@ class SecurityDatabase
 	function issueNonce(string $username, ?string &$err): ?string
 	{
 		$user = $this->loadUserByName($username);
-		if (!$user)
-		{
+		if (!$user) {
 			$err = "User '$username' does not exist";
 			return null;
 		}
@@ -420,23 +393,39 @@ class SecurityDatabase
 
 	function authPluginEnabled(string $key): bool
 	{
-		return !is_null($this->db->queryValue('get-prop', "auth-plugin-$key-enabled"));
+		return !\is_null($this->db->queryValue('get-prop', "auth-plugin-$key-enabled"));
+	}
+
+	function authPluginVisible(string $key): bool
+	{
+		return \is_null($this->db->queryValue('get-prop', "auth-plugin-$key-invisible"));
 	}
 
 	function setAuthPluginEnabled(string $key, bool $enabled): void
 	{
 		$prop = "auth-plugin-$key-enabled";
 
-		if ($enabled)
-		{
+		if ($enabled) {
 			$this->db->query('set-prop', [
 				':name' => $prop,
 				':value' => '1'
 			]);
-		}
-		else
-		{
+		} else {
 			$this->db->query('delete-prop', $prop);
+		}
+	}
+
+	function setAuthPluginVisible(string $key, bool $visible): void
+	{
+		$prop = "auth-plugin-$key-invisible";
+
+		if ($visible) {
+			$this->db->query('delete-prop', $prop);
+		} else {
+			$this->db->query('set-prop', [
+				':name' => $prop,
+				':value' => '1'
+			]);
 		}
 	}
 
