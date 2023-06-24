@@ -51,9 +51,14 @@ class App extends \Gulachek\Bassline\App
 		return 'Hello';
 	}
 
+	public function iconPath(): string
+	{
+		return __DIR__ . '/svg/face-smile.svg';
+	}
+
 	public function version(): \Gulachek\Bassline\Semver
 	{
-		return new \Gulachek\Bassline\Semver(0,1,1);
+		return new \Gulachek\Bassline\Semver(0, 1, 1);
 	}
 
 	public function install(): ?string
@@ -108,8 +113,7 @@ class App extends \Gulachek\Bassline\App
 		if ($path->isRoot())
 			return new LandingPage();
 
-		if ($path->count() > 1)
-		{
+		if ($path->count() > 1) {
 			\http_response_code(404);
 			echo "Not found";
 			return null;

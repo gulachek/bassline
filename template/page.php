@@ -32,7 +32,7 @@ function blLinkItem(string $href, string $text, string $iconPath)
 		<div class="left">
 			<?php blLinkItem("/", $SITE_NAME, __DIR__ . '/svg/home.svg'); ?>
 			<?php foreach ($APPS as $appHref => $app) : ?>
-				<?php blLinkItem("/$appHref/", $app->title(), __DIR__ . '/svg/home.svg'); ?>
+				<?php blLinkItem("/$appHref/", $app->title(), $app->iconPath()); ?>
 			<?php endforeach; ?>
 		</div>
 

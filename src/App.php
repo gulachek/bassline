@@ -8,13 +8,17 @@ class App extends Responder
 {
 	public function __construct(
 		private string $docroot
-	)
-	{
+	) {
 	}
 
 	public function title(): string
 	{
 		return '[Title]';
+	}
+
+	public function iconPath(): string
+	{
+		throw new \Exception('not implemented');
 	}
 
 	public function version(): Semver
@@ -96,8 +100,7 @@ class MethodHandler extends Responder
 	public function __construct(
 		private mixed $obj,
 		private string $method
-	)
-	{
+	) {
 	}
 
 	public function respond(RespondArg $arg): mixed
