@@ -31,10 +31,6 @@ const styles = [
 
 for (const style of styles) {
   const target = new ScssTarget(sys, `static_src/${style}.scss`);
-
-  // work around dependency issues
-  if (style === 'main') target.dependsOn('static_src/nav.scss');
-
   main.dependsOn(target);
 }
 
