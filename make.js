@@ -1,10 +1,12 @@
 const { BuildSystem, Target, Path } = require('gulpachek');
-const webpack = require('webpack');
 const webpackConfig = require('./webpack.config');
 const path = require('node:path');
+const fs = require('node:fs');
+const { program } = require('commander');
 
 const { ScssTarget } = require('./buildlib/ScssTarget');
 const { TerserTarget } = require('./buildlib/TerserTarget');
+const { WebpackTarget } = require('./buildlib/WebpackTarget');
 
 function resolve(p) {
   return path.resolve(__dirname, p);
@@ -34,4 +36,50 @@ for (const style of styles) {
   main.dependsOn(target);
 }
 
-main.build();
+const webpackTarget = new WebpackTarget(sys, webpackConfig);
+main.dependsOn(webpackTarget);
+
+/*
+const webpackTest = new WebpackTarget(sys, 'testWebpack.js', {
+  entry: './test/test.js',
+});
+
+main.dependsOn(webpackTest);
+*/
+
+program
+  .command('build', { isDefault: true })
+  .description('Build all targets and exit')
+  .action(() => {
+    main.build();
+  });
+
+program
+  .command('watch')
+  .description(
+    'Watch the filesystem for changes in the source directory and rebuild as needed'
+  )
+  .action(() => {
+    main.build();
+
+    const srcPath = sys.abs('static_src');
+    console.log('watching ', srcPath);
+    //const dstPath = sys.abs(Path.dest('./'));
+
+    fs.watch(srcPath, { recursive: true }, (event, filename) => {
+      const ext = path.extname(filename);
+      switch (ext) {
+        case '.tsx':
+        case '.scss':
+        case '.ts':
+          break;
+        default:
+          return;
+      }
+
+      console.log(event, path.resolve(filename));
+      main.build();
+    });
+  });
+
+program.parse();
