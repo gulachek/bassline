@@ -1,19 +1,19 @@
 import * as React from 'react';
 import {
-	useRef,
-	useMemo,
-	useEffect,
-	useCallback,
-	useState,
-	useReducer,
-	useContext,
-	createContext,
-	useImperativeHandle,
-	FormEvent,
-	ChangeEvent,
-	FC,
-	ReactNode,
-	MutableRefObject
+  useRef,
+  useMemo,
+  useEffect,
+  useCallback,
+  useState,
+  useReducer,
+  useContext,
+  createContext,
+  useImperativeHandle,
+  FormEvent,
+  ChangeEvent,
+  FC,
+  ReactNode,
+  MutableRefObject,
 } from 'react';
 
 import { useElemState } from './useElemState';
@@ -27,507 +27,462 @@ import { ErrorBanner } from './ErrorBanner';
 
 import './user_edit.scss';
 
-interface ISaveReponse
-{
-	errorMsg?: string|null;
-	newKey?: string|null;
+interface ISaveReponse {
+  errorMsg?: string | null;
+  newKey?: string | null;
 }
 
 const UserDispatchContext = createContext(null);
 
 type PluginDataEqualFn = (data: any, savedData: any) => boolean;
 
-interface IAuthPluginScriptModule
-{
-	UserEditor: AuthPluginUserEditComponent;
-	modelEquals: PluginDataEqualFn;
+interface IAuthPluginScriptModule {
+  UserEditor: AuthPluginUserEditComponent;
+  modelEquals: PluginDataEqualFn;
 }
 
-function useModule<T>(script: string)
-{
-	const [mod, setMod] = useState(null);
-	useMemo(async () => {
-		setMod(await requireAsync<T>(script));
-	}, [script]);
+function useModule<T>(script: string) {
+  const [mod, setMod] = useState(null);
+  useMemo(async () => {
+    setMod(await requireAsync<T>(script));
+  }, [script]);
 
-	return mod;
+  return mod;
 }
 
-interface IAuthPluginData
-{
-	key: string;
-	script: string;
-	title: string;
-	data: any;
+interface IAuthPluginData {
+  key: string;
+  script: string;
+  title: string;
+  data: any;
 }
 
-function ModalErrorMsg(props: {msg: string|null})
-{
-	const dialogRef = useRef<HTMLDialogElement>();
-	const { msg } = props;
+function ModalErrorMsg(props: { msg: string | null }) {
+  const dialogRef = useRef<HTMLDialogElement>();
+  const { msg } = props;
 
-	useEffect(() => {
+  useEffect(() => {
+    if (msg) dialogRef.current.showModal();
+    else dialogRef.current.close();
+  }, [dialogRef.current, msg]);
 
-		if (msg)
-			dialogRef.current.showModal();
-		else
-			dialogRef.current.close();
-
-	}, [dialogRef.current, msg]);
-
-	return <dialog ref={dialogRef}>
-		<h2> Error </h2>
-		<p> {msg} </p>
-		<form method="dialog">
-			<button> Ok </button>
-		</form>
-	</dialog>;
+  return (
+    <dialog ref={dialogRef}>
+      <h2> Error </h2>
+      <p> {msg} </p>
+      <form method="dialog">
+        <button> Ok </button>
+      </form>
+    </dialog>
+  );
 }
 
-interface IUser
-{
-	id: number;
-	username: string;
-	is_superuser: boolean;
-	groups: number[];
-	primary_group: number;
-	save_token: string;
+interface IUser {
+  id: number;
+  username: string;
+  is_superuser: boolean;
+  groups: number[];
+  primary_group: number;
+  save_token: string;
 }
 
-function userEquals(left: IUser, right: IUser)
-{
-	if (left.id !== right.id)
-		return false;
+function userEquals(left: IUser, right: IUser) {
+  if (left.id !== right.id) return false;
 
-	if (left.username !== right.username)
-		return false;
+  if (left.username !== right.username) return false;
 
-	if (left.primary_group !== right.primary_group)
-		return false;
+  if (left.primary_group !== right.primary_group) return false;
 
-	if (left.groups.length !== right.groups.length)
-		return false;
+  if (left.groups.length !== right.groups.length) return false;
 
-	const rightSet = new Set(right.groups);
-	for (const gid of left.groups)
-		if (!rightSet.has(gid))
-			return false;
+  const rightSet = new Set(right.groups);
+  for (const gid of left.groups) if (!rightSet.has(gid)) return false;
 
-	return true;
+  return true;
 }
 
-interface IPatterns
-{
-	username: string;
+interface IPatterns {
+  username: string;
 }
 
-interface IFormData
-{
-	user: IUser;
-	pluginData: { [key: string]: any };
-	key: string;
+interface IFormData {
+  user: IUser;
+  pluginData: { [key: string]: any };
+  key: string;
 }
 
-interface IGroup
-{
-	id: number;
-	groupname: string;
+interface IGroup {
+  id: number;
+  groupname: string;
 }
 
 type Groups = { [id: string]: IGroup };
 
-interface IGroupMembershipProps
-{
-	groupMembership: number[];
-	allGroups: Groups;
-	primaryId: number;
+interface IGroupMembershipProps {
+  groupMembership: number[];
+  allGroups: Groups;
+  primaryId: number;
 }
 
-function GroupMembership(props: IGroupMembershipProps)
-{
-	const { groupMembership, allGroups, primaryId } = props;
-	const groupIds = Object.keys(allGroups);
+function GroupMembership(props: IGroupMembershipProps) {
+  const { groupMembership, allGroups, primaryId } = props;
+  const groupIds = Object.keys(allGroups);
 
-	const dispatch = useContext(UserDispatchContext);
+  const dispatch = useContext(UserDispatchContext);
 
-	const switches = groupIds.map((gid) => {
-		const { groupname, id } = allGroups[gid];
-		const inGroup = groupMembership.includes(id);
-		const onCheck = (e: ChangeEvent<HTMLInputElement>) => {
-			dispatch({ type: 'joinGroup', groupId: id, inGroup: e.target.checked });
-		};
+  const switches = groupIds.map((gid) => {
+    const { groupname, id } = allGroups[gid];
+    const inGroup = groupMembership.includes(id);
+    const onCheck = (e: ChangeEvent<HTMLInputElement>) => {
+      dispatch({ type: 'joinGroup', groupId: id, inGroup: e.target.checked });
+    };
 
-		return <div key={gid}>
-			<label>
-				<input type="checkbox" data-groupname={groupname}
-					checked={inGroup}
-					onChange={onCheck}
-					disabled={id === primaryId}
-				/>
-				{groupname}
-			</label>
-		</div>;
-	});
+    return (
+      <div key={gid}>
+        <label>
+          <input
+            type="checkbox"
+            data-groupname={groupname}
+            checked={inGroup}
+            onChange={onCheck}
+            disabled={id === primaryId}
+          />
+          {groupname}
+        </label>
+      </div>
+    );
+  });
 
-	return <section className="section">
-		<h3> Group Membership </h3>
-		{switches}
-	</section>;
+  return (
+    <section className="section">
+      <h3> Group Membership </h3>
+      {switches}
+    </section>
+  );
 }
 
-interface IFieldValidation
-{
-	username: boolean;
-	plugins: { [key: string]: boolean };
+interface IFieldValidation {
+  username: boolean;
+  plugins: { [key: string]: boolean };
 }
 
-function areFieldsValid(fields: IFieldValidation)
-{
-	if (!fields.username)
-		return false;
+function areFieldsValid(fields: IFieldValidation) {
+  if (!fields.username) return false;
 
-	for (const key in fields.plugins)
-		if (!fields.plugins[key])
-			return false;
+  for (const key in fields.plugins) if (!fields.plugins[key]) return false;
 
-	return true;
+  return true;
 }
 
-interface IPageState
-{
-	data: IFormData;
-	savedData: IFormData;
-	validity: IFieldValidation;
-	isSaving: boolean;
+interface IPageState {
+  data: IFormData;
+  savedData: IFormData;
+  validity: IFieldValidation;
+  isSaving: boolean;
 }
 
-interface IPageSetUsernameAction
-{
-	type: 'setUsername';
-	username: string;
-	isValid: boolean;
+interface IPageSetUsernameAction {
+  type: 'setUsername';
+  username: string;
+  isValid: boolean;
 }
 
-interface IPageJoinGroupAction
-{
-	type: 'joinGroup';
-	groupId: number;
-	inGroup: boolean;
+interface IPageJoinGroupAction {
+  type: 'joinGroup';
+  groupId: number;
+  inGroup: boolean;
 }
 
-interface IPageChangePrimaryGroupAction
-{
-	type: 'changePrimaryGroup';
-	groupId: number;
+interface IPageChangePrimaryGroupAction {
+  type: 'changePrimaryGroup';
+  groupId: number;
 }
 
-interface IPageSetPluginDataAction
-{
-	type: 'setPluginData';
-	key: string;
-	data: any;
-	isValid: boolean;
+interface IPageSetPluginDataAction {
+  type: 'setPluginData';
+  key: string;
+  data: any;
+  isValid: boolean;
 }
 
-interface IPageBeginSaveAction
-{
-	type: 'beginSave';
+interface IPageBeginSaveAction {
+  type: 'beginSave';
 }
 
-interface IPageEndSaveAction
-{
-	type: 'endSave';
-	savedData: IFormData;
-	response: ISaveReponse;
+interface IPageEndSaveAction {
+  type: 'endSave';
+  savedData: IFormData;
+  response: ISaveReponse;
 }
 
 type PageAction =
-	IPageSetUsernameAction
-	| IPageSetPluginDataAction
-	| IPageBeginSaveAction
-	| IPageEndSaveAction
-	| IPageJoinGroupAction
-	| IPageChangePrimaryGroupAction
-;
+  | IPageSetUsernameAction
+  | IPageSetPluginDataAction
+  | IPageBeginSaveAction
+  | IPageEndSaveAction
+  | IPageJoinGroupAction
+  | IPageChangePrimaryGroupAction;
 
-function reducer(state: IPageState, action: PageAction): IPageState
-{
-	let { savedData, isSaving } = state;
-	const validity = structuredClone(state.validity);
-	const { data } = state;
-	const { user } = data;
-	let { key } = data;
-	let {
-		username,
-		groups,
-		primary_group,
-		id,
-		is_superuser,
-		save_token
-	 } = user;
-	const pluginData = {...data.pluginData};
+function reducer(state: IPageState, action: PageAction): IPageState {
+  let { savedData, isSaving } = state;
+  const validity = structuredClone(state.validity);
+  const { data } = state;
+  const { user } = data;
+  let { key } = data;
+  let { username, groups, primary_group, id, is_superuser, save_token } = user;
+  const pluginData = { ...data.pluginData };
 
-	const groupSet = new Set(groups);
-	
-	if (action.type === 'setUsername')
-	{
-		username = action.username;
-		validity.username = action.isValid;
-	}
-	else if (action.type === 'setPluginData')
-	{
-		const { key, data, isValid } = action;
-		pluginData[key] = data;
-		validity.plugins[key] = isValid;
-	}
-	else if (action.type === 'beginSave')
-	{
-		isSaving = true;
-	}
-	else if (action.type === 'endSave')
-	{
-		isSaving = false;
-		savedData = action.savedData;
-		if (action.response.newKey) {
-			key = action.response.newKey;
-		}
-	}
-	else if (action.type === 'joinGroup')
-	{
-		if (action.groupId === primary_group)
-			throw new Error('Cannot edit primary group membership');
+  const groupSet = new Set(groups);
 
-		if (action.inGroup)
-		{
-			groupSet.add(action.groupId);
-		}
-		else
-		{
-			groupSet.delete(action.groupId);
-		}
-	}
-	else if (action.type === 'changePrimaryGroup')
-	{
-		if (!groupSet.has(action.groupId))
-			throw new Error('Must set primary group to already joined group');
+  if (action.type === 'setUsername') {
+    username = action.username;
+    validity.username = action.isValid;
+  } else if (action.type === 'setPluginData') {
+    const { key, data, isValid } = action;
+    pluginData[key] = data;
+    validity.plugins[key] = isValid;
+  } else if (action.type === 'beginSave') {
+    isSaving = true;
+  } else if (action.type === 'endSave') {
+    isSaving = false;
+    savedData = action.savedData;
+    if (action.response.newKey) {
+      key = action.response.newKey;
+    }
+  } else if (action.type === 'joinGroup') {
+    if (action.groupId === primary_group)
+      throw new Error('Cannot edit primary group membership');
 
-		primary_group = action.groupId;
-	}
-	else
-	{
-		throw new Error('Unknown action type');
-	}
+    if (action.inGroup) {
+      groupSet.add(action.groupId);
+    } else {
+      groupSet.delete(action.groupId);
+    }
+  } else if (action.type === 'changePrimaryGroup') {
+    if (!groupSet.has(action.groupId))
+      throw new Error('Must set primary group to already joined group');
 
-	groups = Array.from(groupSet);
+    primary_group = action.groupId;
+  } else {
+    throw new Error('Unknown action type');
+  }
 
-	return { savedData, validity, isSaving: false, data: {
-		user: {
-			username,
-			id,
-			groups,
-			primary_group,
-			is_superuser,
-			save_token
-		},
-		pluginData,
-		key,
-	} };
+  groups = Array.from(groupSet);
+
+  return {
+    savedData,
+    validity,
+    isSaving,
+    data: {
+      user: {
+        username,
+        id,
+        groups,
+        primary_group,
+        is_superuser,
+        save_token,
+      },
+      pluginData,
+      key,
+    },
+  };
 }
 
-interface IPageModel
-{
-	errorMsg?: string|null;
-	user: IUser;
-	patterns: IPatterns;
-	usernameMaxLen: number;
-	authPlugins: IAuthPluginData[];
-	groups: Groups;
-	initialSaveKey: string;
+interface IPageModel {
+  errorMsg?: string | null;
+  user: IUser;
+  patterns: IPatterns;
+  usernameMaxLen: number;
+  authPlugins: IAuthPluginData[];
+  groups: Groups;
+  initialSaveKey: string;
 }
 
-interface IPageProps extends IPageModel
-{
-	pluginModules: { [key: string]: IAuthPluginScriptModule };
+interface IPageProps extends IPageModel {
+  pluginModules: { [key: string]: IAuthPluginScriptModule };
 }
 
-function Page(props: IPageProps)
-{
-	const {
-		user,
-		patterns,
-		authPlugins,
-		pluginModules,
-		groups,
-		initialSaveKey,
-		usernameMaxLen
-	} = props;
+function Page(props: IPageProps) {
+  const {
+    user,
+    patterns,
+    authPlugins,
+    pluginModules,
+    groups,
+    initialSaveKey,
+    usernameMaxLen,
+  } = props;
 
-	const [errorMsg, setErrorMsg] = useState(props.errorMsg);
+  const [errorMsg, setErrorMsg] = useState(props.errorMsg);
 
-	const userId = user.id;
+  const userId = user.id;
 
-	const initState = useMemo(() => {
-		const data: IFormData = {
-			user,
-			pluginData: {},
-			key: initialSaveKey
-		};
+  const initState = useMemo(() => {
+    const data: IFormData = {
+      user,
+      pluginData: {},
+      key: initialSaveKey,
+    };
 
-		const pluginValidity: Record<string, boolean> = {};
-		for (const p of authPlugins)
-		{
-			data.pluginData[p.key] = p.data;
-			pluginValidity[p.key] = true;
-		}
+    const pluginValidity: Record<string, boolean> = {};
+    for (const p of authPlugins) {
+      data.pluginData[p.key] = p.data;
+      pluginValidity[p.key] = true;
+    }
 
-		const validity = {
-			username: true,
-			plugins: pluginValidity
-		};
+    const validity = {
+      username: true,
+      plugins: pluginValidity,
+    };
 
-		return { data, savedData: data, validity, isSaving: false };
-	}, [user, userId, authPlugins]);
+    return { data, savedData: data, validity, isSaving: false };
+  }, [user, userId, authPlugins]);
 
-	const [state, dispatch] = useReducer(reducer, initState); 
+  const [state, dispatch] = useReducer(reducer, initState);
 
-	const { data, savedData, isSaving } = state;
+  const { data, savedData, isSaving } = state;
 
-	const plugins: ReactNode[] = [];
-	let pluginHasChange = false;
+  const plugins: ReactNode[] = [];
+  let pluginHasChange = false;
 
-	for (const p of authPlugins)
-	{
-		const { modelEquals, UserEditor } = pluginModules[p.key];
-		pluginHasChange = pluginHasChange
-			|| !modelEquals(data.pluginData[p.key], savedData.pluginData[p.key]);
+  for (const p of authPlugins) {
+    const { modelEquals, UserEditor } = pluginModules[p.key];
+    pluginHasChange =
+      pluginHasChange ||
+      !modelEquals(data.pluginData[p.key], savedData.pluginData[p.key]);
 
-		plugins.push(<section
-				className="section"
-				key={p.key}
-				>
-				<h3> {p.title} </h3>
-				<UserEditor
-					data={data.pluginData[p.key]}
-					setData={(data: any, isValid: boolean) => dispatch(
-						{ type: 'setPluginData', key: p.key, data, isValid }
-					)}
-				/>
-		</section>);
-	}
+    plugins.push(
+      <section className="section" key={p.key}>
+        <h3> {p.title} </h3>
+        <UserEditor
+          data={data.pluginData[p.key]}
+          setData={(data: any, isValid: boolean) =>
+            dispatch({ type: 'setPluginData', key: p.key, data, isValid })
+          }
+        />
+      </section>
+    );
+  }
 
-	const onSave = useCallback(async () => {
-		dispatch({ type: 'beginSave' });
+  const onSave = useCallback(async () => {
+    dispatch({ type: 'beginSave' });
 
-		const submittedData = structuredClone(data);
-		
-		const response = await postJson<ISaveReponse>('/site/admin/users', {
-			body: submittedData,
-			query: {
-				action: 'save'
-			}
-		});
+    const submittedData = structuredClone(data);
 
-		setErrorMsg(response.errorMsg);
+    const response = await postJson<ISaveReponse>('/site/admin/users', {
+      body: submittedData,
+      query: {
+        action: 'save',
+      },
+    });
 
-		if (response.errorMsg)
-			return;
+    setErrorMsg(response.errorMsg);
 
-		dispatch({ type: 'endSave', savedData: submittedData, response });
-		
-	}, [data]);
+    if (response.errorMsg) return;
 
-	const hasChange = !userEquals(data.user, savedData.user)
-		|| pluginHasChange;
+    dispatch({ type: 'endSave', savedData: submittedData, response });
+  }, [data]);
 
-	const setUsername = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-		dispatch({
-			type: 'setUsername',
-			username: e.target.value,
-			isValid: e.target.reportValidity()
-		});
-	}, []);
+  const hasChange = !userEquals(data.user, savedData.user) || pluginHasChange;
 
-	const setPrimaryGroup = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-		const val = parseInt(e.target.value);
-		dispatch({ type: 'changePrimaryGroup', groupId: val });
-	}, []);
+  const setUsername = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    dispatch({
+      type: 'setUsername',
+      username: e.target.value,
+      isValid: e.target.reportValidity(),
+    });
+  }, []);
 
-	const primaryGroupOptions = data.user.groups.map((gid) => {
-		return <option value={gid} key={gid}>
-			{groups[`${gid}`].groupname}
-		</option>;
-	});
+  const setPrimaryGroup = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
+    const val = parseInt(e.target.value);
+    dispatch({ type: 'changePrimaryGroup', groupId: val });
+  }, []);
 
-	const isClientValid = areFieldsValid(state.validity);
+  const primaryGroupOptions = data.user.groups.map((gid) => {
+    return (
+      <option value={gid} key={gid}>
+        {groups[`${gid}`].groupname}
+      </option>
+    );
+  });
 
-	const shouldSave = hasChange && isClientValid && !errorMsg;
+  const isClientValid = areFieldsValid(state.validity);
 
-	return <div className="editor">
-		{errorMsg && <ErrorBanner msg={errorMsg} />}
-		<UserDispatchContext.Provider value={dispatch}>
+  const shouldSave = hasChange && isClientValid && !errorMsg && !isSaving;
 
-		<h1> Edit User </h1>
-		<AutoSaveForm onSave={onSave} shouldSave={shouldSave && !isSaving} />
-		<div className="section-container">
+  return (
+    <div className="editor">
+      {errorMsg && <ErrorBanner msg={errorMsg} />}
+      <UserDispatchContext.Provider value={dispatch}>
+        <h1> Edit User </h1>
+        <AutoSaveForm onSave={onSave} shouldSave={shouldSave} />
+        <div className="section-container">
+          <section className="section">
+            <h3> User Properties </h3>
+            <div>
+              <label>
+                {' '}
+                username:
+                <input
+                  type="text"
+                  value={data.user.username}
+                  onChange={setUsername}
+                  name="username"
+                  title="Enter a username (letters, numbers, or underscores)"
+                  required
+                  pattern={patterns.username}
+                  maxLength={usernameMaxLen}
+                />
+              </label>
+            </div>
+            <div>
+              <label>
+                {' '}
+                Primary Group:
+                <select
+                  onChange={setPrimaryGroup}
+                  value={data.user.primary_group}
+                >
+                  {primaryGroupOptions}
+                </select>
+              </label>
+            </div>
+          </section>
 
-			<section className="section">
-				<h3> User Properties </h3>
-				<div>
-					<label> username:
-						<input type="text"
-							value={data.user.username}
-							onChange={setUsername}
-							name="username"
-							title="Enter a username (letters, numbers, or underscores)"
-							required
-							pattern={patterns.username}
-							maxLength={usernameMaxLen}
-							/>
-					</label>
-				</div>
-				<div>
-					<label> Primary Group:
-						<select
-							onChange={setPrimaryGroup}
-							value={data.user.primary_group}
-						>
-							{primaryGroupOptions}
-						</select>
-					</label>
-				</div>
-			
-			</section>
+          <GroupMembership
+            allGroups={groups}
+            groupMembership={data.user.groups}
+            primaryId={data.user.primary_group}
+          />
 
-			<GroupMembership
-				allGroups={groups}
-				groupMembership={data.user.groups}
-				primaryId={data.user.primary_group}
-			/>
+          {plugins}
+        </div>
 
-			{plugins}
-		</div>
-
-		<p className="status-bar">
-			<SaveIndicator isSaving={shouldSave || isSaving} hasError={!!errorMsg || !isClientValid} />
-		</p>
-
-		</UserDispatchContext.Provider>
-	</div>;
+        <p className="status-bar">
+          <SaveIndicator
+            isSaving={shouldSave || isSaving}
+            hasError={!!errorMsg || !isClientValid}
+          />
+        </p>
+      </UserDispatchContext.Provider>
+    </div>
+  );
 }
 
 renderReactPage<IPageModel>(async (model) => {
-	const promises: Promise<void>[] = [];
-	const modules: { [key: string]: IAuthPluginScriptModule } = {};
+  const promises: Promise<void>[] = [];
+  const modules: { [key: string]: IAuthPluginScriptModule } = {};
 
-	for (const p of model.authPlugins)
-	{
-		promises.push(new Promise(async (res) => {
-			modules[p.key] = await requireAsync<IAuthPluginScriptModule>(p.script);
-			res();
-		}));
-	}
+  for (const p of model.authPlugins) {
+    promises.push(
+      new Promise(async (res) => {
+        modules[p.key] = await requireAsync<IAuthPluginScriptModule>(p.script);
+        res();
+      })
+    );
+  }
 
-	await Promise.all(promises);
+  await Promise.all(promises);
 
-	return <Page {...model} pluginModules={modules} />;
+  return <Page {...model} pluginModules={modules} />;
 });
