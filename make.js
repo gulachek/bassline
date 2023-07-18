@@ -39,14 +39,6 @@ for (const style of styles) {
 const webpackTarget = new WebpackTarget(sys, webpackConfig);
 main.dependsOn(webpackTarget);
 
-/*
-const webpackTest = new WebpackTarget(sys, 'testWebpack.js', {
-  entry: './test/test.js',
-});
-
-main.dependsOn(webpackTest);
-*/
-
 program
   .command('build', { isDefault: true })
   .description('Build all targets and exit')
@@ -64,7 +56,6 @@ program
 
     const srcPath = sys.abs('static_src');
     console.log('watching ', srcPath);
-    //const dstPath = sys.abs(Path.dest('./'));
 
     fs.watch(srcPath, { recursive: true }, (event, filename) => {
       const ext = path.extname(filename);
