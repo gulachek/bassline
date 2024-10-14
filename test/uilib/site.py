@@ -100,7 +100,7 @@ class Site:
         return AdminPage(self.driver)
 
     def clickLoginLink(self):
-        login = self.driver.find_elements(By.CLASS_NAME, 'login')
+        login = self.driver.find_elements(By.LINK_TEXT, 'Log in')
         assert len(login) > 0
         login[0].click()
         return LoginPage(self.driver)
