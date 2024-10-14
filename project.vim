@@ -3,8 +3,8 @@ set path+=test,test/hello/**,test/phpunit/**,test/uilib
 nnoremap <SPACE> :find<SPACE>
 
 " build
-set makeprg=node\ make.js
-nnoremap <Leader>b :!node make.js<CR>
+set makeprg=node\ make.mjs
+nnoremap <Leader>b :!node make.mjs --outdir assets<CR>
 
 " test
 nnoremap <Leader>t :!scripts/test.sh<CR>

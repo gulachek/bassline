@@ -1,10 +1,13 @@
-const path = require('path');
+import * as path from 'node:path';
+
+const { pathname } = new URL(import.meta.url);
+const __dirname = path.dirname(pathname);
 
 function resolve(p) {
   return path.resolve(__dirname, p);
 }
 
-module.exports = {
+export default {
   entry: {
     react: ['react', 'react-dom'],
     user_edit: {
@@ -93,8 +96,5 @@ module.exports = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
-  },
-  output: {
-    path: path.resolve(__dirname, 'assets'),
   },
 };

@@ -1,22 +1,15 @@
 import * as React from 'react';
 import {
-  useRef,
   useMemo,
-  useEffect,
   useCallback,
   useState,
   useReducer,
   useContext,
   createContext,
-  useImperativeHandle,
-  FormEvent,
   ChangeEvent,
-  FC,
   ReactNode,
-  MutableRefObject,
 } from 'react';
 
-import { useElemState } from './useElemState';
 import { renderReactPage } from './renderReactPage';
 import { postJson } from './postJson';
 import { requireAsync } from './requireAsync';
@@ -41,40 +34,11 @@ interface IAuthPluginScriptModule {
   modelEquals: PluginDataEqualFn;
 }
 
-function useModule<T>(script: string) {
-  const [mod, setMod] = useState(null);
-  useMemo(async () => {
-    setMod(await requireAsync<T>(script));
-  }, [script]);
-
-  return mod;
-}
-
 interface IAuthPluginData {
   key: string;
   script: string;
   title: string;
   data: any;
-}
-
-function ModalErrorMsg(props: { msg: string | null }) {
-  const dialogRef = useRef<HTMLDialogElement>();
-  const { msg } = props;
-
-  useEffect(() => {
-    if (msg) dialogRef.current.showModal();
-    else dialogRef.current.close();
-  }, [dialogRef.current, msg]);
-
-  return (
-    <dialog ref={dialogRef}>
-      <h2> Error </h2>
-      <p> {msg} </p>
-      <form method="dialog">
-        <button> Ok </button>
-      </form>
-    </dialog>
-  );
 }
 
 interface IUser {
